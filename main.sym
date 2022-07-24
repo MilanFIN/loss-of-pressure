@@ -7,80 +7,96 @@ Symbol Table
     .__.ABS.                                                    =  000000 G
     .__.CPU.                                                    =  000000 L
     .__.H$L.                                                    =  000000 L
-  0 _BLANK                                                         0004F7 GR
+  0 _BLANK                                                         000507 GR
+    _DIV_REG                                                       ****** GX
+  0 _EMPTYSPRITE                                                   000508 GR
+  0 _ENEMYCOUNT                                                    000509 GR
     _LCDC_REG                                                      ****** GX
-    _LYC_REG                                                       ****** GX
+    _LY_REG                                                        ****** GX
+  2 _PLAYERSIZE                                                    000013 GR
     _SCX_REG                                                       ****** GX
     _SCY_REG                                                       ****** GX
-    _STAT_REG                                                      ****** GX
     _WX_REG                                                        ****** GX
     _WY_REG                                                        ****** GX
+  0 ___str_0                                                       001328 R
     __modsint                                                      ****** GX
-  7 __xinit__bgX                                                   000012 R
-  7 __xinit__bgY                                                   000014 R
+  7 __xinit__PLAYERSIZE                                            000013 R
+  7 __xinit__bgX                                                   00001E R
+  7 __xinit__bgY                                                   000020 R
+  7 __xinit__blob                                                  000008 R
   7 __xinit__hullabel                                              000000 R
-  7 __xinit__maxHull                                               000016 R
-  7 __xinit__maxShield                                             000017 R
-  7 __xinit__playerDrawX                                           000010 R
-  7 __xinit__playerDrawY                                           000011 R
-  7 __xinit__playerX                                               00000C R
-  7 __xinit__playerY                                               00000E R
+  7 __xinit__maxHull                                               000022 R
+  7 __xinit__maxShield                                             000023 R
+  7 __xinit__playerDrawX                                           00001C R
+  7 __xinit__playerDrawY                                           00001D R
+  7 __xinit__playerX                                               000018 R
+  7 __xinit__playerY                                               00001A R
   7 __xinit__shieldlabel                                           000004 R
-  7 __xinit__xDir                                                  000008 R
-  7 __xinit__xSpeed                                                00000A R
-  7 __xinit__yDir                                                  000009 R
-  7 __xinit__ySpeed                                                00000B R
-  0 _abs                                                           00081D GR
-    _add_LCD                                                       ****** GX
+  7 __xinit__xDir                                                  000014 R
+  7 __xinit__xSpeed                                                000016 R
+  7 __xinit__yDir                                                  000015 R
+  7 __xinit__ySpeed                                                000017 R
+  0 _abs                                                           00082F GR
   0 _background1                                                   000087 GR
   0 _backgroundtiles                                               000487 GR
-  2 _bgX                                                           000012 GR
-  2 _bgY                                                           000014 GR
-  0 _checkCollision                                                000C47 GR
-  0 _clamp                                                         000798 GR
+  2 _bgX                                                           00001E GR
+  2 _bgY                                                           000020 GR
+  2 _blob                                                          000008 GR
+  0 _checkCollision                                                001026 GR
+  0 _clamp                                                         0007AA GR
   0 _cross                                                         000007 GR
+  1 _enemies                                                       000000 GR
+  0 _enemy1                                                        0004F7 GR
     _font_init                                                     ****** GX
     _font_load                                                     ****** GX
     _font_min                                                      ****** GX
     _font_set                                                      ****** GX
   0 _healthblock                                                   0004E7 GR
-  1 _hull                                                          000001 GR
+  1 _hull                                                          000038 GR
   2 _hullabel                                                      000000 GR
-  0 _init                                                          000C48 GR
+  0 _initEnemies                                                   000A99 GR
+  0 _initGame                                                      0011DD GR
+    _initrand                                                      ****** GX
   0 _interruptLCD                                                  000000 GR
-  1 _joydata                                                       000000 GR
-    _joypad                                                        ****** GX
-  0 _main                                                          000D49 GR
-  2 _maxHull                                                       000016 GR
-  2 _maxShield                                                     000017 GR
-  1 _min_font                                                      000003 GR
-  0 _move                                                          00082B GR
-  2 _playerDrawX                                                   000010 GR
-  2 _playerDrawY                                                   000011 GR
-  2 _playerX                                                       00000C GR
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy Z80-like CPU), page 2.
 Hexadecimal [24-Bits]
 
 Symbol Table
 
-  2 _playerY                                                       00000E GR
-  0 _setHealthBar                                                  0004F8 GR
+  1 _joydata                                                       000037 GR
+    _joypad                                                        ****** GX
+  0 _main                                                          0012DE GR
+  2 _maxHull                                                       000022 GR
+  2 _maxShield                                                     000023 GR
+  1 _min_font                                                      00003A GR
+  0 _move                                                          000B64 GR
+  0 _moveEnemiesWithBackground                                     00083D GR
+  2 _playerDrawX                                                   00001C GR
+  2 _playerDrawY                                                   00001D GR
+  2 _playerX                                                       000018 GR
+  2 _playerY                                                       00001A GR
+    _printf                                                        ****** GX
+    _rand                                                          ****** GX
+  0 _setHealthBar                                                  00050A GR
     _set_bkg_data                                                  ****** GX
     _set_bkg_tiles                                                 ****** GX
-    _set_interrupts                                                ****** GX
     _set_sprite_data                                               ****** GX
     _set_win_tiles                                                 ****** GX
     _shadow_OAM                                                    ****** GX
-  1 _shield                                                        000002 GR
+  1 _shield                                                        000039 GR
   2 _shieldlabel                                                   000004 GR
-  0 _u16Clamp                                                      0007EF GR
-  0 _uClamp                                                        0007D8 GR
-  0 _updateDirection                                               000609 GR
+  0 _takeDamage                                                    000FE2 GR
+  0 _u16Clamp                                                      000801 GR
+  0 _uClamp                                                        0007EA GR
+  0 _updateDirection                                               00061B GR
+  0 _updateEnemyPositions                                          0008A7 GR
+  0 _updateShieldsAndHull                                          0011A4 GR
     _wait_vbl_done                                                 ****** GX
-  2 _xDir                                                          000008 GR
-  2 _xSpeed                                                        00000A GR
-  2 _yDir                                                          000009 GR
-  2 _ySpeed                                                        00000B GR
+    _waitpad                                                       ****** GX
+  2 _xDir                                                          000014 GR
+  2 _xSpeed                                                        000016 GR
+  2 _yDir                                                          000015 GR
+  2 _ySpeed                                                        000017 GR
 
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy Z80-like CPU), page 3.
@@ -88,13 +104,13 @@ Hexadecimal [24-Bits]
 
 Area Table
 
-   0 _CODE                                      size    D82   flags    0
-   1 _DATA                                      size      5   flags    0
-   2 _INITIALIZED                               size     18   flags    0
+   0 _CODE                                      size   1339   flags    0
+   1 _DATA                                      size     3C   flags    0
+   2 _INITIALIZED                               size     24   flags    0
    3 _DABS                                      size      0   flags    8
    4 _HOME                                      size      0   flags    0
    5 _GSINIT                                    size      0   flags    0
    6 _GSFINAL                                   size      0   flags    0
-   7 _INITIALIZER                               size     18   flags    0
+   7 _INITIALIZER                               size     24   flags    0
    8 _CABS                                      size      0   flags    8
 

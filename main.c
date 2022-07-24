@@ -6,11 +6,20 @@
 #include "data/backgroundtiles.c"
 #include "data/windowmap.c"
 #include "data/healthblock.c"
-#include <gbdk/font.h>
+#include "data/enemy.c"
 
+#include <gbdk/font.h>
+#include <rand.h>
 
 //global variables
 const unsigned char BLANK[1] = {0x26}; 
+const unsigned char EMPTYSPRITE = 0x50;
+
+struct Enemy enemies[5];
+const uint8_t ENEMYCOUNT = 5;
+
+uint8_t PLAYERSIZE = 8;
+
 
 int8_t xDir = 0;
 int8_t yDir = 0;
@@ -168,6 +177,56 @@ int8_t abs(int8_t value) {
 	else return - value;
 }
 
+void moveEnemiesWithBackground(int16_t x, int16_t y) {
+	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
+		enemies[i].x -= x;
+		enemies[i].y -= y;
+	}
+}
+
+void updateEnemyPositions() {
+	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
+		//hide if not on screen, this must be done as the background loops around, and the enemy sprites shouldn't!
+		if (enemies[i].alive) {
+			if (enemies[i].visible == 1) {
+				if (enemies[i].x < 0 || enemies[i].x > 172 || enemies[i].y < 0 || enemies[i].y > 152) {
+					enemies[i].visible = 0;
+					set_sprite_tile(10+i, EMPTYSPRITE);
+				} 
+			}
+			else {
+				if (enemies[i].x >= 0 && enemies[i].x < 172 && enemies[i].y > 0 && enemies[i].y < 152) {
+					enemies[i].visible = 1;
+					set_sprite_tile(10+i, enemies[i].sprite0);
+				}
+			}
+
+		}
+		move_sprite(10+i, enemies[i].x, enemies[i].y);
+	}
+}
+
+void initEnemies() {
+
+	//loading enemy sprites to vram
+	set_sprite_data(9, 1, enemy1);
+
+	//initializing enemy list with structs
+  for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
+	enemies[i].x = (rand() & 7) << 3;
+	enemies[i].y = (rand() & 7) << 3;
+
+	enemies[i].sprite0 = 9;
+	enemies[i].spriteCount = 1;
+	enemies[i].alive = 1;
+	enemies[i].visible = 1;
+	enemies[i].damage = 50;
+
+	set_sprite_tile(10+i, enemies[i].sprite0);
+	move_sprite(10+i, enemies[i].x, enemies[i].y);
+  }
+}
+
 
 void move() {
 
@@ -181,6 +240,9 @@ void move() {
 
 	xSpeed = clamp(xSpeed, -100, 100);
 	ySpeed = clamp(ySpeed, -100, 100);
+
+	int16_t xOverflow = 0;
+	int16_t yOverflow = 0;
 
 	//x direction collision detections first
 
@@ -209,7 +271,7 @@ void move() {
 
 		uint16_t limitedPlayerX = u16Clamp(playerX, 58<<5, 110<<5);//0->160, with 8 px margin for left edge & 50px for the edges
 		
-		int16_t xOverflow = (playerX - limitedPlayerX);
+		xOverflow = (playerX - limitedPlayerX);
 		if (xOverflow >= 0) {
 			xOverflow = xOverflow >> 5;
 		}
@@ -257,7 +319,7 @@ void move() {
 
 		uint16_t limitedPlayerY = u16Clamp(playerY, 61<<5, 107<<5);//0->144, with 16px margin for top & -8 for bottom, 45px for edges
 		
-		int16_t yOverflow = (playerY - limitedPlayerY);
+		yOverflow = (playerY - limitedPlayerY);
 		if (yOverflow >= 0) {
 			yOverflow = yOverflow >> 5;
 		}
@@ -292,10 +354,7 @@ void move() {
 	}
 
 	move_bkg(bgX, bgY);
-	//scroll_bkg(1, 0);
-
-	//int8_t winOffset = bgX % 8;
-	//move_win(winOffset, 120);
+	moveEnemiesWithBackground(xOverflow, yOverflow);
 
 	//bleed speed
 	if (ySpeed > 0) ySpeed--;
@@ -307,12 +366,48 @@ void move() {
 	
 }
 
+void takeDamage(int16_t amount) {
+	if (amount > shield) {
+		shield = 0;
+		hull -= (amount - shield);
+	}
+	else {
+		shield -= amount;
+	}
+}
+
 void checkCollision() {
-	//TODO
+	//playerDrawX
+
+	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
+		if (enemies[i].visible && enemies[i].alive) {
+			uint8_t x = enemies[i].x;
+			uint8_t y = enemies[i].y;
+
+			if (x > playerDrawX - PLAYERSIZE && x - (8>>(enemies[i].spriteCount-1)) < playerDrawX
+					&& y > playerDrawY - PLAYERSIZE && y -(8>>(enemies[i].spriteCount-1)) < playerDrawY ) 
+			{
+				set_sprite_tile(10+i, EMPTYSPRITE);
+				enemies[i].alive = 0;
+				takeDamage(enemies[i].damage);
+			}
+
+
+		}
+
+	}
 }
 
 
-void init() {
+void updateShieldsAndHull() {
+	if (shield < maxShield) {
+		shield += 1;
+	}
+	setHealthBar(0, hull);
+	setHealthBar(1, shield);
+}
+
+void initGame() {
 
 
 	xDir = 0;
@@ -357,10 +452,6 @@ void init() {
 	setHealthBar(0, hull);
 	setHealthBar(1, shield);
 
-	
-	//set_win_tiles(5,0,5,1,healthmap);
-	//set_win_tiles(5,1,5,1,healthmap);
-
 	move_win(7,124);
 	SHOW_WIN;;
 
@@ -372,28 +463,50 @@ void init() {
 	move_bkg(0,0);
 	SHOW_BKG;
 
+
+
+	
+
 }
 
 void main(){
 
+	/*
     STAT_REG = 0x45;
     LYC_REG = 0x0e;//0x08;  //  Fire LCD Interupt on the 8th scan line (just first row)
     disable_interrupts();
     add_LCD(interruptLCD);
     enable_interrupts();
     set_interrupts(VBL_IFLAG | LCD_IFLAG);   
+	*/
+
+	printf("PRESS A TO START");
+	waitpad(J_A);
+	uint16_t seed = LY_REG;
+	seed |= (uint16_t)DIV_REG << 8;
+	initrand(seed);
+
 
 	while(1) {
 
-		init();
+		initGame();
+		initEnemies();
 
 		while(1) {
 			joydata = joypad(); // query for button states
 
 			updateDirection(); // set player direction
-			move(); //move player, also takes damage in case of sudden stop against background elements
+			//move player, in future also checks collision damage with background objs
+			//also updates enemy positions, if background moves
+			move(); 
+			//updates enemy positions to take account changes made by move()
+			updateEnemyPositions();
 
-			checkCollision(); //todo check for collisions with other sprites
+			//TODO check player for collisions with other sprites
+			checkCollision(); 
+
+			updateShieldsAndHull();
+
 	        SHOW_WIN;	
 			wait_vbl_done(); // Idle until next frame
 		}
