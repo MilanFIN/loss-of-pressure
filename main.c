@@ -18,6 +18,19 @@ const unsigned char EMPTYSPRITE = 0x50;
 struct Enemy enemies[5];
 const uint8_t ENEMYCOUNT = 5;
 
+//enemy spawn positions
+const uint8_t xSpawnPositions[8] = {
+	0, 96, 176,
+	0 , 176,
+	0, 96, 176
+};
+const uint8_t ySpawnPositions[8] = {
+	0, 0, 0,
+	92 ,92,
+	160, 160, 160
+};
+
+
 uint8_t PLAYERSIZE = 8;
 
 
@@ -172,6 +185,10 @@ uint16_t u16Clamp( uint16_t value, uint16_t min, uint16_t max )
     return (value < min) ? min : (value > max) ? max : value;
 }
 
+int16_t i16Clamp( int16_t value, int16_t min, int16_t max )
+{
+    return (value < min) ? min : (value > max) ? max : value;
+}
 int8_t abs(int8_t value) {
 	if (value >= 0) return value;
 	else return - value;
@@ -185,6 +202,43 @@ void moveEnemiesWithBackground(int16_t x, int16_t y) {
 }
 
 void updateEnemyPositions() {
+
+	//update enemy speeds and positions
+	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
+		if (enemies[i].x < playerDrawX) {
+			enemies[i].xSpeed += enemies[i].accel;
+		}
+		else {
+			enemies[i].xSpeed -= enemies[i].accel;
+		}
+		if (enemies[i].y < playerDrawY) {
+			enemies[i].ySpeed += enemies[i].accel;
+		}
+		else {
+			enemies[i].ySpeed -= enemies[i].accel;
+		}
+		//clamp to max speed
+		enemies[i].xSpeed = i16Clamp(enemies[i].xSpeed, -enemies[i].speed, enemies[i].speed);
+		enemies[i].ySpeed = i16Clamp(enemies[i].ySpeed, -enemies[i].speed, enemies[i].speed);
+
+		if (enemies[i].xSpeed >= 0) {
+			enemies[i].x += enemies[i].xSpeed >> 5;
+		}
+		else {
+			enemies[i].x -= ((-enemies[i].xSpeed) >> 5);
+		}
+		if (enemies[i].ySpeed >= 0) {
+			enemies[i].y += enemies[i].ySpeed >> 5;
+		}
+		else {
+			enemies[i].y -= ((-enemies[i].ySpeed) >> 5);
+		}
+
+
+	}
+
+
+
 	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
 		//hide if not on screen, this must be done as the background loops around, and the enemy sprites shouldn't!
 		if (enemies[i].alive) {
@@ -206,24 +260,37 @@ void updateEnemyPositions() {
 	}
 }
 
-void initEnemies() {
+void initEnemies(uint8_t loadSprites) {
 
-	//loading enemy sprites to vram
-	set_sprite_data(9, 1, enemy1);
+	if (loadSprites) {
+		//loading enemy sprites to vram
+		set_sprite_data(9, 1, enemy1);
+
+	}
 
 	//initializing enemy list with structs
   for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
-	enemies[i].x = (rand() & 7) << 3;
-	enemies[i].y = (rand() & 7) << 3;
+	  if (enemies[i].alive == 0) {
+		uint8_t posIndex =  ((uint8_t)rand()) % (uint8_t)8;//(rand() & 8);
+		enemies[i].x = xSpawnPositions[posIndex];
+		enemies[i].y = ySpawnPositions[posIndex];
 
-	enemies[i].sprite0 = 9;
-	enemies[i].spriteCount = 1;
-	enemies[i].alive = 1;
-	enemies[i].visible = 1;
-	enemies[i].damage = 50;
+		enemies[i].sprite0 = 9;
+		enemies[i].spriteCount = 1;
+		enemies[i].alive = 1;
+		enemies[i].visible = 1;
+		enemies[i].damage = 50;
+		enemies[i].speed = 35;
+		enemies[i].accel = 10;
+		enemies[i].xSpeed = 0;
+		enemies[i].ySpeed = 0;
 
-	set_sprite_tile(10+i, enemies[i].sprite0);
-	move_sprite(10+i, enemies[i].x, enemies[i].y);
+ 
+
+
+		set_sprite_tile(10+i, enemies[i].sprite0);
+		move_sprite(10+i, enemies[i].x, enemies[i].y);
+	  }
   }
 }
 
@@ -390,6 +457,7 @@ void checkCollision() {
 				set_sprite_tile(10+i, EMPTYSPRITE);
 				enemies[i].alive = 0;
 				takeDamage(enemies[i].damage);
+				initEnemies(0);
 			}
 
 
@@ -480,7 +548,7 @@ void main(){
     set_interrupts(VBL_IFLAG | LCD_IFLAG);   
 	*/
 
-	printf("PRESS A TO START");
+	//printf("PRESS A TO START");
 	waitpad(J_A);
 	uint16_t seed = LY_REG;
 	seed |= (uint16_t)DIV_REG << 8;
@@ -490,7 +558,7 @@ void main(){
 	while(1) {
 
 		initGame();
-		initEnemies();
+		initEnemies(1);
 
 		while(1) {
 			joydata = joypad(); // query for button states

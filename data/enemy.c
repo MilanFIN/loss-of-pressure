@@ -12,6 +12,11 @@ typedef struct Enemy {
 	uint8_t alive;
 	uint8_t visible;
 	uint8_t damage;
+
+	int16_t speed;
+	uint8_t accel;
+	int16_t xSpeed;
+	int16_t ySpeed; 
 };
 
 struct Enemy blob = {
