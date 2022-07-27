@@ -4,6 +4,10 @@ typedef struct Enemy {
 	int16_t x;
 	int16_t y;
 
+	int8_t xReserve;
+	int8_t yReserve;
+
+
 	uint8_t sprite0;
 	uint8_t sprite1;
 

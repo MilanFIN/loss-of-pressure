@@ -221,18 +221,37 @@ void updateEnemyPositions() {
 		enemies[i].xSpeed = i16Clamp(enemies[i].xSpeed, -enemies[i].speed, enemies[i].speed);
 		enemies[i].ySpeed = i16Clamp(enemies[i].ySpeed, -enemies[i].speed, enemies[i].speed);
 
-		if (enemies[i].xSpeed >= 0) {
-			enemies[i].x += enemies[i].xSpeed >> 5;
+		
+		enemies[i].xReserve += enemies[i].xSpeed;
+		enemies[i].yReserve += enemies[i].ySpeed;
+		
+
+		
+		if (enemies[i].xReserve >> 3 > 0) {
+			int8_t xMovement = enemies[i].xReserve >> 3;
+			enemies[i].x += xMovement;
+			enemies[i].xReserve -=  xMovement << 3;
+
 		}
-		else {
-			enemies[i].x -= ((-enemies[i].xSpeed) >> 5);
+		else if ((-enemies[i].xReserve) >> 3 > 0){
+			int8_t xMovement = -((-enemies[i].xReserve) >> 3);
+			enemies[i].x += xMovement;
+			enemies[i].xReserve +=  (-xMovement) << 3;
 		}
-		if (enemies[i].ySpeed >= 0) {
-			enemies[i].y += enemies[i].ySpeed >> 5;
+		
+		if (enemies[i].yReserve >> 3 > 0) {
+			int8_t yMovement = enemies[i].yReserve >> 3;
+			enemies[i].y += yMovement;
+			enemies[i].yReserve -=  yMovement << 3;
 		}
-		else {
-			enemies[i].y -= ((-enemies[i].ySpeed) >> 5);
+		else if ((-enemies[i].yReserve) >> 3 > 0){
+			int8_t yMovement = -((-enemies[i].yReserve) >> 3);
+			enemies[i].y += yMovement;
+			enemies[i].yReserve +=  (-yMovement) << 3;
 		}
+		
+		
+
 
 
 	}
@@ -280,8 +299,8 @@ void initEnemies(uint8_t loadSprites) {
 		enemies[i].alive = 1;
 		enemies[i].visible = 1;
 		enemies[i].damage = 50;
-		enemies[i].speed = 35;
-		enemies[i].accel = 10;
+		enemies[i].speed = 10;
+		enemies[i].accel = 1;
 		enemies[i].xSpeed = 0;
 		enemies[i].ySpeed = 0;
 
