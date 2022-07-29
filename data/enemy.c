@@ -7,7 +7,6 @@ typedef struct Enemy {
 	int8_t xReserve;
 	int8_t yReserve;
 
-
 	uint8_t sprite0;
 	uint8_t sprite1;
 
@@ -23,17 +22,34 @@ typedef struct Enemy {
 	int16_t ySpeed; 
 };
 
-struct Enemy blob = {
-		10,
-	10,
-	0,
-	0,
-	1,
-	1
+struct Enemy blob =  {
+	0,//x
+	0, //y
+	0, // xReserve;
+	0, // yReserve;
+
+	9,// sprite0;
+	0,//uint8_t sprite1;
+
+	1,// spriteCount;
+
+	1, // alive;
+	1, // visible;
+	50, // damage;
+
+	10,// speed;
+	1,// accel;
+	0,// xSpeed;
+	0// ySpeed; 
 };
 
-
 const unsigned char enemy1[] =
+{
+  0x3C,0x3C,0x7E,0x7E,0xFF,0xFF,0xFF,0xFF,
+  0xFF,0xFF,0xFF,0xFF,0x7E,0x7E,0x3C,0x3C
+};
+
+const unsigned char projectile1[] =
 {
   0x3C,0x3C,0x7E,0x7E,0xFF,0xFF,0xFF,0xFF,
   0xFF,0xFF,0xFF,0xFF,0x7E,0x7E,0x3C,0x3C

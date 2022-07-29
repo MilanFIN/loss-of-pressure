@@ -7,9 +7,11 @@
 #include "data/windowmap.c"
 #include "data/healthblock.c"
 #include "data/enemy.c"
+#include "data/projectile.c"
 
 #include <gbdk/font.h>
 #include <rand.h>
+
 
 //global variables
 const unsigned char BLANK[1] = {0x26}; 
@@ -29,6 +31,12 @@ const uint8_t ySpawnPositions[8] = {
 	92 ,92,
 	160, 160, 160
 };
+
+struct Projectile projectiles[5];
+//max supported projectiles on screen at once
+const uint8_t PROJECTILECOUNT = 5;
+uint8_t oldestProjectile = 0;
+uint8_t fireCooldown = 0;
 
 
 uint8_t PLAYERSIZE = 8;
@@ -59,6 +67,9 @@ int8_t shield;
 int8_t maxShield = 100;
 
 font_t min_font;
+
+int16_t xOverflow = 0;
+int16_t yOverflow = 0;
 
 
 
@@ -194,17 +205,33 @@ int8_t abs(int8_t value) {
 	else return - value;
 }
 
-void moveEnemiesWithBackground(int16_t x, int16_t y) {
+void moveSpritesWithBackground(int8_t x, int8_t y) {
 	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
 		enemies[i].x -= x;
 		enemies[i].y -= y;
 	}
+	
+	/*
+	for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
+		projectiles[i].x -= x;
+		projectiles[i].y -= y;
+	}
+	
+	*/
+
 }
+
+
 
 void updateEnemyPositions() {
 
 	//update enemy speeds and positions
 	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
+
+		enemies[i].x -= xOverflow;
+		enemies[i].y -= yOverflow;
+
+
 		if (enemies[i].x < playerDrawX) {
 			enemies[i].xSpeed += enemies[i].accel;
 		}
@@ -264,7 +291,7 @@ void updateEnemyPositions() {
 			if (enemies[i].visible == 1) {
 				if (enemies[i].x < 0 || enemies[i].x > 172 || enemies[i].y < 0 || enemies[i].y > 152) {
 					enemies[i].visible = 0;
-					set_sprite_tile(10+i, EMPTYSPRITE);
+					set_sprite_tile(10+i, 0x7f);
 				} 
 			}
 			else {
@@ -283,28 +310,20 @@ void initEnemies(uint8_t loadSprites) {
 
 	if (loadSprites) {
 		//loading enemy sprites to vram
-		set_sprite_data(9, 1, enemy1);
+		set_sprite_data(9, 2, enemy1);
 
 	}
 
 	//initializing enemy list with structs
   for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
-	  if (enemies[i].alive == 0) {
-		uint8_t posIndex =  ((uint8_t)rand()) % (uint8_t)8;//(rand() & 8);
-		enemies[i].x = xSpawnPositions[posIndex];
-		enemies[i].y = ySpawnPositions[posIndex];
+	  	if (enemies[i].alive == 0) {
 
-		enemies[i].sprite0 = 9;
-		enemies[i].spriteCount = 1;
-		enemies[i].alive = 1;
-		enemies[i].visible = 1;
-		enemies[i].damage = 50;
-		enemies[i].speed = 10;
-		enemies[i].accel = 1;
-		enemies[i].xSpeed = 0;
-		enemies[i].ySpeed = 0;
+			enemies[i] = blob;
+		
 
- 
+			uint8_t posIndex =  ((uint8_t)rand()) % (uint8_t)8;//(rand() & 8);
+			enemies[i].x = xSpawnPositions[posIndex];
+			enemies[i].y = ySpawnPositions[posIndex];
 
 
 		set_sprite_tile(10+i, enemies[i].sprite0);
@@ -327,8 +346,8 @@ void move() {
 	xSpeed = clamp(xSpeed, -100, 100);
 	ySpeed = clamp(ySpeed, -100, 100);
 
-	int16_t xOverflow = 0;
-	int16_t yOverflow = 0;
+	xOverflow = 0;
+	yOverflow = 0;
 
 	//x direction collision detections first
 
@@ -440,7 +459,6 @@ void move() {
 	}
 
 	move_bkg(bgX, bgY);
-	moveEnemiesWithBackground(xOverflow, yOverflow);
 
 	//bleed speed
 	if (ySpeed > 0) ySpeed--;
@@ -473,16 +491,30 @@ void checkCollision() {
 			if (x > playerDrawX - PLAYERSIZE && x - (8>>(enemies[i].spriteCount-1)) < playerDrawX
 					&& y > playerDrawY - PLAYERSIZE && y -(8>>(enemies[i].spriteCount-1)) < playerDrawY ) 
 			{
-				set_sprite_tile(10+i, EMPTYSPRITE);
+				set_sprite_tile(10+i, 0x7f);
 				enemies[i].alive = 0;
 				takeDamage(enemies[i].damage);
 				initEnemies(0);
 			}
 
+			//TODO: collision checks for projectiles kill performance
+			/*
+			for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
+				if (projectiles[i].active) {
+					uint8_t pX = projectiles[i].x;
+					uint8_t pY = projectiles[i].y;
+				}
+			}
+			*/
 
 		}
 
+
+
+		
 	}
+
+
 }
 
 
@@ -492,6 +524,61 @@ void updateShieldsAndHull() {
 	}
 	setHealthBar(0, hull);
 	setHealthBar(1, shield);
+}
+
+void fire() {
+	//todo: loop through projectiles, get biggest & smallest id
+	//if biggest == 255, revert range to 0-5
+	// remove smallest, and add biggest+1
+
+
+
+	oldestProjectile += 1;
+	if (oldestProjectile >= PROJECTILECOUNT) {
+		oldestProjectile = 0;
+	}
+
+	projectiles[oldestProjectile] = weakProjectile;
+	projectiles[oldestProjectile].x = playerDrawX;
+	projectiles[oldestProjectile].y = playerDrawY;
+
+	set_sprite_tile(20+oldestProjectile, 20);
+	move_sprite(20+oldestProjectile, playerDrawX, playerDrawY);
+	fireCooldown = 30;
+
+}
+
+
+void moveProjectiles() {
+	
+	for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
+		projectiles[i].x -= xOverflow;
+		projectiles[i].y -= yOverflow;
+
+		if (projectiles[i].active) {
+			int16_t newY = projectiles[i].y - 1;
+			move_sprite(20+i, projectiles[i].x, newY);
+			projectiles[i].y = newY;
+
+
+
+			if (abs(projectiles[i].x - playerDrawX) > 100 || abs(projectiles[i].y - playerDrawY) > 100) {
+				projectiles[i].active = 0;
+				set_sprite_tile(20+i, 0x7f);
+			}
+		}
+	}
+	
+}
+
+
+void initProjectiles() {
+	set_sprite_data(20, 2, projectile1);
+
+	for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
+		projectiles[i].active == 0;	
+
+	}
 }
 
 void initGame() {
@@ -539,7 +626,7 @@ void initGame() {
 	setHealthBar(0, hull);
 	setHealthBar(1, shield);
 
-	move_win(7,124);
+	move_win(7,126);
 	SHOW_WIN;;
 
 
@@ -578,8 +665,11 @@ void main(){
 
 		initGame();
 		initEnemies(1);
+		initProjectiles();
 
 		while(1) {
+
+
 			joydata = joypad(); // query for button states
 
 			updateDirection(); // set player direction
@@ -589,10 +679,30 @@ void main(){
 			//updates enemy positions to take account changes made by move()
 			updateEnemyPositions();
 
-			//TODO check player for collisions with other sprites
+
 			checkCollision(); 
 
 			updateShieldsAndHull();
+
+
+			if (joydata & J_B && fireCooldown == 0) {
+				fire();
+			}
+			if (fireCooldown > 0) {
+				--fireCooldown;
+			}
+
+			moveProjectiles();
+
+			//TODO: use this pattern to access arrays in a loop...
+			// create a pointer to array and increment when needed
+			/*
+			struct Enemy *ptr = enemies;
+			printf("%d ", (ptr->damage));
+			ptr++;
+			printf("%d\n", (ptr->damage));
+			*/
+
 
 	        SHOW_WIN;	
 			wait_vbl_done(); // Idle until next frame
