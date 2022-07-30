@@ -2,11 +2,12 @@ typedef struct Projectile {
 
 	int16_t x;
 	int16_t y;
-	int8_t xDir;
-	int8_t yDir;
+	int8_t xSpeed;
+	int8_t ySpeed;
 	uint8_t speed;
 	uint8_t damage;
 	uint8_t active;
+	uint8_t delay; //cooldown after shot (frames)
 };
 
 struct Projectile weakProjectile =  {
@@ -16,5 +17,6 @@ struct Projectile weakProjectile =  {
 	-1, //int8_t yDir;
 	2, //int8_t speed;
 	0, //int8_t damage;
-	1 //active
+	1, //active
+	15 //delay
 };

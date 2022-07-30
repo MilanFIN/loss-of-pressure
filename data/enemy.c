@@ -10,16 +10,16 @@ typedef struct Enemy {
 	uint8_t sprite0;
 	uint8_t sprite1;
 
-	unsigned int spriteCount;
+	uint8_t spriteCount;
 
 	uint8_t alive;
 	uint8_t visible;
 	uint8_t damage;
 
-	int16_t speed;
+	int8_t speed;
 	uint8_t accel;
-	int16_t xSpeed;
-	int16_t ySpeed; 
+	int8_t xSpeed;
+	int8_t ySpeed; 
 };
 
 struct Enemy blob =  {
@@ -37,7 +37,7 @@ struct Enemy blob =  {
 	1, // visible;
 	50, // damage;
 
-	10,// speed;
+	3,// speed;
 	1,// accel;
 	0,// xSpeed;
 	0// ySpeed; 

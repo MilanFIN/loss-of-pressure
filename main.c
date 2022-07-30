@@ -32,6 +32,7 @@ const uint8_t ySpawnPositions[8] = {
 	160, 160, 160
 };
 
+
 struct Projectile projectiles[5];
 //max supported projectiles on screen at once
 const uint8_t PROJECTILECOUNT = 5;
@@ -39,7 +40,7 @@ uint8_t oldestProjectile = 0;
 uint8_t fireCooldown = 0;
 
 
-uint8_t PLAYERSIZE = 8;
+const uint8_t PLAYERSIZE = 8;
 
 
 int8_t xDir = 0;
@@ -61,16 +62,20 @@ int16_t bgY = 0;
 uint8_t joydata;
 
 int8_t hull;
-int8_t maxHull = 100;
+const int8_t maxHull = 100;
 
 int8_t shield;
-int8_t maxShield = 100;
+const int8_t maxShield = 100;
 
 font_t min_font;
 
 int16_t xOverflow = 0;
 int16_t yOverflow = 0;
 
+
+//counter to alternate which enemy collisions are calculated for each frame
+//loops through every enemy ~11x per second
+uint8_t enemyCollisionCount = 0;
 
 
 void interruptLCD(){
@@ -180,46 +185,32 @@ void updateDirection() {
 }
 
 
-int8_t clamp( int8_t value, int8_t min, int8_t max )
+inline int8_t clamp( int8_t value, int8_t min, int8_t max )
 {
     return (value < min) ? min : (value > max) ? max : value;
 }
 
 
-uint8_t uClamp( uint8_t value, uint8_t min, uint8_t max )
+inline uint8_t uClamp( uint8_t value, uint8_t min, uint8_t max )
 {
     return (value < min) ? min : (value > max) ? max : value;
 }
 
-uint16_t u16Clamp( uint16_t value, uint16_t min, uint16_t max )
+inline uint16_t u16Clamp( uint16_t value, uint16_t min, uint16_t max )
 {
     return (value < min) ? min : (value > max) ? max : value;
 }
 
-int16_t i16Clamp( int16_t value, int16_t min, int16_t max )
+inline int16_t i16Clamp( int16_t value, int16_t min, int16_t max )
 {
     return (value < min) ? min : (value > max) ? max : value;
 }
-int8_t abs(int8_t value) {
+inline int8_t abs(int8_t value) {
 	if (value >= 0) return value;
 	else return - value;
 }
 
-void moveSpritesWithBackground(int8_t x, int8_t y) {
-	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
-		enemies[i].x -= x;
-		enemies[i].y -= y;
-	}
-	
-	/*
-	for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
-		projectiles[i].x -= x;
-		projectiles[i].y -= y;
-	}
-	
-	*/
 
-}
 
 
 
@@ -245,8 +236,8 @@ void updateEnemyPositions() {
 			enemies[i].ySpeed -= enemies[i].accel;
 		}
 		//clamp to max speed
-		enemies[i].xSpeed = i16Clamp(enemies[i].xSpeed, -enemies[i].speed, enemies[i].speed);
-		enemies[i].ySpeed = i16Clamp(enemies[i].ySpeed, -enemies[i].speed, enemies[i].speed);
+		enemies[i].xSpeed = clamp(enemies[i].xSpeed, -enemies[i].speed, enemies[i].speed);
+		enemies[i].ySpeed = clamp(enemies[i].ySpeed, -enemies[i].speed, enemies[i].speed);
 
 		
 		enemies[i].xReserve += enemies[i].xSpeed;
@@ -325,10 +316,9 @@ void initEnemies(uint8_t loadSprites) {
 			enemies[i].x = xSpawnPositions[posIndex];
 			enemies[i].y = ySpawnPositions[posIndex];
 
-
-		set_sprite_tile(10+i, enemies[i].sprite0);
-		move_sprite(10+i, enemies[i].x, enemies[i].y);
-	  }
+			set_sprite_tile(10+i, enemies[i].sprite0);
+			move_sprite(10+i, enemies[i].x, enemies[i].y);
+	  	}
   }
 }
 
@@ -483,6 +473,72 @@ void takeDamage(int16_t amount) {
 void checkCollision() {
 	//playerDrawX
 
+
+	//option 1
+
+
+	struct Enemy *eptr = enemies;
+	uint8_t i = 0;
+
+	while (i < ENEMYCOUNT) {
+		eptr += enemyCollisionCount;
+			if (eptr->visible && eptr->alive) {
+
+				if (eptr->x > playerDrawX - PLAYERSIZE && eptr->x - (8>>(eptr->spriteCount-1)) < playerDrawX) 
+				{
+					if (eptr->y > playerDrawY - PLAYERSIZE && eptr->y -(8>>(eptr->spriteCount-1)) < playerDrawY) {
+						set_sprite_tile(10+i, 0x7f);
+						eptr->alive = 0;
+						takeDamage(eptr->damage);
+						initEnemies(0);
+					}
+				}
+			}
+		//}
+
+
+		//projectiles
+		//if (projectileCollisionCount == 0) {
+		//	if (eptr->visible && eptr->alive) {
+				struct Projectile *pptr = projectiles;
+				uint8_t j = 0;
+				while (j < PROJECTILECOUNT) {
+					if (pptr->active) {
+						if (eptr->x > pptr->x - 8 && eptr->x - (8>>(eptr->spriteCount-1)) < pptr->x) {
+							if (eptr->y > pptr->y - 8 && eptr->y -(8>>(eptr->spriteCount-1)) < pptr->y ) {
+								set_sprite_tile(10+i, 0x7f);
+								eptr->alive = 0;
+								initEnemies(0);
+								set_sprite_tile(20+j, 0x7f);
+								pptr->active = 0;
+							}
+						}
+					}
+					j++;
+					pptr++;
+				}
+		//	}
+		//}
+		
+		//i++;
+		//eptr++;
+		break;
+	}
+
+	if (enemyCollisionCount == 0) {
+		enemyCollisionCount = ENEMYCOUNT - 1;
+	}
+	else {
+		enemyCollisionCount--;
+	}
+
+/*
+
+			*/
+
+
+	//option 2
+	/*
 	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
 		if (enemies[i].visible && enemies[i].alive) {
 			uint8_t x = enemies[i].x;
@@ -497,28 +553,35 @@ void checkCollision() {
 				initEnemies(0);
 			}
 
-			//TODO: collision checks for projectiles kill performance
-			/*
-			for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
-				if (projectiles[i].active) {
-					uint8_t pX = projectiles[i].x;
-					uint8_t pY = projectiles[i].y;
+
+
+						
+			for (uint8_t j = 0; j < PROJECTILECOUNT; ++j) {
+				if (projectiles[j].active) {
+					uint8_t pX = projectiles[j].x;
+					uint8_t pY = projectiles[j].y;
+					if (x > pX - 8 && x - (8>>(enemies[i].spriteCount-1)) < pX
+							&& y > pY - 8 && y -(8>>(enemies[i].spriteCount-1)) < pY ) {
+
+						set_sprite_tile(10+i, 0x7f);
+						enemies[i].alive = 0;
+						initEnemies(0);
+
+						set_sprite_tile(20+j, 0x7f);
+						projectiles[j].active = 0;
+					}
 				}
 			}
-			*/
-
-		}
-
-
-
-		
+		}	
 	}
+	*/
+
 
 
 }
 
 
-void updateShieldsAndHull() {
+inline void updateShieldsAndHull() {
 	if (shield < maxShield) {
 		shield += 1;
 	}
@@ -527,11 +590,6 @@ void updateShieldsAndHull() {
 }
 
 void fire() {
-	//todo: loop through projectiles, get biggest & smallest id
-	//if biggest == 255, revert range to 0-5
-	// remove smallest, and add biggest+1
-
-
 
 	oldestProjectile += 1;
 	if (oldestProjectile >= PROJECTILECOUNT) {
@@ -541,10 +599,13 @@ void fire() {
 	projectiles[oldestProjectile] = weakProjectile;
 	projectiles[oldestProjectile].x = playerDrawX;
 	projectiles[oldestProjectile].y = playerDrawY;
+	projectiles[oldestProjectile].xSpeed = xDir * projectiles[oldestProjectile].speed;
+	projectiles[oldestProjectile].ySpeed = yDir * projectiles[oldestProjectile].speed;
+
 
 	set_sprite_tile(20+oldestProjectile, 20);
 	move_sprite(20+oldestProjectile, playerDrawX, playerDrawY);
-	fireCooldown = 30;
+	fireCooldown = projectiles[oldestProjectile].delay;
 
 }
 
@@ -556,13 +617,18 @@ void moveProjectiles() {
 		projectiles[i].y -= yOverflow;
 
 		if (projectiles[i].active) {
-			int16_t newY = projectiles[i].y - 1;
-			move_sprite(20+i, projectiles[i].x, newY);
+			int16_t newY = projectiles[i].y + projectiles[i].ySpeed;
+			int16_t newX = projectiles[i].x + projectiles[i].xSpeed;
+
+			move_sprite(20+i, newX, newY);
 			projectiles[i].y = newY;
+			projectiles[i].x = newX;
 
 
 
-			if (abs(projectiles[i].x - playerDrawX) > 100 || abs(projectiles[i].y - playerDrawY) > 100) {
+			//if (abs(projectiles[i].x - playerDrawX) > 100 || abs(projectiles[i].y - playerDrawY) > 100) {
+			if (projectiles[i].x < 0 || projectiles[i].x > 170 || projectiles[i].y < 0 || projectiles[i].y > 154) {
+
 				projectiles[i].active = 0;
 				set_sprite_tile(20+i, 0x7f);
 			}
