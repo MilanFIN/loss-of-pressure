@@ -8,6 +8,7 @@
 #include "data/healthblock.c"
 #include "data/enemy.c"
 #include "data/projectile.c"
+#include "data/projectiles.c"
 
 #include <gbdk/font.h>
 #include <rand.h>
@@ -215,7 +216,6 @@ inline int8_t abs(int8_t value) {
 
 
 void updateEnemyPositions() {
-
 	//update enemy speeds and positions
 	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
 
@@ -596,14 +596,57 @@ void fire() {
 		oldestProjectile = 0;
 	}
 
-	projectiles[oldestProjectile] = weakProjectile;
+	projectiles[oldestProjectile] = singleGun;
 	projectiles[oldestProjectile].x = playerDrawX;
 	projectiles[oldestProjectile].y = playerDrawY;
 	projectiles[oldestProjectile].xSpeed = xDir * projectiles[oldestProjectile].speed;
 	projectiles[oldestProjectile].ySpeed = yDir * projectiles[oldestProjectile].speed;
 
+	if (yDir != 0 && xDir == 0) {
+		set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
+		if (yDir == 1) {
+			set_sprite_prop(20+oldestProjectile, S_FLIPY); 
 
-	set_sprite_tile(20+oldestProjectile, 20);
+		}
+		else {
+
+			set_sprite_prop(20+oldestProjectile, 0); 
+		}
+
+	}
+	else if (xDir != 0 && yDir == 0) {
+		set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type+1);
+		if (xDir == 1) {
+			set_sprite_prop(20+oldestProjectile, 0); 
+		}
+		else {
+			set_sprite_prop(20+oldestProjectile, S_FLIPX); 
+		}
+	}
+	else {
+		set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type+2);
+		if (xDir == 1 && yDir == -1) {
+			set_sprite_prop(20+oldestProjectile, 0); //default is right & up
+			printf("1");
+		}
+		else if (xDir == 1 && yDir == 1) {
+			set_sprite_prop(20+oldestProjectile, S_FLIPY); 
+
+						printf("2");
+
+		}
+		else if (xDir == -1 && yDir == 1) {
+			set_sprite_prop(20+oldestProjectile, S_FLIPY | S_FLIPX); 
+						printf("3");
+
+		}  
+		else if (xDir == -1 && yDir == -1) {
+			set_sprite_prop(20+oldestProjectile, S_FLIPX); 
+						printf("4");
+
+		}
+	}
+	//set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
 	move_sprite(20+oldestProjectile, playerDrawX, playerDrawY);
 	fireCooldown = projectiles[oldestProjectile].delay;
 
@@ -611,7 +654,6 @@ void fire() {
 
 
 void moveProjectiles() {
-	
 	for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
 		projectiles[i].x -= xOverflow;
 		projectiles[i].y -= yOverflow;
@@ -639,7 +681,7 @@ void moveProjectiles() {
 
 
 void initProjectiles() {
-	set_sprite_data(20, 2, projectile1);
+	set_sprite_data(20, 6, ProjectileTiles);
 
 	for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
 		projectiles[i].active == 0;	

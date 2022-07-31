@@ -26,6 +26,7 @@
 	.globl _font_set
 	.globl _font_load
 	.globl _font_init
+	.globl _printf
 	.globl _set_sprite_data
 	.globl _set_win_tiles
 	.globl _set_bkg_tiles
@@ -48,7 +49,8 @@
 	.globl _xDir
 	.globl _fireCooldown
 	.globl _oldestProjectile
-	.globl _weakProjectile
+	.globl _doubleGun
+	.globl _singleGun
 	.globl _blob
 	.globl _shieldlabel
 	.globl _hullabel
@@ -67,6 +69,7 @@
 	.globl _ENEMYCOUNT
 	.globl _EMPTYSPRITE
 	.globl _BLANK
+	.globl _ProjectileTiles
 	.globl _projectile1
 	.globl _enemy1
 	.globl _healthblock
@@ -83,7 +86,7 @@
 _enemies::
 	.ds 80
 _projectiles::
-	.ds 50
+	.ds 55
 _joydata::
 	.ds 1
 _hull::
@@ -102,8 +105,10 @@ _shieldlabel::
 	.ds 4
 _blob::
 	.ds 16
-_weakProjectile::
-	.ds 10
+_singleGun::
+	.ds 11
+_doubleGun::
+	.ds 11
 _oldestProjectile::
 	.ds 1
 _fireCooldown::
@@ -154,16 +159,16 @@ _enemyCollisionCount::
 ; code
 ;--------------------------------------------------------
 	.area _CODE
-;main.c:81: void interruptLCD(){
+;main.c:82: void interruptLCD(){
 ;	---------------------------------
 ; Function interruptLCD
 ; ---------------------------------
 _interruptLCD::
-;main.c:82: HIDE_WIN;
+;main.c:83: HIDE_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xdf
 	ldh	(_LCDC_REG + 0), a
-;main.c:83: }
+;main.c:84: }
 	ret
 _cross:
 	.db #0x18	; 24
@@ -1467,6 +1472,119 @@ _projectile1:
 	.db #0x7e	; 126
 	.db #0x3c	; 60
 	.db #0x3c	; 60
+_ProjectileTiles:
+	.db #0x24	; 36
+	.db #0x18	; 24
+	.db #0x18	; 24
+	.db #0x3c	; 60
+	.db #0x18	; 24
+	.db #0x3c	; 60
+	.db #0x24	; 36
+	.db #0x18	; 24
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x09	; 9
+	.db #0x06	; 6
+	.db #0x06	; 6
+	.db #0x0f	; 15
+	.db #0x06	; 6
+	.db #0x0f	; 15
+	.db #0x09	; 9
+	.db #0x06	; 6
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x09	; 9
+	.db #0x06	; 6
+	.db #0x06	; 6
+	.db #0x0f	; 15
+	.db #0x06	; 6
+	.db #0x0f	; 15
+	.db #0x09	; 9
+	.db #0x06	; 6
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x99	; 153
+	.db #0x66	; 102	'f'
+	.db #0x66	; 102	'f'
+	.db #0xff	; 255
+	.db #0x66	; 102	'f'
+	.db #0xff	; 255
+	.db #0x99	; 153
+	.db #0x66	; 102	'f'
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x09	; 9
+	.db #0x06	; 6
+	.db #0x06	; 6
+	.db #0x0f	; 15
+	.db #0x06	; 6
+	.db #0x0f	; 15
+	.db #0x09	; 9
+	.db #0x06	; 6
+	.db #0x09	; 9
+	.db #0x06	; 6
+	.db #0x06	; 6
+	.db #0x0f	; 15
+	.db #0x06	; 6
+	.db #0x0f	; 15
+	.db #0x09	; 9
+	.db #0x06	; 6
+	.db #0x90	; 144
+	.db #0x60	; 96
+	.db #0x60	; 96
+	.db #0xf0	; 240
+	.db #0x60	; 96
+	.db #0xf0	; 240
+	.db #0x90	; 144
+	.db #0x60	; 96
+	.db #0x09	; 9
+	.db #0x06	; 6
+	.db #0x06	; 6
+	.db #0x0f	; 15
+	.db #0x06	; 6
+	.db #0x0f	; 15
+	.db #0x09	; 9
+	.db #0x06	; 6
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
 _BLANK:
 	.db #0x26	; 38
 _EMPTYSPRITE:
@@ -1499,18 +1617,18 @@ _maxHull:
 	.db #0x64	;  100	'd'
 _maxShield:
 	.db #0x64	;  100	'd'
-;main.c:85: void setHealthBar(uint8_t row, uint8_t hp) {
+;main.c:86: void setHealthBar(uint8_t row, uint8_t hp) {
 ;	---------------------------------
 ; Function setHealthBar
 ; ---------------------------------
 _setHealthBar::
 	add	sp, #-5
-;main.c:86: if (hp >= 80) {
+;main.c:87: if (hp >= 80) {
 	ldhl	sp,	#8
 	ld	a, (hl)
 	sub	a, #0x50
 	jr	C, 00102$
-;main.c:87: unsigned char blockmap[] = {0x50,0x50,0x50,0x50,0x50};
+;main.c:88: unsigned char blockmap[] = {0x50,0x50,0x50,0x50,0x50};
 	ldhl	sp,	#0
 	ld	c, l
 	ld	b, h
@@ -1545,7 +1663,7 @@ _setHealthBar::
 	ld	hl, #0x0004
 	add	hl, bc
 	ld	(hl), #0x50
-;main.c:88: set_win_tiles(5,row,5,1,blockmap);
+;main.c:89: set_win_tiles(5,row,5,1,blockmap);
 	push	bc
 	ld	hl, #0x105
 	push	hl
@@ -1555,15 +1673,15 @@ _setHealthBar::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;main.c:89: return;
+;main.c:90: return;
 	jp	00109$
 00102$:
-;main.c:91: if (hp >= 60) {
+;main.c:92: if (hp >= 60) {
 	ldhl	sp,	#8
 	ld	a, (hl)
 	sub	a, #0x3c
 	jr	C, 00104$
-;main.c:92: unsigned char blockmap[] = {0x50,0x50,0x50,0x50,0x00};
+;main.c:93: unsigned char blockmap[] = {0x50,0x50,0x50,0x50,0x00};
 	ldhl	sp,	#0
 	ld	c, l
 	ld	b, h
@@ -1598,7 +1716,7 @@ _setHealthBar::
 	ld	hl, #0x0004
 	add	hl, bc
 	ld	(hl), #0x00
-;main.c:93: set_win_tiles(5,row,5,1,blockmap);
+;main.c:94: set_win_tiles(5,row,5,1,blockmap);
 	push	bc
 	ld	hl, #0x105
 	push	hl
@@ -1608,15 +1726,15 @@ _setHealthBar::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;main.c:94: return;
+;main.c:95: return;
 	jp	00109$
 00104$:
-;main.c:96: if (hp >= 40) {
+;main.c:97: if (hp >= 40) {
 	ldhl	sp,	#8
 	ld	a, (hl)
 	sub	a, #0x28
 	jr	C, 00106$
-;main.c:97: unsigned char blockmap[] = {0x50,0x50,0x50,0x00,0x00};
+;main.c:98: unsigned char blockmap[] = {0x50,0x50,0x50,0x00,0x00};
 	ldhl	sp,	#0
 	ld	c, l
 	ld	b, h
@@ -1648,7 +1766,7 @@ _setHealthBar::
 	ld	hl, #0x0004
 	add	hl, bc
 	ld	(hl), #0x00
-;main.c:98: set_win_tiles(5,row,5,1,blockmap);
+;main.c:99: set_win_tiles(5,row,5,1,blockmap);
 	push	bc
 	ld	hl, #0x105
 	push	hl
@@ -1658,15 +1776,15 @@ _setHealthBar::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;main.c:99: return;
+;main.c:100: return;
 	jr	00109$
 00106$:
-;main.c:101: if (hp >= 20) {
+;main.c:102: if (hp >= 20) {
 	ldhl	sp,	#8
 	ld	a, (hl)
 	sub	a, #0x14
 	jr	C, 00108$
-;main.c:102: unsigned char blockmap[] = {0x50,0x50,0x00,0x00,0x00};
+;main.c:103: unsigned char blockmap[] = {0x50,0x50,0x00,0x00,0x00};
 	ldhl	sp,	#0
 	ld	c, l
 	ld	b, h
@@ -1695,7 +1813,7 @@ _setHealthBar::
 	ld	hl, #0x0004
 	add	hl, bc
 	ld	(hl), #0x00
-;main.c:103: set_win_tiles(5,row,5,1,blockmap);
+;main.c:104: set_win_tiles(5,row,5,1,blockmap);
 	push	bc
 	ld	hl, #0x105
 	push	hl
@@ -1705,10 +1823,10 @@ _setHealthBar::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;main.c:104: return;
+;main.c:105: return;
 	jr	00109$
 00108$:
-;main.c:106: unsigned char blockmap[] = {0x50,0x00,0x00,0x00,0x00};
+;main.c:107: unsigned char blockmap[] = {0x50,0x00,0x00,0x00,0x00};
 	ldhl	sp,	#0
 	ld	c, l
 	ld	b, h
@@ -1734,7 +1852,7 @@ _setHealthBar::
 	ld	hl, #0x0004
 	add	hl, bc
 	ld	(hl), #0x00
-;main.c:107: set_win_tiles(5,row,5,1,blockmap);
+;main.c:108: set_win_tiles(5,row,5,1,blockmap);
 	push	bc
 	ld	hl, #0x105
 	push	hl
@@ -1744,18 +1862,18 @@ _setHealthBar::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;main.c:108: return;
+;main.c:109: return;
 00109$:
-;main.c:110: }
+;main.c:111: }
 	add	sp, #5
 	ret
-;main.c:112: void updateDirection() {
+;main.c:113: void updateDirection() {
 ;	---------------------------------
 ; Function updateDirection
 ; ---------------------------------
 _updateDirection::
 	add	sp, #-4
-;main.c:116: if ((joydata & J_RIGHT) && !(joydata & J_UP) && !(joydata & J_DOWN)) {
+;main.c:117: if ((joydata & J_RIGHT) && !(joydata & J_UP) && !(joydata & J_DOWN)) {
 	ld	hl, #_joydata
 	ld	e, (hl)
 	ld	a, e
@@ -1784,14 +1902,14 @@ _updateDirection::
 	ld	a, b
 	or	a, c
 	jr	NZ, 00102$
-;main.c:117: xDir = 1;
+;main.c:118: xDir = 1;
 	ld	hl, #_xDir
 	ld	(hl), #0x01
-;main.c:118: yDir = 0;
+;main.c:119: yDir = 0;
 	ld	hl, #_yDir
 	ld	(hl), #0x00
 00102$:
-;main.c:120: if ((joydata & J_LEFT) && !(joydata & J_UP) && !(joydata & J_DOWN)) {
+;main.c:121: if ((joydata & J_LEFT) && !(joydata & J_UP) && !(joydata & J_DOWN)) {
 	ld	a, e
 	and	a, #0x02
 	ld	e, a
@@ -1806,14 +1924,14 @@ _updateDirection::
 	ld	a, b
 	or	a, c
 	jr	NZ, 00106$
-;main.c:121: xDir = -1;
+;main.c:122: xDir = -1;
 	ld	hl, #_xDir
 	ld	(hl), #0xff
-;main.c:122: yDir = 0;
+;main.c:123: yDir = 0;
 	ld	hl, #_yDir
 	ld	(hl), #0x00
 00106$:
-;main.c:124: if ((joydata & J_UP) && !(joydata & J_LEFT) && !(joydata & J_RIGHT)) {
+;main.c:125: if ((joydata & J_UP) && !(joydata & J_LEFT) && !(joydata & J_RIGHT)) {
 	ldhl	sp,	#3
 	ld	a, (hl-)
 	or	a, (hl)
@@ -1825,14 +1943,14 @@ _updateDirection::
 	ld	a, (hl-)
 	or	a, (hl)
 	jr	NZ, 00110$
-;main.c:125: xDir = 0;
+;main.c:126: xDir = 0;
 	ld	hl, #_xDir
 	ld	(hl), #0x00
-;main.c:126: yDir = -1;
+;main.c:127: yDir = -1;
 	ld	hl, #_yDir
 	ld	(hl), #0xff
 00110$:
-;main.c:128: if ((joydata & J_DOWN) && !(joydata & J_LEFT) && !(joydata & J_RIGHT)) {
+;main.c:129: if ((joydata & J_DOWN) && !(joydata & J_LEFT) && !(joydata & J_RIGHT)) {
 	ld	a, b
 	or	a, c
 	jr	Z, 00114$
@@ -1843,14 +1961,14 @@ _updateDirection::
 	ld	a, (hl-)
 	or	a, (hl)
 	jr	NZ, 00114$
-;main.c:129: xDir = 0;
+;main.c:130: xDir = 0;
 	ld	hl, #_xDir
 	ld	(hl), #0x00
-;main.c:130: yDir = 1;
+;main.c:131: yDir = 1;
 	ld	hl, #_yDir
 	ld	(hl), #0x01
 00114$:
-;main.c:134: if ((joydata & J_UP) && (joydata & J_RIGHT)) {
+;main.c:135: if ((joydata & J_UP) && (joydata & J_RIGHT)) {
 	ldhl	sp,	#3
 	ld	a, (hl-)
 	or	a, (hl)
@@ -1859,14 +1977,14 @@ _updateDirection::
 	ld	a, (hl-)
 	or	a, (hl)
 	jr	Z, 00118$
-;main.c:135: xDir = 1;
+;main.c:136: xDir = 1;
 	ld	hl, #_xDir
 	ld	(hl), #0x01
-;main.c:136: yDir = -1;
+;main.c:137: yDir = -1;
 	ld	hl, #_yDir
 	ld	(hl), #0xff
 00118$:
-;main.c:138: if ((joydata & J_UP) && (joydata & J_LEFT)) {
+;main.c:139: if ((joydata & J_UP) && (joydata & J_LEFT)) {
 	ldhl	sp,	#3
 	ld	a, (hl-)
 	or	a, (hl)
@@ -1874,14 +1992,14 @@ _updateDirection::
 	ld	a, d
 	or	a, e
 	jr	Z, 00121$
-;main.c:139: xDir = -1;
+;main.c:140: xDir = -1;
 	ld	hl, #_xDir
 	ld	(hl), #0xff
-;main.c:140: yDir = -1;
+;main.c:141: yDir = -1;
 	ld	hl, #_yDir
 	ld	(hl), #0xff
 00121$:
-;main.c:142: if ((joydata & J_DOWN) && (joydata & J_RIGHT)) {
+;main.c:143: if ((joydata & J_DOWN) && (joydata & J_RIGHT)) {
 	ld	a, b
 	or	a, c
 	jr	Z, 00124$
@@ -1889,39 +2007,39 @@ _updateDirection::
 	ld	a, (hl-)
 	or	a, (hl)
 	jr	Z, 00124$
-;main.c:143: xDir = 1;
+;main.c:144: xDir = 1;
 	ld	hl, #_xDir
 	ld	(hl), #0x01
-;main.c:144: yDir = 1;
+;main.c:145: yDir = 1;
 	ld	hl, #_yDir
 	ld	(hl), #0x01
 00124$:
-;main.c:146: if ((joydata & J_DOWN) && (joydata & J_LEFT)) {
+;main.c:147: if ((joydata & J_DOWN) && (joydata & J_LEFT)) {
 	ld	a, b
 	or	a, c
 	jr	Z, 00127$
 	ld	a, d
 	or	a, e
 	jr	Z, 00127$
-;main.c:147: xDir = -1;
+;main.c:148: xDir = -1;
 	ld	hl, #_xDir
 	ld	(hl), #0xff
-;main.c:148: yDir = 1;
+;main.c:149: yDir = 1;
 	ld	hl, #_yDir
 	ld	(hl), #0x01
 00127$:
-;main.c:153: if (xDir == 0 && yDir == 0) {
+;main.c:154: if (xDir == 0 && yDir == 0) {
 	ld	a, (#_xDir)
 	or	a, a
 	jr	NZ, 00130$
 	ld	a, (#_yDir)
 	or	a, a
-;main.c:154: return;
+;main.c:155: return;
 	jp	Z,00157$
 00130$:
-;main.c:157: uint8_t direction = 0;
+;main.c:158: uint8_t direction = 0;
 	ld	c, #0x00
-;main.c:159: if (xDir == 0 && yDir < 0) {
+;main.c:160: if (xDir == 0 && yDir < 0) {
 	ld	a, (#_yDir)
 	rlca
 	and	a,#0x01
@@ -1934,10 +2052,10 @@ _updateDirection::
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00133$
-;main.c:160: direction = 0;
+;main.c:161: direction = 0;
 	ld	c, #0x00
 00133$:
-;main.c:162: if (xDir > 0 && yDir < 0) {
+;main.c:163: if (xDir > 0 && yDir < 0) {
 	ld	hl, #_xDir
 	ld	e, (hl)
 	xor	a, a
@@ -1963,20 +2081,20 @@ _updateDirection::
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00136$
-;main.c:163: direction = 1;
+;main.c:164: direction = 1;
 	ld	c, #0x01
 00136$:
-;main.c:165: if (xDir > 0 && yDir == 0) {
+;main.c:166: if (xDir > 0 && yDir == 0) {
 	ld	a, b
 	or	a, a
 	jr	Z, 00139$
 	ld	a, (#_yDir)
 	or	a, a
 	jr	NZ, 00139$
-;main.c:166: direction = 2;
+;main.c:167: direction = 2;
 	ld	c, #0x02
 00139$:
-;main.c:168: if (xDir > 0 && yDir > 0) {
+;main.c:169: if (xDir > 0 && yDir > 0) {
 	ld	hl, #_yDir
 	ld	e, (hl)
 	xor	a, a
@@ -2003,10 +2121,10 @@ _updateDirection::
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00142$
-;main.c:169: direction = 3;
+;main.c:170: direction = 3;
 	ld	c, #0x03
 00142$:
-;main.c:171: if (xDir == 0 && yDir > 0) {
+;main.c:172: if (xDir == 0 && yDir > 0) {
 	ld	a, (#_xDir)
 	or	a, a
 	jr	NZ, 00145$
@@ -2014,10 +2132,10 @@ _updateDirection::
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00145$
-;main.c:172: direction = 4;
+;main.c:173: direction = 4;
 	ld	c, #0x04
 00145$:
-;main.c:174: if (xDir < 0 && yDir > 0) {
+;main.c:175: if (xDir < 0 && yDir > 0) {
 	ld	a, (#_xDir)
 	rlca
 	and	a,#0x01
@@ -2028,20 +2146,20 @@ _updateDirection::
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00148$
-;main.c:175: direction = 5;
+;main.c:176: direction = 5;
 	ld	c, #0x05
 00148$:
-;main.c:177: if (xDir < 0 && yDir == 0) {
+;main.c:178: if (xDir < 0 && yDir == 0) {
 	ld	a, b
 	or	a, a
 	jr	Z, 00151$
 	ld	a, (#_yDir)
 	or	a, a
 	jr	NZ, 00151$
-;main.c:178: direction = 6;
+;main.c:179: direction = 6;
 	ld	c, #0x06
 00151$:
-;main.c:180: if (xDir < 0 && yDir < 0) {
+;main.c:181: if (xDir < 0 && yDir < 0) {
 	ld	a, b
 	or	a, a
 	jr	Z, 00154$
@@ -2049,18 +2167,18 @@ _updateDirection::
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00154$
-;main.c:181: direction = 7;
+;main.c:182: direction = 7;
 	ld	c, #0x07
 00154$:
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
 	ld	hl, #(_shadow_OAM + 2)
 	ld	(hl), c
-;main.c:184: set_sprite_tile(0, direction);
+;main.c:185: set_sprite_tile(0, direction);
 00157$:
-;main.c:185: }
+;main.c:186: }
 	add	sp, #4
 	ret
-;main.c:217: void updateEnemyPositions() {
+;main.c:218: void updateEnemyPositions() {
 ;	---------------------------------
 ; Function updateEnemyPositions
 ; ---------------------------------
@@ -2360,7 +2478,7 @@ _updateEnemyPositions::
 	ld	d, (hl)
 	ld	a, (de)
 	ldhl	sp,	#14
-;main.c:190: return (value < min) ? min : (value > max) ? max : value;
+;main.c:191: return (value < min) ? min : (value > max) ? max : value;
 	ld	(hl-), a
 	ld	a, (hl+)
 	ld	e, a
@@ -2434,7 +2552,7 @@ _updateEnemyPositions::
 	ld	l, a
 ;	spillPairReg hl
 ;	spillPairReg hl
-;main.c:190: return (value < min) ? min : (value > max) ? max : value;
+;main.c:191: return (value < min) ? min : (value > max) ? max : value;
 	ld	e, b
 	ld	a,l
 	ld	d,a
@@ -3487,7 +3605,7 @@ _move::
 ;main.c:336: xSpeed = clamp(xSpeed, -100, 100);
 	ld	hl, #_xSpeed
 	ld	c, (hl)
-;main.c:190: return (value < min) ? min : (value > max) ? max : value;
+;main.c:191: return (value < min) ? min : (value > max) ? max : value;
 	ld	a, c
 	xor	a, #0x80
 	sub	a, #0x1c
@@ -3519,7 +3637,7 @@ _move::
 ;main.c:337: ySpeed = clamp(ySpeed, -100, 100);
 	ld	hl, #_ySpeed
 	ld	c, (hl)
-;main.c:190: return (value < min) ? min : (value > max) ? max : value;
+;main.c:191: return (value < min) ? min : (value > max) ? max : value;
 	ld	a, c
 	xor	a, #0x80
 	sub	a, #0x1c
@@ -4957,7 +5075,7 @@ _checkCollision::
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
-	ld	hl, #0x000a
+	ld	hl, #0x000b
 	add	hl, de
 	push	hl
 	ld	a, l
@@ -4992,6 +5110,7 @@ _checkCollision::
 ; Function fire
 ; ---------------------------------
 _fire::
+	dec	sp
 ;main.c:594: oldestProjectile += 1;
 	ld	hl, #_oldestProjectile
 	inc	(hl)
@@ -5006,7 +5125,7 @@ _fire::
 ;main.c:596: oldestProjectile = 0;
 	ld	(hl), #0x00
 00102$:
-;main.c:599: projectiles[oldestProjectile] = weakProjectile;
+;main.c:599: projectiles[oldestProjectile] = singleGun;
 	ld	hl, #_oldestProjectile
 	ld	c, (hl)
 	ld	b, #0x00
@@ -5016,11 +5135,12 @@ _fire::
 	add	hl, hl
 	add	hl, bc
 	add	hl, hl
+	add	hl, bc
 	ld	bc,#_projectiles
 	add	hl,bc
-	ld	de, #0x000a
+	ld	de, #0x000b
 	push	de
-	ld	de, #_weakProjectile
+	ld	de, #_singleGun
 	push	de
 	push	hl
 	call	___memcpy
@@ -5035,6 +5155,7 @@ _fire::
 	add	hl, hl
 	add	hl, bc
 	add	hl, hl
+	add	hl, bc
 	ld	bc,#_projectiles
 	add	hl,bc
 	push	hl
@@ -5053,6 +5174,7 @@ _fire::
 	add	hl, hl
 	add	hl, bc
 	add	hl, hl
+	add	hl, bc
 	ld	bc,#_projectiles
 	add	hl,bc
 	inc	hl
@@ -5073,6 +5195,7 @@ _fire::
 	add	hl, hl
 	add	hl, bc
 	add	hl, hl
+	add	hl, bc
 	ld	bc,#_projectiles
 	add	hl,bc
 	ld	e, l
@@ -5105,6 +5228,7 @@ _fire::
 	add	hl, hl
 	add	hl, bc
 	add	hl, hl
+	add	hl, bc
 	ld	bc,#_projectiles
 	add	hl,bc
 	ld	e, l
@@ -5127,12 +5251,68 @@ _fire::
 	ld	a, e
 	pop	bc
 	ld	(bc), a
-;main.c:606: set_sprite_tile(20+oldestProjectile, 20);
+;main.c:594: oldestProjectile += 1;
 	ld	a, (#_oldestProjectile)
+	ldhl	sp,	#0
+	ld	(hl), a
+;main.c:599: projectiles[oldestProjectile] = singleGun;
+	ld	hl, #_oldestProjectile
+	ld	c, (hl)
+	ld	b, #0x00
+	ld	l, c
+	ld	h, b
+	add	hl, hl
+	add	hl, hl
+	add	hl, bc
+	add	hl, hl
+	add	hl, bc
+;main.c:606: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
+	ld	bc,#_projectiles
+	add	hl,bc
+	ld	e, l
+	ld	d, h
+	ldhl	sp,	#0
+	ld	a, (hl)
 	add	a, #0x14
+	ld	c, a
+	ld	hl, #0x000a
+	add	hl, de
+	ld	e, (hl)
+;main.c:605: if (yDir != 0 && xDir == 0) {
+	ld	a, (#_yDir)
+	or	a, a
+	jr	Z, 00129$
+	ld	a, (#_xDir)
+	or	a, a
+	jr	NZ, 00129$
+;main.c:606: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
-	ld	l, a
+	ld	l, c
+;	spillPairReg hl
+;	spillPairReg hl
+	ld	h, #0x00
+;	spillPairReg hl
+;	spillPairReg hl
+	add	hl, hl
+	add	hl, hl
+	ld	bc, #_shadow_OAM
+	add	hl, bc
+	inc	hl
+	inc	hl
+	ld	(hl), e
+;main.c:594: oldestProjectile += 1;
+	ld	a, (#_oldestProjectile)
+;main.c:606: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
+	add	a, #0x14
+	ld	e, a
+;main.c:607: if (yDir == 1) {
+	ld	a, (#_yDir)
+	dec	a
+	jr	NZ, 00104$
+;main.c:608: set_sprite_prop(20+oldestProjectile, S_FLIPY); 
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
 	ld	bc, #_shadow_OAM+0
+	ld	l, e
 ;	spillPairReg hl
 ;	spillPairReg hl
 	ld	h, #0x00
@@ -5143,8 +5323,277 @@ _fire::
 	add	hl, bc
 	inc	hl
 	inc	hl
-	ld	(hl), #0x14
-;main.c:607: move_sprite(20+oldestProjectile, playerDrawX, playerDrawY);
+	inc	hl
+	ld	(hl), #0x40
+;main.c:608: set_sprite_prop(20+oldestProjectile, S_FLIPY); 
+	jp	00130$
+00104$:
+;main.c:613: set_sprite_prop(20+oldestProjectile, 0); 
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
+	ld	bc, #_shadow_OAM+0
+	ld	l, e
+;	spillPairReg hl
+;	spillPairReg hl
+	ld	h, #0x00
+;	spillPairReg hl
+;	spillPairReg hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, bc
+	inc	hl
+	inc	hl
+	inc	hl
+	ld	(hl), #0x00
+;main.c:613: set_sprite_prop(20+oldestProjectile, 0); 
+	jp	00130$
+00129$:
+;main.c:618: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type+1);
+;main.c:617: else if (xDir != 0 && yDir == 0) {
+	ld	a, (#_xDir)
+	or	a, a
+	jr	Z, 00125$
+	ld	a, (#_yDir)
+	or	a, a
+	jr	NZ, 00125$
+;main.c:618: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type+1);
+	inc	e
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
+	ld	l, c
+;	spillPairReg hl
+;	spillPairReg hl
+	ld	h, #0x00
+;	spillPairReg hl
+;	spillPairReg hl
+	add	hl, hl
+	add	hl, hl
+	ld	bc, #_shadow_OAM
+	add	hl, bc
+	inc	hl
+	inc	hl
+	ld	(hl), e
+;main.c:594: oldestProjectile += 1;
+	ld	a, (#_oldestProjectile)
+;main.c:606: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
+	add	a, #0x14
+	ld	e, a
+;main.c:619: if (xDir == 1) {
+	ld	a, (#_xDir)
+	dec	a
+	jr	NZ, 00107$
+;main.c:620: set_sprite_prop(20+oldestProjectile, 0); 
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
+	ld	bc, #_shadow_OAM+0
+	ld	l, e
+;	spillPairReg hl
+;	spillPairReg hl
+	ld	h, #0x00
+;	spillPairReg hl
+;	spillPairReg hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, bc
+	inc	hl
+	inc	hl
+	inc	hl
+	ld	(hl), #0x00
+;main.c:620: set_sprite_prop(20+oldestProjectile, 0); 
+	jp	00130$
+00107$:
+;main.c:623: set_sprite_prop(20+oldestProjectile, S_FLIPX); 
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
+	ld	bc, #_shadow_OAM+0
+	ld	l, e
+;	spillPairReg hl
+;	spillPairReg hl
+	ld	h, #0x00
+;	spillPairReg hl
+;	spillPairReg hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, bc
+	inc	hl
+	inc	hl
+	inc	hl
+	ld	(hl), #0x20
+;main.c:623: set_sprite_prop(20+oldestProjectile, S_FLIPX); 
+	jp	00130$
+00125$:
+;main.c:627: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type+2);
+	inc	e
+	inc	e
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
+	ld	l, c
+;	spillPairReg hl
+;	spillPairReg hl
+	ld	h, #0x00
+;	spillPairReg hl
+;	spillPairReg hl
+	add	hl, hl
+	add	hl, hl
+	ld	bc, #_shadow_OAM
+	add	hl, bc
+	inc	hl
+	inc	hl
+	ld	(hl), e
+;main.c:628: if (xDir == 1 && yDir == -1) {
+	ld	a, (#_xDir)
+	dec	a
+	ld	a, #0x01
+	jr	Z, 00226$
+	xor	a, a
+00226$:
+	ld	c, a
+;main.c:594: oldestProjectile += 1;
+	ld	hl, #_oldestProjectile
+	ld	b, (hl)
+;main.c:628: if (xDir == 1 && yDir == -1) {
+	ld	a, (#_yDir)
+	inc	a
+	ld	a, #0x01
+	jr	Z, 00228$
+	xor	a, a
+00228$:
+	ldhl	sp,	#0
+	ld	(hl), a
+;main.c:606: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
+	ld	a, b
+	add	a, #0x14
+	ld	e, a
+;main.c:628: if (xDir == 1 && yDir == -1) {
+	ld	a, c
+	or	a, a
+	jr	Z, 00121$
+	ld	a, (hl)
+	or	a, a
+	jr	Z, 00121$
+;main.c:629: set_sprite_prop(20+oldestProjectile, 0); //default is right & up
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
+	ld	d, #0x00
+	ld	l, e
+	ld	h, d
+	add	hl, hl
+	add	hl, hl
+	ld	de, #_shadow_OAM
+	add	hl, de
+	inc	hl
+	inc	hl
+	inc	hl
+	ld	(hl), #0x00
+;main.c:630: printf("1");
+	ld	de, #___str_0
+	push	de
+	call	_printf
+	pop	hl
+	jr	00130$
+00121$:
+;main.c:607: if (yDir == 1) {
+	ld	hl, #_yDir
+	ld	a, (hl)
+	dec	a
+	ld	a, #0x01
+	jr	Z, 00230$
+	xor	a, a
+00230$:
+	ld	l, a
+;	spillPairReg hl
+;	spillPairReg hl
+;main.c:632: else if (xDir == 1 && yDir == 1) {
+	ld	a, c
+	or	a, a
+	jr	Z, 00117$
+	ld	a, l
+	or	a, a
+	jr	Z, 00117$
+;main.c:633: set_sprite_prop(20+oldestProjectile, S_FLIPY); 
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
+	ld	l, e
+;	spillPairReg hl
+;	spillPairReg hl
+	ld	h, #0x00
+;	spillPairReg hl
+;	spillPairReg hl
+	add	hl, hl
+	add	hl, hl
+	ld	de, #_shadow_OAM
+	add	hl, de
+	inc	hl
+	inc	hl
+	inc	hl
+	ld	(hl), #0x40
+;main.c:635: printf("2");
+	ld	de, #___str_1
+	push	de
+	call	_printf
+	pop	hl
+	jr	00130$
+00117$:
+;main.c:638: else if (xDir == -1 && yDir == 1) {
+	push	hl
+	ld	a, (#_xDir)
+	inc	a
+	pop	hl
+	ld	a, #0x01
+	jr	Z, 00232$
+	xor	a, a
+00232$:
+	or	a, a
+	jr	Z, 00113$
+	inc	l
+	dec	l
+	jr	Z, 00113$
+;main.c:639: set_sprite_prop(20+oldestProjectile, S_FLIPY | S_FLIPX); 
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
+	ld	bc, #_shadow_OAM+0
+	ld	l, e
+;	spillPairReg hl
+;	spillPairReg hl
+	ld	h, #0x00
+;	spillPairReg hl
+;	spillPairReg hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, bc
+	inc	hl
+	inc	hl
+	inc	hl
+	ld	(hl), #0x60
+;main.c:640: printf("3");
+	ld	de, #___str_2
+	push	de
+	call	_printf
+	pop	hl
+	jr	00130$
+00113$:
+;main.c:643: else if (xDir == -1 && yDir == -1) {
+	or	a, a
+	jr	Z, 00130$
+	ldhl	sp,	#0
+	ld	a, (hl)
+	or	a, a
+	jr	Z, 00130$
+;main.c:644: set_sprite_prop(20+oldestProjectile, S_FLIPX); 
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
+	ld	bc, #_shadow_OAM+0
+	ld	l, e
+;	spillPairReg hl
+;	spillPairReg hl
+	ld	h, #0x00
+;	spillPairReg hl
+;	spillPairReg hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, bc
+	inc	hl
+	inc	hl
+	inc	hl
+	ld	(hl), #0x20
+;main.c:645: printf("4");
+	ld	de, #___str_3
+	push	de
+	call	_printf
+	pop	hl
+00130$:
+;main.c:650: move_sprite(20+oldestProjectile, playerDrawX, playerDrawY);
 	ld	hl, #_playerDrawY
 	ld	b, (hl)
 	ld	hl, #_playerDrawX
@@ -5166,7 +5615,7 @@ _fire::
 	ld	a, b
 	ld	(hl+), a
 	ld	(hl), c
-;main.c:608: fireCooldown = projectiles[oldestProjectile].delay;
+;main.c:651: fireCooldown = projectiles[oldestProjectile].delay;
 	ld	hl, #_oldestProjectile
 	ld	c, (hl)
 	ld	b, #0x00
@@ -5176,21 +5625,35 @@ _fire::
 	add	hl, hl
 	add	hl, bc
 	add	hl, hl
+	add	hl, bc
 	ld	bc,#_projectiles
 	add	hl,bc
 	ld	bc, #0x0009
 	add	hl, bc
 	ld	a, (hl)
 	ld	(#_fireCooldown),a
-;main.c:610: }
+;main.c:653: }
+	inc	sp
 	ret
-;main.c:613: void moveProjectiles() {
+___str_0:
+	.ascii "1"
+	.db 0x00
+___str_1:
+	.ascii "2"
+	.db 0x00
+___str_2:
+	.ascii "3"
+	.db 0x00
+___str_3:
+	.ascii "4"
+	.db 0x00
+;main.c:656: void moveProjectiles() {
 ;	---------------------------------
 ; Function moveProjectiles
 ; ---------------------------------
 _moveProjectiles::
 	add	sp, #-9
-;main.c:615: for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
+;main.c:657: for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
 	ldhl	sp,	#8
 	ld	(hl), #0x00
 00112$:
@@ -5200,7 +5663,7 @@ _moveProjectiles::
 	ld	a, (hl)
 	sub	a, c
 	jp	NC, 00114$
-;main.c:616: projectiles[i].x -= xOverflow;
+;main.c:658: projectiles[i].x -= xOverflow;
 	ld	c, (hl)
 	ld	b, #0x00
 	ld	l, c
@@ -5209,6 +5672,7 @@ _moveProjectiles::
 	add	hl, hl
 	add	hl, bc
 	add	hl, hl
+	add	hl, bc
 	ld	bc,#_projectiles
 	add	hl,bc
 	inc	sp
@@ -5234,7 +5698,7 @@ _moveProjectiles::
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;main.c:617: projectiles[i].y -= yOverflow;
+;main.c:659: projectiles[i].y -= yOverflow;
 	pop	de
 	push	de
 	ld	hl, #0x0002
@@ -5270,7 +5734,7 @@ _moveProjectiles::
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;main.c:619: if (projectiles[i].active) {
+;main.c:661: if (projectiles[i].active) {
 	pop	de
 	push	de
 	ld	hl, #0x0008
@@ -5280,7 +5744,7 @@ _moveProjectiles::
 	ld	a, (bc)
 	or	a, a
 	jp	Z, 00113$
-;main.c:620: int16_t newY = projectiles[i].y + projectiles[i].ySpeed;
+;main.c:662: int16_t newY = projectiles[i].y + projectiles[i].ySpeed;
 	ldhl	sp,#2
 	ld	a, (hl+)
 	ld	e, a
@@ -5312,7 +5776,7 @@ _moveProjectiles::
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;main.c:621: int16_t newX = projectiles[i].x + projectiles[i].xSpeed;
+;main.c:663: int16_t newX = projectiles[i].x + projectiles[i].xSpeed;
 	pop	de
 	push	de
 	ld	a, (de)
@@ -5338,7 +5802,7 @@ _moveProjectiles::
 	add	hl, bc
 	ld	c, l
 	ld	b, h
-;main.c:623: move_sprite(20+i, newX, newY);
+;main.c:665: move_sprite(20+i, newX, newY);
 	ldhl	sp,	#4
 	ld	a, (hl+)
 	inc	hl
@@ -5369,7 +5833,7 @@ _moveProjectiles::
 	ldhl	sp,	#6
 	ld	a, (hl)
 	ld	(de), a
-;main.c:624: projectiles[i].y = newY;
+;main.c:666: projectiles[i].y = newY;
 	ldhl	sp,#2
 	ld	a, (hl+)
 	ld	e, a
@@ -5380,13 +5844,13 @@ _moveProjectiles::
 	inc	de
 	ld	a, (hl)
 	ld	(de), a
-;main.c:625: projectiles[i].x = newX;
+;main.c:667: projectiles[i].x = newX;
 	pop	hl
 	push	hl
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;main.c:630: if (projectiles[i].x < 0 || projectiles[i].x > 170 || projectiles[i].y < 0 || projectiles[i].y > 154) {
+;main.c:672: if (projectiles[i].x < 0 || projectiles[i].x > 170 || projectiles[i].y < 0 || projectiles[i].y > 154) {
 	pop	de
 	push	de
 	ld	a, (de)
@@ -5418,7 +5882,7 @@ _moveProjectiles::
 	scf
 00148$:
 	jr	C, 00101$
-;main.c:617: projectiles[i].y -= yOverflow;
+;main.c:659: projectiles[i].y -= yOverflow;
 	ldhl	sp,#2
 	ld	a, (hl+)
 	ld	e, a
@@ -5427,7 +5891,7 @@ _moveProjectiles::
 	ld	c, a
 	inc	de
 	ld	a, (de)
-;main.c:630: if (projectiles[i].x < 0 || projectiles[i].x > 170 || projectiles[i].y < 0 || projectiles[i].y > 154) {
+;main.c:672: if (projectiles[i].x < 0 || projectiles[i].x > 170 || projectiles[i].y < 0 || projectiles[i].y > 154) {
 	ld	b, a
 	bit	7, b
 	jr	NZ, 00101$
@@ -5450,7 +5914,7 @@ _moveProjectiles::
 00150$:
 	jr	NC, 00113$
 00101$:
-;main.c:632: projectiles[i].active = 0;
+;main.c:674: projectiles[i].active = 0;
 	ldhl	sp,	#8
 	ld	c, (hl)
 	ld	b, #0x00
@@ -5460,12 +5924,13 @@ _moveProjectiles::
 	add	hl, hl
 	add	hl, bc
 	add	hl, hl
+	add	hl, bc
 	ld	de, #_projectiles
 	add	hl, de
 	ld	bc, #0x0008
 	add	hl, bc
 	ld	(hl), #0x00
-;main.c:633: set_sprite_tile(20+i, 0x7f);
+;main.c:675: set_sprite_tile(20+i, 0x7f);
 	ldhl	sp,	#7
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
 	ld	l, (hl)
@@ -5481,29 +5946,29 @@ _moveProjectiles::
 	inc	hl
 	inc	hl
 	ld	(hl), #0x7f
-;main.c:633: set_sprite_tile(20+i, 0x7f);
+;main.c:675: set_sprite_tile(20+i, 0x7f);
 00113$:
-;main.c:615: for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
+;main.c:657: for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
 	ldhl	sp,	#8
 	inc	(hl)
 	jp	00112$
 00114$:
-;main.c:638: }
+;main.c:680: }
 	add	sp, #9
 	ret
-;main.c:641: void initProjectiles() {
+;main.c:683: void initProjectiles() {
 ;	---------------------------------
 ; Function initProjectiles
 ; ---------------------------------
 _initProjectiles::
-;main.c:642: set_sprite_data(20, 2, projectile1);
-	ld	de, #_projectile1
+;main.c:684: set_sprite_data(20, 6, ProjectileTiles);
+	ld	de, #_ProjectileTiles
 	push	de
-	ld	hl, #0x214
+	ld	hl, #0x614
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-;main.c:644: for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
+;main.c:686: for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
 	xor	a, a
 00103$:
 	ld	hl, #_PROJECTILECOUNT
@@ -5511,66 +5976,66 @@ _initProjectiles::
 	cp	a, c
 	ret	NC
 	inc	a
-;main.c:648: }
+;main.c:690: }
 	jr	00103$
-;main.c:650: void initGame() {
+;main.c:692: void initGame() {
 ;	---------------------------------
 ; Function initGame
 ; ---------------------------------
 _initGame::
-;main.c:653: xDir = 0;
+;main.c:695: xDir = 0;
 	ld	hl, #_xDir
 	ld	(hl), #0x00
-;main.c:654: yDir = 0;
+;main.c:696: yDir = 0;
 	ld	hl, #_yDir
 	ld	(hl), #0x00
-;main.c:655: xSpeed = 0;
+;main.c:697: xSpeed = 0;
 	ld	hl, #_xSpeed
 	ld	(hl), #0x00
-;main.c:656: ySpeed = 0;
+;main.c:698: ySpeed = 0;
 	ld	hl, #_ySpeed
 	ld	(hl), #0x00
-;main.c:659: playerX = 80<<5;
+;main.c:701: playerX = 80<<5;
 	ld	hl, #_playerX
 	ld	(hl), #0x00
 	inc	hl
 	ld	(hl), #0x0a
-;main.c:660: playerY = 80<<5;
+;main.c:702: playerY = 80<<5;
 	ld	hl, #_playerY
 	ld	(hl), #0x00
 	inc	hl
 	ld	(hl), #0x0a
-;main.c:662: playerDrawX = 80;
+;main.c:704: playerDrawX = 80;
 	ld	hl, #_playerDrawX
 	ld	(hl), #0x50
-;main.c:663: playerDrawY = 80;
+;main.c:705: playerDrawY = 80;
 	ld	hl, #_playerDrawY
 	ld	(hl), #0x50
-;main.c:666: bgX = 0;
+;main.c:708: bgX = 0;
 	xor	a, a
 	ld	hl, #_bgX
 	ld	(hl+), a
 	ld	(hl), a
-;main.c:667: bgY = 0;
+;main.c:709: bgY = 0;
 	xor	a, a
 	ld	hl, #_bgY
 	ld	(hl+), a
 	ld	(hl), a
-;main.c:669: hull = maxHull;
+;main.c:711: hull = maxHull;
 	ld	a, (#_maxHull)
 	ld	(#_hull),a
-;main.c:670: shield = maxShield;
+;main.c:712: shield = maxShield;
 	ld	a, (#_maxShield)
 	ld	(#_shield),a
-;main.c:672: DISPLAY_ON;
+;main.c:714: DISPLAY_ON;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x80
 	ldh	(_LCDC_REG + 0), a
-;main.c:673: SPRITES_8x8;
+;main.c:715: SPRITES_8x8;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xfb
 	ldh	(_LCDC_REG + 0), a
-;main.c:674: set_sprite_data(0, 8, cross);
+;main.c:716: set_sprite_data(0, 8, cross);
 	ld	de, #_cross
 	push	de
 	ld	hl, #0x800
@@ -5580,13 +6045,13 @@ _initGame::
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
 	ld	hl, #(_shadow_OAM + 2)
 	ld	(hl), #0x00
-;main.c:677: SHOW_SPRITES;
+;main.c:719: SHOW_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x02
 	ldh	(_LCDC_REG + 0), a
-;main.c:681: font_init();
+;main.c:723: font_init();
 	call	_font_init
-;main.c:682: min_font = font_load(font_min); // 36 tiles of characters
+;main.c:724: min_font = font_load(font_min); // 36 tiles of characters
 	ld	de, #_font_min
 	push	de
 	call	_font_load
@@ -5594,7 +6059,7 @@ _initGame::
 	ld	hl, #_min_font
 	ld	a, e
 	ld	(hl+), a
-;main.c:683: font_set(min_font);
+;main.c:725: font_set(min_font);
 	ld	a, d
 	ld	(hl-), a
 	ld	a, (hl+)
@@ -5603,7 +6068,7 @@ _initGame::
 	push	de
 	call	_font_set
 	pop	hl
-;main.c:684: set_win_tiles(1,0,4,1,hullabel);
+;main.c:726: set_win_tiles(1,0,4,1,hullabel);
 	ld	de, #_hullabel
 	push	de
 	ld	hl, #0x104
@@ -5612,7 +6077,7 @@ _initGame::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;main.c:685: set_win_tiles(1,1,5,1,shieldlabel);
+;main.c:727: set_win_tiles(1,1,5,1,shieldlabel);
 	ld	de, #_shieldlabel
 	push	de
 	ld	hl, #0x105
@@ -5621,21 +6086,21 @@ _initGame::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;main.c:690: set_bkg_data(0x50,1,healthblock);
+;main.c:732: set_bkg_data(0x50,1,healthblock);
 	ld	de, #_healthblock
 	push	de
 	ld	hl, #0x150
 	push	hl
 	call	_set_bkg_data
 	add	sp, #4
-;main.c:692: setHealthBar(0, hull);
+;main.c:734: setHealthBar(0, hull);
 	ld	a, (#_hull)
 	ld	h, a
 	ld	l, #0x00
 	push	hl
 	call	_setHealthBar
 	pop	hl
-;main.c:693: setHealthBar(1, shield);
+;main.c:735: setHealthBar(1, shield);
 	ld	a, (#_shield)
 	ld	h, a
 	ld	l, #0x01
@@ -5647,18 +6112,18 @@ _initGame::
 	ldh	(_WX_REG + 0), a
 	ld	a, #0x7e
 	ldh	(_WY_REG + 0), a
-;main.c:696: SHOW_WIN;;
+;main.c:738: SHOW_WIN;;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-;main.c:701: set_bkg_data(0x25, 6, backgroundtiles);		// load background tileset (start in vram, count, tilestruct)
+;main.c:743: set_bkg_data(0x25, 6, backgroundtiles);		// load background tileset (start in vram, count, tilestruct)
 	ld	de, #_backgroundtiles
 	push	de
 	ld	hl, #0x625
 	push	hl
 	call	_set_bkg_data
 	add	sp, #4
-;main.c:702: set_bkg_tiles(0,0,background1Width, background1Height ,background1); //set tilemap to be a background
+;main.c:744: set_bkg_tiles(0,0,background1Width, background1Height ,background1); //set tilemap to be a background
 	ld	de, #_background1
 	push	de
 	ld	hl, #0x2020
@@ -5673,28 +6138,28 @@ _initGame::
 	ldh	(_SCX_REG + 0), a
 	xor	a, a
 	ldh	(_SCY_REG + 0), a
-;main.c:704: SHOW_BKG;
+;main.c:746: SHOW_BKG;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x01
 	ldh	(_LCDC_REG + 0), a
-;main.c:710: }
+;main.c:752: }
 	ret
-;main.c:712: void main(){
+;main.c:754: void main(){
 ;	---------------------------------
 ; Function main
 ; ---------------------------------
 _main::
-;main.c:724: waitpad(J_A);
+;main.c:766: waitpad(J_A);
 	ld	a, #0x10
 	push	af
 	inc	sp
 	call	_waitpad
 	inc	sp
-;main.c:725: uint16_t seed = LY_REG;
+;main.c:767: uint16_t seed = LY_REG;
 	ldh	a, (_LY_REG + 0)
 	ld	c, a
 	ld	b, #0x00
-;main.c:726: seed |= (uint16_t)DIV_REG << 8;
+;main.c:768: seed |= (uint16_t)DIV_REG << 8;
 	ldh	a, (_DIV_REG + 0)
 	ld	e, a
 	xor	a, a
@@ -5703,33 +6168,33 @@ _main::
 	ld	a, e
 	or	a, b
 	ld	b, a
-;main.c:727: initrand(seed);
+;main.c:769: initrand(seed);
 	push	bc
 	call	_initrand
 	pop	hl
-;main.c:732: initGame();
+;main.c:774: initGame();
 	call	_initGame
-;main.c:733: initEnemies(1);
+;main.c:775: initEnemies(1);
 	ld	a, #0x01
 	push	af
 	inc	sp
 	call	_initEnemies
 	inc	sp
-;main.c:734: initProjectiles();
+;main.c:776: initProjectiles();
 	call	_initProjectiles
-;main.c:736: while(1) {
+;main.c:778: while(1) {
 00107$:
-;main.c:739: joydata = joypad(); // query for button states
+;main.c:781: joydata = joypad(); // query for button states
 	call	_joypad
 	ld	hl, #_joydata
 	ld	(hl), e
-;main.c:741: updateDirection(); // set player direction
+;main.c:783: updateDirection(); // set player direction
 	call	_updateDirection
-;main.c:744: move(); 
+;main.c:786: move(); 
 	call	_move
-;main.c:746: updateEnemyPositions();
+;main.c:788: updateEnemyPositions();
 	call	_updateEnemyPositions
-;main.c:749: checkCollision(); 
+;main.c:791: checkCollision(); 
 	call	_checkCollision
 ;main.c:585: if (shield < maxShield) {
 	ld	hl, #_maxShield
@@ -5769,33 +6234,33 @@ _main::
 	push	hl
 	call	_setHealthBar
 	pop	hl
-;main.c:754: if (joydata & J_B && fireCooldown == 0) {
+;main.c:796: if (joydata & J_B && fireCooldown == 0) {
 	ld	a, (#_joydata)
 	bit	5, a
 	jr	Z, 00102$
 	ld	a, (#_fireCooldown)
 	or	a, a
 	jr	NZ, 00102$
-;main.c:755: fire();
+;main.c:797: fire();
 	call	_fire
 00102$:
-;main.c:757: if (fireCooldown > 0) {
+;main.c:799: if (fireCooldown > 0) {
 	ld	hl, #_fireCooldown
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00105$
-;main.c:758: --fireCooldown;
+;main.c:800: --fireCooldown;
 	dec	(hl)
 00105$:
-;main.c:761: moveProjectiles();
+;main.c:803: moveProjectiles();
 	call	_moveProjectiles
-;main.c:773: SHOW_WIN;	
+;main.c:815: SHOW_WIN;	
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-;main.c:774: wait_vbl_done(); // Idle until next frame
+;main.c:816: wait_vbl_done(); // Idle until next frame
 	call	_wait_vbl_done
-;main.c:779: }
+;main.c:821: }
 	jr	00107$
 	.area _CODE
 	.area _INITIALIZER
@@ -5824,7 +6289,7 @@ __xinit__blob:
 	.db #0x01	; 1
 	.db #0x00	;  0
 	.db #0x00	;  0
-__xinit__weakProjectile:
+__xinit__singleGun:
 	.dw #0x0000
 	.dw #0x0000
 	.db #0x00	;  0
@@ -5833,6 +6298,17 @@ __xinit__weakProjectile:
 	.db #0x00	; 0
 	.db #0x01	; 1
 	.db #0x0f	; 15
+	.db #0x14	; 20
+__xinit__doubleGun:
+	.dw #0x0000
+	.dw #0x0000
+	.db #0x00	;  0
+	.db #0xff	; -1
+	.db #0x02	; 2
+	.db #0x00	; 0
+	.db #0x01	; 1
+	.db #0x0f	; 15
+	.db #0x17	; 23
 __xinit__oldestProjectile:
 	.db #0x00	; 0
 __xinit__fireCooldown:
