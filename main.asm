@@ -18,6 +18,7 @@
 	.globl _move
 	.globl _initEnemies
 	.globl _updateEnemyPositions
+	.globl _playSound
 	.globl _updateDirection
 	.globl _setHealthBar
 	.globl _interruptLCD
@@ -26,7 +27,6 @@
 	.globl _font_set
 	.globl _font_load
 	.globl _font_init
-	.globl _printf
 	.globl _set_sprite_data
 	.globl _set_win_tiles
 	.globl _set_bkg_tiles
@@ -34,6 +34,8 @@
 	.globl _wait_vbl_done
 	.globl _waitpad
 	.globl _joypad
+	.globl _switchDelay
+	.globl _currentGun
 	.globl _enemyCollisionCount
 	.globl _yOverflow
 	.globl _xOverflow
@@ -49,6 +51,7 @@
 	.globl _xDir
 	.globl _fireCooldown
 	.globl _oldestProjectile
+	.globl _missile
 	.globl _doubleGun
 	.globl _singleGun
 	.globl _blob
@@ -60,6 +63,7 @@
 	.globl _joydata
 	.globl _projectiles
 	.globl _enemies
+	.globl _GUNCOUNT
 	.globl _maxShield
 	.globl _maxHull
 	.globl _PLAYERSIZE
@@ -69,6 +73,7 @@
 	.globl _ENEMYCOUNT
 	.globl _EMPTYSPRITE
 	.globl _BLANK
+	.globl _BLANKSIZE
 	.globl _ProjectileTiles
 	.globl _projectile1
 	.globl _enemy1
@@ -109,6 +114,8 @@ _singleGun::
 	.ds 11
 _doubleGun::
 	.ds 11
+_missile::
+	.ds 11
 _oldestProjectile::
 	.ds 1
 _fireCooldown::
@@ -139,6 +146,10 @@ _yOverflow::
 	.ds 2
 _enemyCollisionCount::
 	.ds 1
+_currentGun::
+	.ds 1
+_switchDelay::
+	.ds 1
 ;--------------------------------------------------------
 ; absolute external ram data
 ;--------------------------------------------------------
@@ -159,16 +170,16 @@ _enemyCollisionCount::
 ; code
 ;--------------------------------------------------------
 	.area _CODE
-;main.c:82: void interruptLCD(){
+;main.c:87: void interruptLCD(){
 ;	---------------------------------
 ; Function interruptLCD
 ; ---------------------------------
 _interruptLCD::
-;main.c:83: HIDE_WIN;
+;main.c:88: HIDE_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xdf
 	ldh	(_LCDC_REG + 0), a
-;main.c:84: }
+;main.c:89: }
 	ret
 _cross:
 	.db #0x18	; 24
@@ -320,6 +331,7 @@ _background1:
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
+	.db #0x2c	; 44
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
@@ -327,6 +339,249 @@ _background1:
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2b	; 43
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2b	; 43
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2b	; 43
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2b	; 43
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2c	; 44
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2c	; 44
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x25	; 37
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2c	; 44
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2b	; 43
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2c	; 44
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2b	; 43
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
@@ -347,6 +602,7 @@ _background1:
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
+	.db #0x2b	; 43
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
@@ -372,698 +628,7 @@ _background1:
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x25	; 37
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x27	; 39
-	.db #0x28	; 40
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x25	; 37
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x2a	; 42
-	.db #0x29	; 41
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x27	; 39
-	.db #0x28	; 40
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x2a	; 42
-	.db #0x29	; 41
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x25	; 37
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x28	; 40
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x27	; 39
-	.db #0x29	; 41
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x2a	; 42
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x25	; 37
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
-	.db #0x26	; 38
+	.db #0x2b	; 43
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
@@ -1137,6 +702,8 @@ _background1:
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
+	.db #0x27	; 39
+	.db #0x28	; 40
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
@@ -1152,6 +719,7 @@ _background1:
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
+	.db #0x2c	; 44
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
@@ -1166,6 +734,8 @@ _background1:
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
+	.db #0x2a	; 42
+	.db #0x29	; 41
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
@@ -1179,12 +749,14 @@ _background1:
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
+	.db #0x25	; 37
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
+	.db #0x2c	; 44
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
@@ -1222,6 +794,7 @@ _background1:
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
+	.db #0x2c	; 44
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
@@ -1236,6 +809,7 @@ _background1:
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
+	.db #0x2c	; 44
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
@@ -1263,7 +837,226 @@ _background1:
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
+	.db #0x2b	; 43
 	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x28	; 40
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2b	; 43
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x27	; 39
+	.db #0x29	; 41
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2b	; 43
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2a	; 42
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2c	; 44
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2b	; 43
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2b	; 43
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2b	; 43
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2c	; 44
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2b	; 43
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
@@ -1324,30 +1117,241 @@ _background1:
 	.db #0x26	; 38
 	.db #0x26	; 38
 	.db #0x26	; 38
+	.db #0x2b	; 43
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x25	; 37
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2a	; 42
+	.db #0x29	; 41
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2b	; 43
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2c	; 44
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2c	; 44
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2b	; 43
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2b	; 43
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2c	; 44
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x25	; 37
+	.db #0x2c	; 44
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2b	; 43
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x27	; 39
+	.db #0x28	; 40
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x26	; 38
+	.db #0x2b	; 43
 _backgroundtiles:
+	.db #0x40	; 64
+	.db #0x38	; 56	'8'
+	.db #0x3a	; 58
+	.db #0x44	; 68	'D'
+	.db #0x7c	; 124
+	.db #0x9a	; 154
+	.db #0x5e	; 94
+	.db #0xe9	; 233
+	.db #0x7a	; 122	'z'
+	.db #0x87	; 135
+	.db #0x76	; 118	'v'
+	.db #0xb9	; 185
+	.db #0x3c	; 60
+	.db #0x72	; 114	'r'
 	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x18	; 24
-	.db #0x18	; 24
-	.db #0x18	; 24
-	.db #0x18	; 24
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
+	.db #0x3c	; 60
 	.db #0x00	; 0
 	.db #0x00	; 0
 	.db #0x00	; 0
@@ -1357,70 +1361,109 @@ _backgroundtiles:
 	.db #0x00	; 0
 	.db #0x00	; 0
 	.db #0x00	; 0
-	.db #0x1f	; 31
-	.db #0x1f	; 31
-	.db #0x3f	; 63
-	.db #0x3f	; 63
-	.db #0x7f	; 127
-	.db #0x7f	; 127
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x0f	; 15
+	.db #0x08	; 8
+	.db #0x17	; 23
+	.db #0x1c	; 28
+	.db #0x23	; 35
+	.db #0x3e	; 62
+	.db #0x41	; 65	'A'
+	.db #0x1b	; 27
+	.db #0x64	; 100	'd'
+	.db #0x31	; 49	'1'
+	.db #0x4e	; 78	'N'
+	.db #0xb1	; 177
+	.db #0xce	; 206
+	.db #0xbb	; 187
+	.db #0xc4	; 196
+	.db #0x00	; 0
 	.db #0xf8	; 248
-	.db #0xf8	; 248
+	.db #0x00	; 0
 	.db #0xfc	; 252
-	.db #0xfc	; 252
-	.db #0xfe	; 254
-	.db #0xfe	; 254
+	.db #0xe0	; 224
+	.db #0x1e	; 30
+	.db #0xf0	; 240
+	.db #0x0f	; 15
+	.db #0xbe	; 190
+	.db #0x01	; 1
+	.db #0xbc	; 188
+	.db #0x02	; 2
+	.db #0xce	; 206
+	.db #0x01	; 1
+	.db #0xf6	; 246
+	.db #0x61	; 97	'a'
+	.db #0xf4	; 244
+	.db #0x02	; 2
+	.db #0x94	; 148
+	.db #0x62	; 98	'b'
+	.db #0xe4	; 228
+	.db #0x02	; 2
+	.db #0x6c	; 108	'l'
+	.db #0x82	; 130
+	.db #0x70	; 112	'p'
+	.db #0x8c	; 140
+	.db #0x60	; 96
+	.db #0x90	; 144
+	.db #0x00	; 0
+	.db #0xe0	; 224
+	.db #0x80	; 128
+	.db #0x80	; 128
+	.db #0x8e	; 142
+	.db #0xf7	; 247
+	.db #0x8f	; 143
+	.db #0xf3	; 243
+	.db #0x86	; 134
+	.db #0xf9	; 249
+	.db #0x42	; 66	'B'
+	.db #0x7d	; 125
+	.db #0x80	; 128
 	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xfe	; 254
-	.db #0xfe	; 254
-	.db #0xfc	; 252
-	.db #0xfc	; 252
-	.db #0xf8	; 248
-	.db #0xf8	; 248
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
-	.db #0xff	; 255
+	.db #0x44	; 68	'D'
 	.db #0x7f	; 127
+	.db #0x28	; 40
+	.db #0x3f	; 63
+	.db #0x07	; 7
+	.db #0x07	; 7
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x08	; 8
+	.db #0x00	; 0
+	.db #0x08	; 8
+	.db #0x00	; 0
+	.db #0x1c	; 28
+	.db #0x00	; 0
 	.db #0x7f	; 127
-	.db #0x3f	; 63
-	.db #0x3f	; 63
-	.db #0x1f	; 31
-	.db #0x1f	; 31
+	.db #0x00	; 0
+	.db #0x1c	; 28
+	.db #0x00	; 0
+	.db #0x08	; 8
+	.db #0x00	; 0
+	.db #0x08	; 8
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x10	; 16
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
 _healthblock:
 	.db #0xfe	; 254
 	.db #0xfe	; 254
@@ -1569,24 +1612,60 @@ _ProjectileTiles:
 	.db #0x0f	; 15
 	.db #0x09	; 9
 	.db #0x06	; 6
+	.db #0x18	; 24
+	.db #0x00	; 0
+	.db #0x18	; 24
+	.db #0x18	; 24
+	.db #0x18	; 24
+	.db #0x18	; 24
+	.db #0x3c	; 60
+	.db #0x18	; 24
+	.db #0x3c	; 60
+	.db #0x18	; 24
+	.db #0x3c	; 60
+	.db #0x3c	; 60
+	.db #0x7e	; 126
+	.db #0x3c	; 60
+	.db #0x7e	; 126
+	.db #0x24	; 36
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0xc0	; 192
+	.db #0x00	; 0
+	.db #0xf8	; 248
+	.db #0xe0	; 224
+	.db #0xff	; 255
+	.db #0x7e	; 126
+	.db #0xff	; 255
+	.db #0x7e	; 126
+	.db #0xf8	; 248
+	.db #0xe0	; 224
+	.db #0xc0	; 192
 	.db #0x00	; 0
 	.db #0x00	; 0
 	.db #0x00	; 0
+	.db #0x06	; 6
 	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
+	.db #0x0f	; 15
+	.db #0x06	; 6
+	.db #0x1f	; 31
+	.db #0x0e	; 14
+	.db #0x7e	; 126
+	.db #0x1c	; 28
+	.db #0xfc	; 252
+	.db #0x78	; 120	'x'
+	.db #0xf8	; 248
+	.db #0xf0	; 240
+	.db #0xf8	; 248
+	.db #0x70	; 112	'p'
+	.db #0x70	; 112	'p'
+	.db #0x20	; 32
+_BLANKSIZE:
+	.db #0x03	; 3
 _BLANK:
 	.db #0x26	; 38
+	.db #0x2b	; 43
+	.db #0x2c	; 44
 _EMPTYSPRITE:
 	.db #0x50	; 80	'P'
 _ENEMYCOUNT:
@@ -1617,18 +1696,20 @@ _maxHull:
 	.db #0x64	;  100	'd'
 _maxShield:
 	.db #0x64	;  100	'd'
-;main.c:86: void setHealthBar(uint8_t row, uint8_t hp) {
+_GUNCOUNT:
+	.db #0x03	; 3
+;main.c:91: void setHealthBar(uint8_t row, uint8_t hp) {
 ;	---------------------------------
 ; Function setHealthBar
 ; ---------------------------------
 _setHealthBar::
 	add	sp, #-5
-;main.c:87: if (hp >= 80) {
+;main.c:92: if (hp >= 80) {
 	ldhl	sp,	#8
 	ld	a, (hl)
 	sub	a, #0x50
 	jr	C, 00102$
-;main.c:88: unsigned char blockmap[] = {0x50,0x50,0x50,0x50,0x50};
+;main.c:93: unsigned char blockmap[] = {0x50,0x50,0x50,0x50,0x50};
 	ldhl	sp,	#0
 	ld	c, l
 	ld	b, h
@@ -1663,59 +1744,6 @@ _setHealthBar::
 	ld	hl, #0x0004
 	add	hl, bc
 	ld	(hl), #0x50
-;main.c:89: set_win_tiles(5,row,5,1,blockmap);
-	push	bc
-	ld	hl, #0x105
-	push	hl
-	ldhl	sp,	#11
-	ld	h, (hl)
-	ld	l, #0x05
-	push	hl
-	call	_set_win_tiles
-	add	sp, #6
-;main.c:90: return;
-	jp	00109$
-00102$:
-;main.c:92: if (hp >= 60) {
-	ldhl	sp,	#8
-	ld	a, (hl)
-	sub	a, #0x3c
-	jr	C, 00104$
-;main.c:93: unsigned char blockmap[] = {0x50,0x50,0x50,0x50,0x00};
-	ldhl	sp,	#0
-	ld	c, l
-	ld	b, h
-	ld	(hl), #0x50
-	ld	l, c
-;	spillPairReg hl
-;	spillPairReg hl
-	ld	h, b
-;	spillPairReg hl
-;	spillPairReg hl
-	inc	hl
-	ld	(hl), #0x50
-	ld	l, c
-;	spillPairReg hl
-;	spillPairReg hl
-	ld	h, b
-;	spillPairReg hl
-;	spillPairReg hl
-	inc	hl
-	inc	hl
-	ld	(hl), #0x50
-	ld	l, c
-;	spillPairReg hl
-;	spillPairReg hl
-	ld	h, b
-;	spillPairReg hl
-;	spillPairReg hl
-	inc	hl
-	inc	hl
-	inc	hl
-	ld	(hl), #0x50
-	ld	hl, #0x0004
-	add	hl, bc
-	ld	(hl), #0x00
 ;main.c:94: set_win_tiles(5,row,5,1,blockmap);
 	push	bc
 	ld	hl, #0x105
@@ -1728,13 +1756,13 @@ _setHealthBar::
 	add	sp, #6
 ;main.c:95: return;
 	jp	00109$
-00104$:
-;main.c:97: if (hp >= 40) {
+00102$:
+;main.c:97: if (hp >= 60) {
 	ldhl	sp,	#8
 	ld	a, (hl)
-	sub	a, #0x28
-	jr	C, 00106$
-;main.c:98: unsigned char blockmap[] = {0x50,0x50,0x50,0x00,0x00};
+	sub	a, #0x3c
+	jr	C, 00104$
+;main.c:98: unsigned char blockmap[] = {0x50,0x50,0x50,0x50,0x00};
 	ldhl	sp,	#0
 	ld	c, l
 	ld	b, h
@@ -1756,13 +1784,16 @@ _setHealthBar::
 	inc	hl
 	inc	hl
 	ld	(hl), #0x50
-	ld	e, c
-	ld	d, b
-	inc	de
-	inc	de
-	inc	de
-	xor	a, a
-	ld	(de), a
+	ld	l, c
+;	spillPairReg hl
+;	spillPairReg hl
+	ld	h, b
+;	spillPairReg hl
+;	spillPairReg hl
+	inc	hl
+	inc	hl
+	inc	hl
+	ld	(hl), #0x50
 	ld	hl, #0x0004
 	add	hl, bc
 	ld	(hl), #0x00
@@ -1777,14 +1808,14 @@ _setHealthBar::
 	call	_set_win_tiles
 	add	sp, #6
 ;main.c:100: return;
-	jr	00109$
-00106$:
-;main.c:102: if (hp >= 20) {
+	jp	00109$
+00104$:
+;main.c:102: if (hp >= 40) {
 	ldhl	sp,	#8
 	ld	a, (hl)
-	sub	a, #0x14
-	jr	C, 00108$
-;main.c:103: unsigned char blockmap[] = {0x50,0x50,0x00,0x00,0x00};
+	sub	a, #0x28
+	jr	C, 00106$
+;main.c:103: unsigned char blockmap[] = {0x50,0x50,0x50,0x00,0x00};
 	ldhl	sp,	#0
 	ld	c, l
 	ld	b, h
@@ -1797,12 +1828,15 @@ _setHealthBar::
 ;	spillPairReg hl
 	inc	hl
 	ld	(hl), #0x50
-	ld	e, c
-	ld	d, b
-	inc	de
-	inc	de
-	xor	a, a
-	ld	(de), a
+	ld	l, c
+;	spillPairReg hl
+;	spillPairReg hl
+	ld	h, b
+;	spillPairReg hl
+;	spillPairReg hl
+	inc	hl
+	inc	hl
+	ld	(hl), #0x50
 	ld	e, c
 	ld	d, b
 	inc	de
@@ -1825,8 +1859,55 @@ _setHealthBar::
 	add	sp, #6
 ;main.c:105: return;
 	jr	00109$
+00106$:
+;main.c:107: if (hp >= 20) {
+	ldhl	sp,	#8
+	ld	a, (hl)
+	sub	a, #0x14
+	jr	C, 00108$
+;main.c:108: unsigned char blockmap[] = {0x50,0x50,0x00,0x00,0x00};
+	ldhl	sp,	#0
+	ld	c, l
+	ld	b, h
+	ld	(hl), #0x50
+	ld	l, c
+;	spillPairReg hl
+;	spillPairReg hl
+	ld	h, b
+;	spillPairReg hl
+;	spillPairReg hl
+	inc	hl
+	ld	(hl), #0x50
+	ld	e, c
+	ld	d, b
+	inc	de
+	inc	de
+	xor	a, a
+	ld	(de), a
+	ld	e, c
+	ld	d, b
+	inc	de
+	inc	de
+	inc	de
+	xor	a, a
+	ld	(de), a
+	ld	hl, #0x0004
+	add	hl, bc
+	ld	(hl), #0x00
+;main.c:109: set_win_tiles(5,row,5,1,blockmap);
+	push	bc
+	ld	hl, #0x105
+	push	hl
+	ldhl	sp,	#11
+	ld	h, (hl)
+	ld	l, #0x05
+	push	hl
+	call	_set_win_tiles
+	add	sp, #6
+;main.c:110: return;
+	jr	00109$
 00108$:
-;main.c:107: unsigned char blockmap[] = {0x50,0x00,0x00,0x00,0x00};
+;main.c:112: unsigned char blockmap[] = {0x50,0x00,0x00,0x00,0x00};
 	ldhl	sp,	#0
 	ld	c, l
 	ld	b, h
@@ -1852,7 +1933,7 @@ _setHealthBar::
 	ld	hl, #0x0004
 	add	hl, bc
 	ld	(hl), #0x00
-;main.c:108: set_win_tiles(5,row,5,1,blockmap);
+;main.c:113: set_win_tiles(5,row,5,1,blockmap);
 	push	bc
 	ld	hl, #0x105
 	push	hl
@@ -1862,18 +1943,18 @@ _setHealthBar::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;main.c:109: return;
+;main.c:114: return;
 00109$:
-;main.c:111: }
+;main.c:116: }
 	add	sp, #5
 	ret
-;main.c:113: void updateDirection() {
+;main.c:118: void updateDirection() {
 ;	---------------------------------
 ; Function updateDirection
 ; ---------------------------------
 _updateDirection::
 	add	sp, #-4
-;main.c:117: if ((joydata & J_RIGHT) && !(joydata & J_UP) && !(joydata & J_DOWN)) {
+;main.c:122: if ((joydata & J_RIGHT) && !(joydata & J_UP) && !(joydata & J_DOWN)) {
 	ld	hl, #_joydata
 	ld	e, (hl)
 	ld	a, e
@@ -1902,14 +1983,14 @@ _updateDirection::
 	ld	a, b
 	or	a, c
 	jr	NZ, 00102$
-;main.c:118: xDir = 1;
+;main.c:123: xDir = 1;
 	ld	hl, #_xDir
 	ld	(hl), #0x01
-;main.c:119: yDir = 0;
+;main.c:124: yDir = 0;
 	ld	hl, #_yDir
 	ld	(hl), #0x00
 00102$:
-;main.c:121: if ((joydata & J_LEFT) && !(joydata & J_UP) && !(joydata & J_DOWN)) {
+;main.c:126: if ((joydata & J_LEFT) && !(joydata & J_UP) && !(joydata & J_DOWN)) {
 	ld	a, e
 	and	a, #0x02
 	ld	e, a
@@ -1924,14 +2005,14 @@ _updateDirection::
 	ld	a, b
 	or	a, c
 	jr	NZ, 00106$
-;main.c:122: xDir = -1;
+;main.c:127: xDir = -1;
 	ld	hl, #_xDir
 	ld	(hl), #0xff
-;main.c:123: yDir = 0;
+;main.c:128: yDir = 0;
 	ld	hl, #_yDir
 	ld	(hl), #0x00
 00106$:
-;main.c:125: if ((joydata & J_UP) && !(joydata & J_LEFT) && !(joydata & J_RIGHT)) {
+;main.c:130: if ((joydata & J_UP) && !(joydata & J_LEFT) && !(joydata & J_RIGHT)) {
 	ldhl	sp,	#3
 	ld	a, (hl-)
 	or	a, (hl)
@@ -1943,14 +2024,14 @@ _updateDirection::
 	ld	a, (hl-)
 	or	a, (hl)
 	jr	NZ, 00110$
-;main.c:126: xDir = 0;
+;main.c:131: xDir = 0;
 	ld	hl, #_xDir
 	ld	(hl), #0x00
-;main.c:127: yDir = -1;
+;main.c:132: yDir = -1;
 	ld	hl, #_yDir
 	ld	(hl), #0xff
 00110$:
-;main.c:129: if ((joydata & J_DOWN) && !(joydata & J_LEFT) && !(joydata & J_RIGHT)) {
+;main.c:134: if ((joydata & J_DOWN) && !(joydata & J_LEFT) && !(joydata & J_RIGHT)) {
 	ld	a, b
 	or	a, c
 	jr	Z, 00114$
@@ -1961,14 +2042,14 @@ _updateDirection::
 	ld	a, (hl-)
 	or	a, (hl)
 	jr	NZ, 00114$
-;main.c:130: xDir = 0;
+;main.c:135: xDir = 0;
 	ld	hl, #_xDir
 	ld	(hl), #0x00
-;main.c:131: yDir = 1;
+;main.c:136: yDir = 1;
 	ld	hl, #_yDir
 	ld	(hl), #0x01
 00114$:
-;main.c:135: if ((joydata & J_UP) && (joydata & J_RIGHT)) {
+;main.c:140: if ((joydata & J_UP) && (joydata & J_RIGHT)) {
 	ldhl	sp,	#3
 	ld	a, (hl-)
 	or	a, (hl)
@@ -1977,14 +2058,14 @@ _updateDirection::
 	ld	a, (hl-)
 	or	a, (hl)
 	jr	Z, 00118$
-;main.c:136: xDir = 1;
+;main.c:141: xDir = 1;
 	ld	hl, #_xDir
 	ld	(hl), #0x01
-;main.c:137: yDir = -1;
+;main.c:142: yDir = -1;
 	ld	hl, #_yDir
 	ld	(hl), #0xff
 00118$:
-;main.c:139: if ((joydata & J_UP) && (joydata & J_LEFT)) {
+;main.c:144: if ((joydata & J_UP) && (joydata & J_LEFT)) {
 	ldhl	sp,	#3
 	ld	a, (hl-)
 	or	a, (hl)
@@ -1992,14 +2073,14 @@ _updateDirection::
 	ld	a, d
 	or	a, e
 	jr	Z, 00121$
-;main.c:140: xDir = -1;
+;main.c:145: xDir = -1;
 	ld	hl, #_xDir
 	ld	(hl), #0xff
-;main.c:141: yDir = -1;
+;main.c:146: yDir = -1;
 	ld	hl, #_yDir
 	ld	(hl), #0xff
 00121$:
-;main.c:143: if ((joydata & J_DOWN) && (joydata & J_RIGHT)) {
+;main.c:148: if ((joydata & J_DOWN) && (joydata & J_RIGHT)) {
 	ld	a, b
 	or	a, c
 	jr	Z, 00124$
@@ -2007,39 +2088,39 @@ _updateDirection::
 	ld	a, (hl-)
 	or	a, (hl)
 	jr	Z, 00124$
-;main.c:144: xDir = 1;
+;main.c:149: xDir = 1;
 	ld	hl, #_xDir
 	ld	(hl), #0x01
-;main.c:145: yDir = 1;
+;main.c:150: yDir = 1;
 	ld	hl, #_yDir
 	ld	(hl), #0x01
 00124$:
-;main.c:147: if ((joydata & J_DOWN) && (joydata & J_LEFT)) {
+;main.c:152: if ((joydata & J_DOWN) && (joydata & J_LEFT)) {
 	ld	a, b
 	or	a, c
 	jr	Z, 00127$
 	ld	a, d
 	or	a, e
 	jr	Z, 00127$
-;main.c:148: xDir = -1;
+;main.c:153: xDir = -1;
 	ld	hl, #_xDir
 	ld	(hl), #0xff
-;main.c:149: yDir = 1;
+;main.c:154: yDir = 1;
 	ld	hl, #_yDir
 	ld	(hl), #0x01
 00127$:
-;main.c:154: if (xDir == 0 && yDir == 0) {
+;main.c:159: if (xDir == 0 && yDir == 0) {
 	ld	a, (#_xDir)
 	or	a, a
 	jr	NZ, 00130$
 	ld	a, (#_yDir)
 	or	a, a
-;main.c:155: return;
+;main.c:160: return;
 	jp	Z,00157$
 00130$:
-;main.c:158: uint8_t direction = 0;
+;main.c:163: uint8_t direction = 0;
 	ld	c, #0x00
-;main.c:160: if (xDir == 0 && yDir < 0) {
+;main.c:165: if (xDir == 0 && yDir < 0) {
 	ld	a, (#_yDir)
 	rlca
 	and	a,#0x01
@@ -2052,10 +2133,10 @@ _updateDirection::
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00133$
-;main.c:161: direction = 0;
+;main.c:166: direction = 0;
 	ld	c, #0x00
 00133$:
-;main.c:163: if (xDir > 0 && yDir < 0) {
+;main.c:168: if (xDir > 0 && yDir < 0) {
 	ld	hl, #_xDir
 	ld	e, (hl)
 	xor	a, a
@@ -2081,20 +2162,20 @@ _updateDirection::
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00136$
-;main.c:164: direction = 1;
+;main.c:169: direction = 1;
 	ld	c, #0x01
 00136$:
-;main.c:166: if (xDir > 0 && yDir == 0) {
+;main.c:171: if (xDir > 0 && yDir == 0) {
 	ld	a, b
 	or	a, a
 	jr	Z, 00139$
 	ld	a, (#_yDir)
 	or	a, a
 	jr	NZ, 00139$
-;main.c:167: direction = 2;
+;main.c:172: direction = 2;
 	ld	c, #0x02
 00139$:
-;main.c:169: if (xDir > 0 && yDir > 0) {
+;main.c:174: if (xDir > 0 && yDir > 0) {
 	ld	hl, #_yDir
 	ld	e, (hl)
 	xor	a, a
@@ -2121,10 +2202,10 @@ _updateDirection::
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00142$
-;main.c:170: direction = 3;
+;main.c:175: direction = 3;
 	ld	c, #0x03
 00142$:
-;main.c:172: if (xDir == 0 && yDir > 0) {
+;main.c:177: if (xDir == 0 && yDir > 0) {
 	ld	a, (#_xDir)
 	or	a, a
 	jr	NZ, 00145$
@@ -2132,10 +2213,10 @@ _updateDirection::
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00145$
-;main.c:173: direction = 4;
+;main.c:178: direction = 4;
 	ld	c, #0x04
 00145$:
-;main.c:175: if (xDir < 0 && yDir > 0) {
+;main.c:180: if (xDir < 0 && yDir > 0) {
 	ld	a, (#_xDir)
 	rlca
 	and	a,#0x01
@@ -2146,20 +2227,20 @@ _updateDirection::
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00148$
-;main.c:176: direction = 5;
+;main.c:181: direction = 5;
 	ld	c, #0x05
 00148$:
-;main.c:178: if (xDir < 0 && yDir == 0) {
+;main.c:183: if (xDir < 0 && yDir == 0) {
 	ld	a, b
 	or	a, a
 	jr	Z, 00151$
 	ld	a, (#_yDir)
 	or	a, a
 	jr	NZ, 00151$
-;main.c:179: direction = 6;
+;main.c:184: direction = 6;
 	ld	c, #0x06
 00151$:
-;main.c:181: if (xDir < 0 && yDir < 0) {
+;main.c:186: if (xDir < 0 && yDir < 0) {
 	ld	a, b
 	or	a, a
 	jr	Z, 00154$
@@ -2167,24 +2248,113 @@ _updateDirection::
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00154$
-;main.c:182: direction = 7;
+;main.c:187: direction = 7;
 	ld	c, #0x07
 00154$:
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
 	ld	hl, #(_shadow_OAM + 2)
 	ld	(hl), c
-;main.c:185: set_sprite_tile(0, direction);
+;main.c:190: set_sprite_tile(0, direction);
 00157$:
-;main.c:186: }
+;main.c:191: }
 	add	sp, #4
 	ret
-;main.c:218: void updateEnemyPositions() {
+;main.c:220: void playSound(uint8_t type) {
+;	---------------------------------
+; Function playSound
+; ---------------------------------
+_playSound::
+;main.c:221: if (type == 20) { //singlegun
+	ldhl	sp,	#2
+	ld	a, (hl)
+	sub	a, #0x14
+	jr	NZ, 00102$
+;main.c:222: NR10_REG = 0x00;
+	xor	a, a
+	ldh	(_NR10_REG + 0), a
+;main.c:223: NR11_REG = 0x81;
+	ld	a, #0x81
+	ldh	(_NR11_REG + 0), a
+;main.c:224: NR12_REG = 0x43;
+	ld	a, #0x43
+	ldh	(_NR12_REG + 0), a
+;main.c:225: NR13_REG = 0X00;//0x6D;
+	xor	a, a
+	ldh	(_NR13_REG + 0), a
+;main.c:226: NR14_REG = 0x86;
+	ld	a, #0x86
+	ldh	(_NR14_REG + 0), a
+;main.c:227: return;
+	ret
+00102$:
+;main.c:229: if (type == 23) {
+	ldhl	sp,	#2
+	ld	a, (hl)
+	sub	a, #0x17
+	jr	NZ, 00104$
+;main.c:230: NR10_REG = 0x00;
+	xor	a, a
+	ldh	(_NR10_REG + 0), a
+;main.c:231: NR11_REG = 0x81;
+	ld	a, #0x81
+	ldh	(_NR11_REG + 0), a
+;main.c:232: NR12_REG = 0x53;
+	ld	a, #0x53
+	ldh	(_NR12_REG + 0), a
+;main.c:233: NR13_REG = 0X00;//0x6D;
+	xor	a, a
+	ldh	(_NR13_REG + 0), a
+;main.c:234: NR14_REG = 0x86;
+	ld	a, #0x86
+	ldh	(_NR14_REG + 0), a
+00104$:
+;main.c:236: if (type == 26) {
+	ldhl	sp,	#2
+	ld	a, (hl)
+	sub	a, #0x1a
+	jr	NZ, 00106$
+;main.c:237: NR10_REG = 0x00;
+	xor	a, a
+	ldh	(_NR10_REG + 0), a
+;main.c:238: NR11_REG = 0x89;
+	ld	a, #0x89
+	ldh	(_NR11_REG + 0), a
+;main.c:239: NR12_REG = 0x55;
+	ld	a, #0x55
+	ldh	(_NR12_REG + 0), a
+;main.c:240: NR13_REG = 0x70;//0Xbe;//0x6D;
+	ld	a, #0x70
+	ldh	(_NR13_REG + 0), a
+;main.c:241: NR14_REG = 0x84;
+	ld	a, #0x84
+	ldh	(_NR14_REG + 0), a
+00106$:
+;main.c:243: if (type == 0) {  // explosion
+	ldhl	sp,	#2
+	ld	a, (hl)
+	or	a, a
+	ret	NZ
+;main.c:244: NR41_REG = 0x20;  
+	ld	a, #0x20
+	ldh	(_NR41_REG + 0), a
+;main.c:245: NR42_REG = 0xa2;//0xa3;  
+	ld	a, #0xa2
+	ldh	(_NR42_REG + 0), a
+;main.c:246: NR43_REG = 0x57;  
+	ld	a, #0x57
+	ldh	(_NR43_REG + 0), a
+;main.c:247: NR44_REG = 0x80;  
+	ld	a, #0x80
+	ldh	(_NR44_REG + 0), a
+;main.c:253: }
+	ret
+;main.c:256: void updateEnemyPositions() {
 ;	---------------------------------
 ; Function updateEnemyPositions
 ; ---------------------------------
 _updateEnemyPositions::
 	add	sp, #-16
-;main.c:220: for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
+;main.c:258: for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
 	ldhl	sp,	#15
 	ld	(hl), #0x00
 00140$:
@@ -2194,7 +2364,7 @@ _updateEnemyPositions::
 	ld	a, (hl)
 	sub	a, c
 	jp	NC, 00117$
-;main.c:222: enemies[i].x -= xOverflow;
+;main.c:260: enemies[i].x -= xOverflow;
 	ld	a, (hl)
 	ld	d, #0x00
 	add	a, a
@@ -2205,7 +2375,7 @@ _updateEnemyPositions::
 	rl	d
 	add	a, a
 	rl	d
-;main.c:232: if (enemies[i].y < playerDrawY) {
+;main.c:270: if (enemies[i].y < playerDrawY) {
 	ld	e, a
 	ld	hl, #_enemies
 	add	hl, de
@@ -2216,7 +2386,7 @@ _updateEnemyPositions::
 	pop	hl
 	ld	a, h
 	ldhl	sp,	#5
-;main.c:222: enemies[i].x -= xOverflow;
+;main.c:260: enemies[i].x -= xOverflow;
 	ld	(hl-), a
 	ld	a, (hl+)
 	ld	e, a
@@ -2250,7 +2420,7 @@ _updateEnemyPositions::
 	inc	de
 	ld	a, (hl)
 	ld	(de), a
-;main.c:223: enemies[i].y -= yOverflow;
+;main.c:261: enemies[i].y -= yOverflow;
 	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	e, a
@@ -2288,11 +2458,11 @@ _updateEnemyPositions::
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;main.c:226: if (enemies[i].x < playerDrawX) {
+;main.c:264: if (enemies[i].x < playerDrawX) {
 	ld	hl, #_playerDrawX
 	ld	c, (hl)
 	ld	b, #0x00
-;main.c:239: enemies[i].xSpeed = clamp(enemies[i].xSpeed, -enemies[i].speed, enemies[i].speed);
+;main.c:277: enemies[i].xSpeed = clamp(enemies[i].xSpeed, -enemies[i].speed, enemies[i].speed);
 	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	e, a
@@ -2307,7 +2477,7 @@ _updateEnemyPositions::
 	ld	a, h
 	ldhl	sp,	#9
 	ld	(hl), a
-;main.c:227: enemies[i].xSpeed += enemies[i].accel;
+;main.c:265: enemies[i].xSpeed += enemies[i].accel;
 	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	e, a
@@ -2328,7 +2498,7 @@ _updateEnemyPositions::
 	push	de
 	ld	a, (de)
 	ld	(hl), a
-;main.c:226: if (enemies[i].x < playerDrawX) {
+;main.c:264: if (enemies[i].x < playerDrawX) {
 	ldhl	sp,	#11
 	ld	a, (hl+)
 	sub	a, c
@@ -2348,7 +2518,7 @@ _updateEnemyPositions::
 	scf
 00274$:
 	jr	NC, 00102$
-;main.c:227: enemies[i].xSpeed += enemies[i].accel;
+;main.c:265: enemies[i].xSpeed += enemies[i].accel;
 	ldhl	sp,	#14
 	ld	a, (hl-)
 	add	a, (hl)
@@ -2360,7 +2530,7 @@ _updateEnemyPositions::
 	ld	(hl), c
 	jr	00103$
 00102$:
-;main.c:230: enemies[i].xSpeed -= enemies[i].accel;
+;main.c:268: enemies[i].xSpeed -= enemies[i].accel;
 	ldhl	sp,	#13
 	ld	a, (hl+)
 	sub	a, (hl)
@@ -2371,7 +2541,7 @@ _updateEnemyPositions::
 	ld	l, a
 	ld	(hl), c
 00103$:
-;main.c:232: if (enemies[i].y < playerDrawY) {
+;main.c:270: if (enemies[i].y < playerDrawY) {
 	ldhl	sp,#6
 	ld	a, (hl+)
 	ld	e, a
@@ -2385,7 +2555,7 @@ _updateEnemyPositions::
 	ld	hl, #_playerDrawY
 	ld	c, (hl)
 	ld	b, #0x00
-;main.c:240: enemies[i].ySpeed = clamp(enemies[i].ySpeed, -enemies[i].speed, enemies[i].speed);
+;main.c:278: enemies[i].ySpeed = clamp(enemies[i].ySpeed, -enemies[i].speed, enemies[i].speed);
 	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	e, a
@@ -2399,7 +2569,7 @@ _updateEnemyPositions::
 	pop	hl
 	ld	a, h
 	ldhl	sp,	#11
-;main.c:233: enemies[i].ySpeed += enemies[i].accel;
+;main.c:271: enemies[i].ySpeed += enemies[i].accel;
 	ld	(hl-), a
 	ld	a, (hl+)
 	ld	e, a
@@ -2412,7 +2582,7 @@ _updateEnemyPositions::
 	push	de
 	ld	a, (de)
 	ld	(hl), a
-;main.c:232: if (enemies[i].y < playerDrawY) {
+;main.c:270: if (enemies[i].y < playerDrawY) {
 	ldhl	sp,	#2
 	ld	a, (hl+)
 	sub	a, c
@@ -2432,7 +2602,7 @@ _updateEnemyPositions::
 	scf
 00276$:
 	jr	NC, 00105$
-;main.c:233: enemies[i].ySpeed += enemies[i].accel;
+;main.c:271: enemies[i].ySpeed += enemies[i].accel;
 	ldhl	sp,	#14
 	ld	a, (hl-)
 	add	a, (hl)
@@ -2444,7 +2614,7 @@ _updateEnemyPositions::
 	ld	(hl), c
 	jr	00106$
 00105$:
-;main.c:236: enemies[i].ySpeed -= enemies[i].accel;
+;main.c:274: enemies[i].ySpeed -= enemies[i].accel;
 	ldhl	sp,	#13
 	ld	a, (hl+)
 	sub	a, (hl)
@@ -2455,7 +2625,7 @@ _updateEnemyPositions::
 	ld	l, a
 	ld	(hl), c
 00106$:
-;main.c:239: enemies[i].xSpeed = clamp(enemies[i].xSpeed, -enemies[i].speed, enemies[i].speed);
+;main.c:277: enemies[i].xSpeed = clamp(enemies[i].xSpeed, -enemies[i].speed, enemies[i].speed);
 	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	e, a
@@ -2478,7 +2648,7 @@ _updateEnemyPositions::
 	ld	d, (hl)
 	ld	a, (de)
 	ldhl	sp,	#14
-;main.c:191: return (value < min) ? min : (value > max) ? max : value;
+;main.c:196: return (value < min) ? min : (value > max) ? max : value;
 	ld	(hl-), a
 	ld	a, (hl+)
 	ld	e, a
@@ -2529,7 +2699,7 @@ _updateEnemyPositions::
 	ld	a, (hl)
 00150$:
 00148$:
-;main.c:239: enemies[i].xSpeed = clamp(enemies[i].xSpeed, -enemies[i].speed, enemies[i].speed);
+;main.c:277: enemies[i].xSpeed = clamp(enemies[i].xSpeed, -enemies[i].speed, enemies[i].speed);
 	ldhl	sp,	#8
 	push	af
 	ld	a,	(hl+)
@@ -2537,7 +2707,7 @@ _updateEnemyPositions::
 	ld	l, a
 	pop	af
 	ld	(hl), a
-;main.c:240: enemies[i].ySpeed = clamp(enemies[i].ySpeed, -enemies[i].speed, enemies[i].speed);
+;main.c:278: enemies[i].ySpeed = clamp(enemies[i].ySpeed, -enemies[i].speed, enemies[i].speed);
 	ld	a, (bc)
 	ld	b, a
 	ld	c, b
@@ -2552,7 +2722,7 @@ _updateEnemyPositions::
 	ld	l, a
 ;	spillPairReg hl
 ;	spillPairReg hl
-;main.c:191: return (value < min) ? min : (value > max) ? max : value;
+;main.c:196: return (value < min) ? min : (value > max) ? max : value;
 	ld	e, b
 	ld	a,l
 	ld	d,a
@@ -2591,13 +2761,13 @@ _updateEnemyPositions::
 	ld	c, l
 00154$:
 00152$:
-;main.c:240: enemies[i].ySpeed = clamp(enemies[i].ySpeed, -enemies[i].speed, enemies[i].speed);
+;main.c:278: enemies[i].ySpeed = clamp(enemies[i].ySpeed, -enemies[i].speed, enemies[i].speed);
 	ldhl	sp,	#10
 	ld	a,	(hl+)
 	ld	h, (hl)
 	ld	l, a
 	ld	(hl), c
-;main.c:243: enemies[i].xReserve += enemies[i].xSpeed;
+;main.c:281: enemies[i].xReserve += enemies[i].xSpeed;
 	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	e, a
@@ -2630,7 +2800,7 @@ _updateEnemyPositions::
 	ld	h, (hl)
 	ld	l, a
 	ld	(hl), b
-;main.c:244: enemies[i].yReserve += enemies[i].ySpeed;
+;main.c:282: enemies[i].yReserve += enemies[i].ySpeed;
 	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	e, a
@@ -2655,11 +2825,11 @@ _updateEnemyPositions::
 	ld	l, (hl)
 	ld	h, a
 	ld	(hl), c
-;main.c:248: if (enemies[i].xReserve >> 3 > 0) {
+;main.c:286: if (enemies[i].xReserve >> 3 > 0) {
 	sra	b
 	sra	b
 	sra	b
-;main.c:243: enemies[i].xReserve += enemies[i].xSpeed;
+;main.c:281: enemies[i].xReserve += enemies[i].xSpeed;
 	ldhl	sp,#11
 	ld	a, (hl+)
 	ld	e, a
@@ -2668,7 +2838,7 @@ _updateEnemyPositions::
 	ld	d, a
 	ld	a, (de)
 	ld	(hl), a
-;main.c:248: if (enemies[i].xReserve >> 3 > 0) {
+;main.c:286: if (enemies[i].xReserve >> 3 > 0) {
 	ld	e, b
 	xor	a, a
 	ld	d, a
@@ -2685,14 +2855,14 @@ _updateEnemyPositions::
 	scf
 00286$:
 	jr	NC, 00110$
-;main.c:249: int8_t xMovement = enemies[i].xReserve >> 3;
+;main.c:287: int8_t xMovement = enemies[i].xReserve >> 3;
 	ldhl	sp,	#10
 	ld	a, (hl)
 	sra	a
 	sra	a
 	sra	a
 	ld	(hl), a
-;main.c:250: enemies[i].x += xMovement;
+;main.c:288: enemies[i].x += xMovement;
 	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	e, a
@@ -2724,7 +2894,7 @@ _updateEnemyPositions::
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;main.c:251: enemies[i].xReserve -=  xMovement << 3;
+;main.c:289: enemies[i].xReserve -=  xMovement << 3;
 	ldhl	sp,#11
 	ld	a, (hl+)
 	ld	e, a
@@ -2747,7 +2917,7 @@ _updateEnemyPositions::
 	ld	(hl), c
 	jr	00111$
 00110$:
-;main.c:254: else if ((-enemies[i].xReserve) >> 3 > 0){
+;main.c:292: else if ((-enemies[i].xReserve) >> 3 > 0){
 	ldhl	sp,	#10
 	ld	a, (hl)
 	ld	c, a
@@ -2783,13 +2953,13 @@ _updateEnemyPositions::
 	scf
 00288$:
 	jr	NC, 00111$
-;main.c:255: int8_t xMovement = -((-enemies[i].xReserve) >> 3);
+;main.c:293: int8_t xMovement = -((-enemies[i].xReserve) >> 3);
 	xor	a, a
 	sub	a, c
 	ld	c, a
 	ldhl	sp,	#10
 	ld	(hl), c
-;main.c:256: enemies[i].x += xMovement;
+;main.c:294: enemies[i].x += xMovement;
 	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	e, a
@@ -2821,7 +2991,7 @@ _updateEnemyPositions::
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;main.c:257: enemies[i].xReserve +=  (-xMovement) << 3;
+;main.c:295: enemies[i].xReserve +=  (-xMovement) << 3;
 	ldhl	sp,#11
 	ld	a, (hl+)
 	ld	e, a
@@ -2843,7 +3013,7 @@ _updateEnemyPositions::
 	ld	l, a
 	ld	(hl), c
 00111$:
-;main.c:260: if (enemies[i].yReserve >> 3 > 0) {
+;main.c:298: if (enemies[i].yReserve >> 3 > 0) {
 	ldhl	sp,#13
 	ld	a, (hl+)
 	ld	e, a
@@ -2872,11 +3042,11 @@ _updateEnemyPositions::
 	scf
 00290$:
 	jr	NC, 00115$
-;main.c:261: int8_t yMovement = enemies[i].yReserve >> 3;
+;main.c:299: int8_t yMovement = enemies[i].yReserve >> 3;
 	ldhl	sp,	#12
 	ld	a, (hl)
 	ldhl	sp,	#8
-;main.c:262: enemies[i].y += yMovement;
+;main.c:300: enemies[i].y += yMovement;
 	ld	(hl-), a
 	dec	hl
 	ld	a, (hl+)
@@ -2927,7 +3097,7 @@ _updateEnemyPositions::
 	ld	a, (hl+)
 	ld	(de), a
 	inc	de
-;main.c:263: enemies[i].yReserve -=  yMovement << 3;
+;main.c:301: enemies[i].yReserve -=  yMovement << 3;
 	ld	a, (hl+)
 	ld	(de), a
 	ld	a, (hl+)
@@ -2951,7 +3121,7 @@ _updateEnemyPositions::
 	ld	(hl), c
 	jp	00141$
 00115$:
-;main.c:265: else if ((-enemies[i].yReserve) >> 3 > 0){
+;main.c:303: else if ((-enemies[i].yReserve) >> 3 > 0){
 	ldhl	sp,	#11
 	ld	a, (hl)
 	ldhl	sp,	#8
@@ -3002,7 +3172,7 @@ _updateEnemyPositions::
 	scf
 00292$:
 	jr	NC, 00141$
-;main.c:266: int8_t yMovement = -((-enemies[i].yReserve) >> 3);
+;main.c:304: int8_t yMovement = -((-enemies[i].yReserve) >> 3);
 	ldhl	sp,	#11
 	ld	a, (hl+)
 	ld	c, a
@@ -3011,7 +3181,7 @@ _updateEnemyPositions::
 	ld	(hl), a
 	ld	a, (hl)
 	ldhl	sp,	#8
-;main.c:267: enemies[i].y += yMovement;
+;main.c:305: enemies[i].y += yMovement;
 	ld	(hl-), a
 	dec	hl
 	ld	a, (hl+)
@@ -3062,7 +3232,7 @@ _updateEnemyPositions::
 	ld	a, (hl+)
 	ld	(de), a
 	inc	de
-;main.c:268: enemies[i].yReserve +=  (-yMovement) << 3;
+;main.c:306: enemies[i].yReserve +=  (-yMovement) << 3;
 	ld	a, (hl+)
 	ld	(de), a
 	ld	a, (hl+)
@@ -3084,12 +3254,12 @@ _updateEnemyPositions::
 	ld	l, a
 	ld	(hl), c
 00141$:
-;main.c:220: for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
+;main.c:258: for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
 	ldhl	sp,	#15
 	inc	(hl)
 	jp	00140$
 00117$:
-;main.c:279: for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
+;main.c:317: for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
 	ldhl	sp,	#15
 	ld	(hl), #0x00
 00143$:
@@ -3099,7 +3269,7 @@ _updateEnemyPositions::
 	ld	a, (hl)
 	sub	a, c
 	jp	NC, 00145$
-;main.c:281: if (enemies[i].alive) {
+;main.c:319: if (enemies[i].alive) {
 	ld	a, (hl)
 	ld	d, #0x00
 	add	a, a
@@ -3134,7 +3304,7 @@ _updateEnemyPositions::
 	ld	a, (hl)
 	or	a, a
 	jp	Z, 00132$
-;main.c:282: if (enemies[i].visible == 1) {
+;main.c:320: if (enemies[i].visible == 1) {
 	ldhl	sp,#7
 	ld	a, (hl+)
 	ld	e, a
@@ -3155,7 +3325,7 @@ _updateEnemyPositions::
 	ld	d, a
 	ld	a, (de)
 	ld	(hl), a
-;main.c:283: if (enemies[i].x < 0 || enemies[i].x > 172 || enemies[i].y < 0 || enemies[i].y > 152) {
+;main.c:321: if (enemies[i].x < 0 || enemies[i].x > 172 || enemies[i].y < 0 || enemies[i].y > 152) {
 	ldhl	sp,#7
 	ld	a, (hl+)
 	ld	e, a
@@ -3178,34 +3348,34 @@ _updateEnemyPositions::
 	pop	hl
 	ld	a, h
 	ldhl	sp,	#13
-;main.c:285: set_sprite_tile(10+i, 0x7f);
+;main.c:323: set_sprite_tile(10+i, 0x7f);
 	ld	(hl+), a
 	inc	hl
 	ld	a, (hl)
-;main.c:283: if (enemies[i].x < 0 || enemies[i].x > 172 || enemies[i].y < 0 || enemies[i].y > 152) {
+;main.c:321: if (enemies[i].x < 0 || enemies[i].x > 172 || enemies[i].y < 0 || enemies[i].y > 152) {
 	ldhl	sp,	#5
 	ld	c, (hl)
 	inc	hl
 	ld	b, (hl)
-;main.c:285: set_sprite_tile(10+i, 0x7f);
+;main.c:323: set_sprite_tile(10+i, 0x7f);
 	add	a, #0x0a
 	ldhl	sp,	#14
 	ld	(hl), a
-;main.c:283: if (enemies[i].x < 0 || enemies[i].x > 172 || enemies[i].y < 0 || enemies[i].y > 152) {
+;main.c:321: if (enemies[i].x < 0 || enemies[i].x > 172 || enemies[i].y < 0 || enemies[i].y > 152) {
 	ld	a, b
 	rlca
 	and	a,#0x01
 	ld	l, a
 ;	spillPairReg hl
 ;	spillPairReg hl
-;main.c:282: if (enemies[i].visible == 1) {
+;main.c:320: if (enemies[i].visible == 1) {
 	push	hl
 	ldhl	sp,	#13
 	ld	a, (hl)
 	dec	a
 	pop	hl
 	jr	NZ, 00129$
-;main.c:283: if (enemies[i].x < 0 || enemies[i].x > 172 || enemies[i].y < 0 || enemies[i].y > 152) {
+;main.c:321: if (enemies[i].x < 0 || enemies[i].x > 172 || enemies[i].y < 0 || enemies[i].y > 152) {
 	ld	a, l
 	or	a, a
 	jr	NZ, 00118$
@@ -3257,13 +3427,13 @@ _updateEnemyPositions::
 00299$:
 	jr	NC, 00132$
 00118$:
-;main.c:284: enemies[i].visible = 0;
+;main.c:322: enemies[i].visible = 0;
 	ldhl	sp,	#9
 	ld	a,	(hl+)
 	ld	h, (hl)
 	ld	l, a
 	ld	(hl), #0x00
-;main.c:285: set_sprite_tile(10+i, 0x7f);
+;main.c:323: set_sprite_tile(10+i, 0x7f);
 	ldhl	sp,	#14
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
 	ld	l, (hl)
@@ -3279,10 +3449,10 @@ _updateEnemyPositions::
 	inc	hl
 	inc	hl
 	ld	(hl), #0x7f
-;main.c:285: set_sprite_tile(10+i, 0x7f);
+;main.c:323: set_sprite_tile(10+i, 0x7f);
 	jr	00132$
 00129$:
-;main.c:289: if (enemies[i].x >= 0 && enemies[i].x < 172 && enemies[i].y > 0 && enemies[i].y < 152) {
+;main.c:327: if (enemies[i].x >= 0 && enemies[i].x < 172 && enemies[i].y > 0 && enemies[i].y < 152) {
 	bit	0, l
 	jr	NZ, 00132$
 	ld	a, c
@@ -3327,13 +3497,13 @@ _updateEnemyPositions::
 	rra
 	sbc	a, #0x80
 	jr	NC, 00132$
-;main.c:290: enemies[i].visible = 1;
+;main.c:328: enemies[i].visible = 1;
 	ldhl	sp,	#9
 	ld	a,	(hl+)
 	ld	h, (hl)
 	ld	l, a
 	ld	(hl), #0x01
-;main.c:291: set_sprite_tile(10+i, enemies[i].sprite0);
+;main.c:329: set_sprite_tile(10+i, enemies[i].sprite0);
 	ldhl	sp,#7
 	ld	a, (hl+)
 	ld	e, a
@@ -3359,9 +3529,9 @@ _updateEnemyPositions::
 	inc	hl
 	inc	hl
 	ld	(hl), c
-;main.c:291: set_sprite_tile(10+i, enemies[i].sprite0);
+;main.c:329: set_sprite_tile(10+i, enemies[i].sprite0);
 00132$:
-;main.c:296: move_sprite(10+i, enemies[i].x, enemies[i].y);
+;main.c:334: move_sprite(10+i, enemies[i].x, enemies[i].y);
 	ldhl	sp,	#15
 	ld	l, (hl)
 	ld	h, #0x00
@@ -3396,33 +3566,33 @@ _updateEnemyPositions::
 	ld	a, b
 	ld	(hl+), a
 	ld	(hl), c
-;main.c:279: for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
+;main.c:317: for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
 	ldhl	sp,	#15
 	inc	(hl)
 	jp	00143$
 00145$:
-;main.c:298: }
+;main.c:336: }
 	add	sp, #16
 	ret
-;main.c:300: void initEnemies(uint8_t loadSprites) {
+;main.c:338: void initEnemies(uint8_t loadSprites) {
 ;	---------------------------------
 ; Function initEnemies
 ; ---------------------------------
 _initEnemies::
 	add	sp, #-7
-;main.c:302: if (loadSprites) {
+;main.c:340: if (loadSprites) {
 	ldhl	sp,	#9
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00116$
-;main.c:304: set_sprite_data(9, 2, enemy1);
+;main.c:342: set_sprite_data(9, 2, enemy1);
 	ld	de, #_enemy1
 	push	de
 	ld	hl, #0x209
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-;main.c:309: for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
+;main.c:347: for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
 00116$:
 	ld	c, #0x00
 00109$:
@@ -3431,7 +3601,7 @@ _initEnemies::
 	ld	a, c
 	sub	a, b
 	jp	NC, 00111$
-;main.c:310: if (enemies[i].alive == 0) {
+;main.c:348: if (enemies[i].alive == 0) {
 	ld	l, c
 ;	spillPairReg hl
 ;	spillPairReg hl
@@ -3458,7 +3628,7 @@ _initEnemies::
 	ld	a, (de)
 	or	a, a
 	jr	NZ, 00110$
-;main.c:312: enemies[i] = blob;
+;main.c:350: enemies[i] = blob;
 	pop	de
 	push	de
 	push	bc
@@ -3473,7 +3643,7 @@ _initEnemies::
 	ld	a, e
 	pop	bc
 	and	a, #0x07
-;main.c:316: enemies[i].x = xSpawnPositions[posIndex];
+;main.c:354: enemies[i].x = xSpawnPositions[posIndex];
 	ld	b, a
 	add	a,#<(_xSpawnPositions)
 	ld	e, a
@@ -3492,7 +3662,7 @@ _initEnemies::
 	inc	de
 	ld	a, (hl)
 	ld	(de), a
-;main.c:317: enemies[i].y = ySpawnPositions[posIndex];
+;main.c:355: enemies[i].y = ySpawnPositions[posIndex];
 	pop	de
 	push	de
 	inc	de
@@ -3517,7 +3687,7 @@ _initEnemies::
 	inc	de
 	ld	a, (hl)
 	ld	(de), a
-;main.c:319: set_sprite_tile(10+i, enemies[i].sprite0);
+;main.c:357: set_sprite_tile(10+i, enemies[i].sprite0);
 	pop	de
 	push	de
 	ld	hl, #0x0006
@@ -3543,7 +3713,7 @@ _initEnemies::
 	inc	hl
 	inc	hl
 	ld	(hl), b
-;main.c:320: move_sprite(10+i, enemies[i].x, enemies[i].y);
+;main.c:358: move_sprite(10+i, enemies[i].x, enemies[i].y);
 	ldhl	sp,	#4
 	ld	a, (hl-)
 	dec	hl
@@ -3566,26 +3736,26 @@ _initEnemies::
 	ld	a, e
 	ld	(hl+), a
 	ld	(hl), b
-;main.c:320: move_sprite(10+i, enemies[i].x, enemies[i].y);
+;main.c:358: move_sprite(10+i, enemies[i].x, enemies[i].y);
 00110$:
-;main.c:309: for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
+;main.c:347: for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
 	inc	c
 	jp	00109$
 00111$:
-;main.c:323: }
+;main.c:361: }
 	add	sp, #7
 	ret
-;main.c:326: void move() {
+;main.c:364: void move() {
 ;	---------------------------------
 ; Function move
 ; ---------------------------------
 _move::
-	dec	sp
-;main.c:330: if (joydata & J_A) {
+	add	sp, #-8
+;main.c:368: if (joydata & J_A) {
 	ld	a, (#_joydata)
 	bit	4, a
 	jr	Z, 00102$
-;main.c:331: xSpeed += xDir + xDir + xDir;
+;main.c:369: xSpeed += xDir + xDir + xDir;
 	ld	hl, #_xDir
 	ld	a, (hl)
 	add	a, a
@@ -3593,7 +3763,7 @@ _move::
 	ld	hl, #_xSpeed
 	add	a, (hl)
 	ld	(hl), a
-;main.c:332: ySpeed += yDir + yDir + yDir;
+;main.c:370: ySpeed += yDir + yDir + yDir;
 	ld	hl, #_yDir
 	ld	a, (hl)
 	add	a, a
@@ -3602,118 +3772,118 @@ _move::
 	add	a, (hl)
 	ld	(hl), a
 00102$:
-;main.c:336: xSpeed = clamp(xSpeed, -100, 100);
+;main.c:374: xSpeed = clamp(xSpeed, -100, 100);
 	ld	hl, #_xSpeed
 	ld	c, (hl)
-;main.c:191: return (value < min) ? min : (value > max) ? max : value;
+;main.c:196: return (value < min) ? min : (value > max) ? max : value;
 	ld	a, c
 	xor	a, #0x80
 	sub	a, #0x1c
-	jr	NC, 00147$
+	jr	NC, 00159$
 	ld	c, #0x9c
-	jr	00148$
-00147$:
+	jr	00160$
+00159$:
 	ld	e, c
 	ld	a,#0x64
 	ld	d,a
 	sub	a, c
 	bit	7, e
-	jr	Z, 00289$
+	jr	Z, 00331$
 	bit	7, d
-	jr	NZ, 00290$
+	jr	NZ, 00332$
 	cp	a, a
-	jr	00290$
-00289$:
+	jr	00332$
+00331$:
 	bit	7, d
-	jr	Z, 00290$
+	jr	Z, 00332$
 	scf
-00290$:
-	jr	NC, 00149$
+00332$:
+	jr	NC, 00161$
 	ld	c, #0x64
-00149$:
-00148$:
+00161$:
+00160$:
 	ld	hl, #_xSpeed
 	ld	(hl), c
-;main.c:337: ySpeed = clamp(ySpeed, -100, 100);
+;main.c:375: ySpeed = clamp(ySpeed, -100, 100);
 	ld	hl, #_ySpeed
 	ld	c, (hl)
-;main.c:191: return (value < min) ? min : (value > max) ? max : value;
+;main.c:196: return (value < min) ? min : (value > max) ? max : value;
 	ld	a, c
 	xor	a, #0x80
 	sub	a, #0x1c
-	jr	NC, 00151$
+	jr	NC, 00163$
 	ld	c, #0x9c
-	jr	00152$
-00151$:
+	jr	00164$
+00163$:
 	ld	e, c
 	ld	a,#0x64
 	ld	d,a
 	sub	a, c
 	bit	7, e
-	jr	Z, 00291$
+	jr	Z, 00333$
 	bit	7, d
-	jr	NZ, 00292$
+	jr	NZ, 00334$
 	cp	a, a
-	jr	00292$
-00291$:
+	jr	00334$
+00333$:
 	bit	7, d
-	jr	Z, 00292$
+	jr	Z, 00334$
 	scf
-00292$:
-	jr	NC, 00153$
+00334$:
+	jr	NC, 00165$
 	ld	c, #0x64
-00153$:
-00152$:
+00165$:
+00164$:
 	ld	hl, #_ySpeed
 	ld	(hl), c
-;main.c:339: xOverflow = 0;
+;main.c:377: xOverflow = 0;
 	xor	a, a
 	ld	hl, #_xOverflow
 	ld	(hl+), a
 	ld	(hl), a
-;main.c:340: yOverflow = 0;
+;main.c:378: yOverflow = 0;
 	xor	a, a
 	ld	hl, #_yOverflow
 	ld	(hl+), a
 	ld	(hl), a
-;main.c:345: uint8_t xCollisionPoint = playerDrawX -4; 
+;main.c:383: uint8_t xCollisionPoint = playerDrawX -4; 
 	ld	hl, #_playerDrawX
 	ld	b, (hl)
 	ld	a, b
 	add	a, #0xfc
 	ld	c, a
-;main.c:347: if (xSpeed > 0) {
+;main.c:385: if (xSpeed > 0) {
 	ld	hl, #_xSpeed
 	ld	e, (hl)
 	xor	a, a
 	ld	d, a
 	sub	a, (hl)
 	bit	7, e
-	jr	Z, 00293$
+	jr	Z, 00335$
 	bit	7, d
-	jr	NZ, 00294$
+	jr	NZ, 00336$
 	cp	a, a
-	jr	00294$
-00293$:
+	jr	00336$
+00335$:
 	bit	7, d
-	jr	Z, 00294$
+	jr	Z, 00336$
 	scf
-00294$:
+00336$:
 	jr	NC, 00104$
-;main.c:348: xCollisionPoint = playerDrawX; //right edge
+;main.c:386: xCollisionPoint = playerDrawX; //right edge
 	ld	hl, #_playerDrawX
 	ld	c, (hl)
 00104$:
-;main.c:350: if (xSpeed < 0) {
+;main.c:388: if (xSpeed < 0) {
 	ld	a, (#_xSpeed)
 	bit	7, a
 	jr	Z, 00106$
-;main.c:351: xCollisionPoint = playerDrawX -8; //left edge
+;main.c:389: xCollisionPoint = playerDrawX -8; //left edge
 	ld	a, b
 	add	a, #0xf8
 	ld	c, a
 00106$:
-;main.c:355: int16_t bgindX = ((xCollisionPoint + bgX) >> 3)%32;
+;main.c:393: int16_t bgindX = ((xCollisionPoint + bgX) >> 3)%32;
 	ld	b, #0x00
 	ld	a, c
 	ld	hl, #_bgX
@@ -3734,7 +3904,7 @@ _move::
 	push	bc
 	call	__modsint
 	add	sp, #4
-;main.c:359: uint8_t bgindY = ((playerDrawY-12 + bgY) >> 3)%32; 
+;main.c:397: uint8_t bgindY = ((playerDrawY-12 + bgY) >> 3)%32; 
 	ld	a, (#_playerDrawY)
 	ld	b, #0x00
 	add	a, #0xf4
@@ -3768,7 +3938,7 @@ _move::
 ;	spillPairReg hl
 ;	spillPairReg hl
 	pop	de
-;main.c:362: uint16_t ind = 32*bgindY + bgindX;
+;main.c:400: uint16_t ind = 32*bgindY + bgindX;
 	ld	h, #0x00
 ;	spillPairReg hl
 ;	spillPairReg hl
@@ -3778,24 +3948,44 @@ _move::
 	add	hl, hl
 	add	hl, hl
 	add	hl, de
-;main.c:363: uint8_t result = background1[ind] != BLANK[0];
-	ld	bc,#_background1
-	add	hl,bc
-	ld	c, (hl)
-	ld	a, (#_BLANK + 0)
-	ldhl	sp,	#0
+	ld	e, l
+	ld	d, h
+;main.c:401: uint8_t result = 1; // 0 incase of clear path, 1 for blocked
+	ld	c, #0x01
+;main.c:402: for (uint8_t i=0; i<BLANKSIZE; i++) {
+	ld	hl, #_background1
+	add	hl, de
+	ld	b, (hl)
+	ld	e, #0x00
+00152$:
+	ld	a, (#_BLANKSIZE)
+	ldhl	sp,	#2
 	ld	(hl), a
-	ld	a, c
-	ldhl	sp,	#0
+	ld	a, e
 	sub	a, (hl)
-	ld	a, #0x01
-	jr	Z, 00296$
-	xor	a, a
-00296$:
-;main.c:364: if (result == 0) {
-	xor	a,#0x01
-	jp	NZ, 00111$
-;main.c:365: playerX+=xSpeed;
+	jr	NC, 00109$
+;main.c:403: if (background1[ind] == BLANK[i] ) {
+	ld	hl, #_BLANK
+	ld	d, #0x00
+	add	hl, de
+	ld	d, (hl)
+	ld	a, b
+;main.c:404: result = 0;
+	sub	a,d
+	jr	NZ, 00153$
+	ld	c,a
+;main.c:405: break;
+	jr	00109$
+00153$:
+;main.c:402: for (uint8_t i=0; i<BLANKSIZE; i++) {
+	inc	e
+	jr	00152$
+00109$:
+;main.c:409: if (result == 0) {
+	ld	a, c
+	or	a, a
+	jp	NZ, 00114$
+;main.c:410: playerX+=xSpeed;
 	ld	a, (#_xSpeed)
 	ld	c, a
 	rlca
@@ -3811,11 +4001,12 @@ _move::
 ;	spillPairReg hl
 	add	hl, bc
 	ld	c, l
-	ld	a, h
+	ld	b, h
 	ld	hl, #_playerX
-	ld	(hl), c
-	inc	hl
-;main.c:367: uint16_t limitedPlayerX = u16Clamp(playerX, 58<<5, 110<<5);//0->160, with 8 px margin for left edge & 50px for the edges
+	ld	a, c
+	ld	(hl+), a
+;main.c:412: uint16_t limitedPlayerX = u16Clamp(playerX, 58<<5, 110<<5);//0->160, with 8 px margin for left edge & 50px for the edges
+	ld	a, b
 	ld	(hl-), a
 	ld	a, (hl+)
 	ld	c, a
@@ -3824,28 +4015,28 @@ _move::
 	sub	a, #0x40
 	ld	a, b
 	sbc	a, #0x07
-	jr	NC, 00155$
+	jr	NC, 00167$
 	ld	bc, #0x0740
-	jr	00156$
-00155$:
+	jr	00168$
+00167$:
 	ld	a, #0xc0
 	cp	a, c
 	ld	a, #0x0d
 	sbc	a, b
-	jr	NC, 00157$
+	jr	NC, 00169$
 	ld	bc, #0x0dc0
-00157$:
-00156$:
+00169$:
+00168$:
 	ld	e,c
 	ld	d,b
-;main.c:369: xOverflow = (playerX - limitedPlayerX);
+;main.c:414: xOverflow = (playerX - limitedPlayerX);
 	ld	a, (#_playerX)
 	sub	a, e
 	ld	(#_xOverflow),a
 	ld	a, (#_playerX + 1)
 	sbc	a, d
 	ld	hl, #_xOverflow + 1
-;main.c:370: if (xOverflow >= 0) {
+;main.c:415: if (xOverflow >= 0) {
 	ld	(hl-), a
 	ld	l, (hl)
 ;	spillPairReg hl
@@ -3854,8 +4045,8 @@ _move::
 ;	spillPairReg hl
 ;	spillPairReg hl
 	bit	7,a
-	jr	NZ, 00108$
-;main.c:371: xOverflow = xOverflow >> 5;
+	jr	NZ, 00111$
+;main.c:416: xOverflow = xOverflow >> 5;
 	ld	hl, #_xOverflow + 1
 	sra	(hl)
 	dec	hl
@@ -3876,9 +4067,9 @@ _move::
 	sra	(hl)
 	dec	hl
 	rr	(hl)
-	jr	00109$
-00108$:
-;main.c:374: xOverflow = -((-xOverflow) >> 5);
+	jr	00112$
+00111$:
+;main.c:419: xOverflow = -((-xOverflow) >> 5);
 	xor	a, a
 	ld	hl, #_xOverflow
 	sub	a, (hl)
@@ -3904,8 +4095,8 @@ _move::
 	sbc	a, a
 	sub	a, d
 	ld	(hl), a
-00109$:
-;main.c:376: bgX += xOverflow;
+00112$:
+;main.c:421: bgX += xOverflow;
 	ld	a, (#_bgX)
 	ld	hl, #_xOverflow
 	add	a, (hl)
@@ -3915,11 +4106,11 @@ _move::
 	ld	hl, #_xOverflow + 1
 	adc	a, (hl)
 	ld	(#_bgX + 1),a
-;main.c:377: playerX = limitedPlayerX;
+;main.c:422: playerX = limitedPlayerX;
 	ld	hl, #_playerX
 	ld	a, c
 	ld	(hl+), a
-;main.c:378: playerDrawX=playerX >> 5;
+;main.c:423: playerDrawX=playerX >> 5;
 	ld	a, b
 	ld	(hl-), a
 	ld	a, (hl+)
@@ -3937,150 +4128,297 @@ _move::
 	rr	c
 	ld	hl, #_playerDrawX
 	ld	(hl), c
-	jr	00112$
-00111$:
-;main.c:386: xSpeed = 0;
+	jr	00115$
+00114$:
+;main.c:431: xSpeed = 0;
 	ld	hl, #_xSpeed
 	ld	(hl), #0x00
-00112$:
-;main.c:394: uint8_t yCollisionPoint = playerDrawY -12; 
+00115$:
+;main.c:439: uint8_t yCollisionPoint = playerDrawY -12; 
 	ld	hl, #_playerDrawY
-	ld	b, (hl)
-	ld	a, b
+	ld	c, (hl)
+	ld	a, c
 	add	a, #0xf4
-	ld	c, a
-;main.c:396: if (ySpeed > 0) {
+	ldhl	sp,	#7
+	ld	(hl), a
+;main.c:441: if (ySpeed > 0) {
 	ld	hl, #_ySpeed
 	ld	e, (hl)
 	xor	a, a
 	ld	d, a
 	sub	a, (hl)
 	bit	7, e
-	jr	Z, 00297$
+	jr	Z, 00339$
 	bit	7, d
-	jr	NZ, 00298$
+	jr	NZ, 00340$
 	cp	a, a
-	jr	00298$
-00297$:
+	jr	00340$
+00339$:
 	bit	7, d
-	jr	Z, 00298$
+	jr	Z, 00340$
 	scf
-00298$:
-	jr	NC, 00114$
-;main.c:397: yCollisionPoint = playerDrawY - 8; //bottom edge, only half the height, so -8
-	ld	a, b
+00340$:
+	jr	NC, 00117$
+;main.c:442: yCollisionPoint = playerDrawY - 8; //bottom edge, only half the height, so -8
+	ld	a, c
 	add	a, #0xf8
-	ld	c, a
-00114$:
-;main.c:399: if (ySpeed < 0) {
+	ldhl	sp,	#7
+	ld	(hl), a
+00117$:
+;main.c:444: if (ySpeed < 0) {
 	ld	a, (#_ySpeed)
 	bit	7, a
-	jr	Z, 00116$
-;main.c:400: yCollisionPoint = playerDrawY -16; //top edge, 
-	ld	a, b
+	jr	Z, 00119$
+;main.c:445: yCollisionPoint = playerDrawY -16; //top edge, 
+	ld	a, c
 	add	a, #0xf0
-	ld	c, a
-00116$:
-;main.c:404: bgindX = ((playerDrawX -4 + bgX) >> 3)%32;
+	ldhl	sp,	#7
+	ld	(hl), a
+00119$:
+;main.c:449: bgindX = ((playerDrawX -4 + bgX) >> 3)%32;
 	ld	a, (#_playerDrawX)
-	ld	b, #0x00
-	add	a, #0xfc
+	ldhl	sp,	#3
+	ld	(hl+), a
+	xor	a, a
+	ld	(hl-), a
+	ld	a, (hl+)
 	ld	e, a
-	ld	a, b
-	adc	a, #0xff
-	ld	d, a
+	ld	d, (hl)
+	ld	hl, #0x0004
 	ld	a, e
-	ld	hl, #_bgX
-	add	a, (hl)
-	inc	hl
+	sub	a, l
 	ld	e, a
 	ld	a, d
-	adc	a, (hl)
-	ld	d, a
-	sra	d
-	rr	e
-	sra	d
-	rr	e
-	sra	d
-	rr	e
-	push	bc
-	ld	hl, #0x0020
+	sbc	a, h
+	ldhl	sp,	#6
+	ld	(hl-), a
+	ld	(hl), e
+	ld	a, (hl-)
+	dec	hl
+	ld	(hl), a
+	ldhl	sp,	#6
+	ld	a, (hl-)
+	dec	hl
+	ld	(hl-), a
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #_bgX
+	ld	a,	(hl+)
+	ld	h, (hl)
+	ld	l, a
+	add	hl, de
 	push	hl
-	push	de
-	call	__modsint
-	add	sp, #4
-	pop	bc
-;main.c:407: bgindY = ((yCollisionPoint + bgY) >> 3)%32; 
-	ld	b, #0x00
-	ld	a, c
-	ld	hl, #_bgY
-	add	a, (hl)
+	ld	a, l
+	ldhl	sp,	#7
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#6
+	ld	(hl), a
+	sra	(hl)
+	dec	hl
+	rr	(hl)
 	inc	hl
-	ld	c, a
-	ld	a, b
-	adc	a, (hl)
-	ld	b, a
-	sra	b
-	rr	c
-	sra	b
-	rr	c
-	sra	b
-	rr	c
+	sra	(hl)
+	dec	hl
+	rr	(hl)
+	inc	hl
+	sra	(hl)
+	dec	hl
+	rr	(hl)
+	ld	de, #0x0020
 	push	de
-	ld	hl, #0x0020
-	push	hl
-	push	bc
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	push	de
 	call	__modsint
 	add	sp, #4
-	ld	l, e
-;	spillPairReg hl
-;	spillPairReg hl
-	pop	de
-;main.c:410: ind = 32*bgindY + bgindX;
-	ld	h, #0x00
-;	spillPairReg hl
-;	spillPairReg hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, de
-;main.c:411: result = background1[ind] != BLANK[0];
-	ld	de, #_background1
-	add	hl, de
-	ld	c, (hl)
+	ldhl	sp,	#5
+	ld	a, e
+	ld	(hl+), a
+	ld	(hl), d
+	ldhl	sp,	#5
+	ld	a, (hl)
 	ldhl	sp,	#0
+	ld	(hl), a
+	ldhl	sp,	#6
+	ld	a, (hl)
+	ldhl	sp,	#1
+	ld	(hl), a
+;main.c:452: bgindY = ((yCollisionPoint + bgY) >> 3)%32; 
+	ldhl	sp,	#7
+	ld	a, (hl-)
+	ld	(hl+), a
+	xor	a, a
+	ld	(hl-), a
+	ld	a, (hl-)
+	dec	hl
+	ld	(hl), a
+	ldhl	sp,	#7
+	ld	a, (hl-)
+	dec	hl
+	ld	(hl-), a
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #_bgY
+	ld	a,	(hl+)
+	ld	h, (hl)
+	ld	l, a
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#8
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#7
+	ld	(hl), a
+	sra	(hl)
+	dec	hl
+	rr	(hl)
+	inc	hl
+	sra	(hl)
+	dec	hl
+	rr	(hl)
+	inc	hl
+	sra	(hl)
+	dec	hl
+	rr	(hl)
+	ld	de, #0x0020
+	push	de
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	push	de
+	call	__modsint
+	add	sp, #4
+	ldhl	sp,	#6
+	ld	a, e
+	ld	(hl+), a
+	ld	(hl), d
+	ldhl	sp,	#6
+	ld	a, (hl+)
+	ld	(hl), a
+;main.c:455: ind = 32*bgindY + bgindX;
+	ld	a, (hl-)
+	ld	(hl+), a
+	ld	(hl), #0x00
+	ld	a, #0x05
+00341$:
+	ldhl	sp,	#6
+	sla	(hl)
+	inc	hl
+	rl	(hl)
+	dec	a
+	jr	NZ, 00341$
+	dec	hl
+	ld	a, (hl-)
+	dec	hl
+	ld	(hl), a
+	ldhl	sp,	#7
+	ld	a, (hl-)
+	dec	hl
+	ld	(hl), a
+	pop	de
+	push	de
+	ld	a, (hl-)
+	ld	l, (hl)
+	ld	h, a
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#8
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#7
+	ld	(hl), a
+;main.c:456: result = 1;
+	ldhl	sp,	#3
+	ld	(hl), #0x01
+;main.c:457: for (uint8_t j=0; j<BLANKSIZE; j++) {
+	ldhl	sp,#6
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #_background1
+	add	hl, de
+	ld	c, l
+	ld	b, h
+	ld	a, (bc)
+	ldhl	sp,	#4
+	ld	(hl), a
+	ldhl	sp,	#7
+	ld	(hl), #0x00
+00155$:
+	ldhl	sp,	#7
+	ld	a, (hl)
+	ldhl	sp,	#2
+	sub	a, (hl)
+	jr	NC, 00122$
+;main.c:458: if (background1[ind] == BLANK[j] ) {
+	ld	de, #_BLANK
+	ldhl	sp,	#7
+	ld	l, (hl)
+	ld	h, #0x00
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#7
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#6
+	ld	(hl-), a
+	ld	a, (hl+)
+	ld	e, a
+	ld	a, (hl-)
+	dec	hl
+	ld	d, a
+	ld	a, (de)
+	ld	c, a
 	ld	a, (hl)
 	sub	a, c
-	ld	a, #0x01
-	jr	Z, 00300$
-	xor	a, a
-00300$:
-;main.c:412: if (result == 0) {
-	xor	a,#0x01
-	jp	NZ, 00121$
-;main.c:413: playerY += ySpeed;
+	jr	NZ, 00156$
+;main.c:459: result = 0;
+	ldhl	sp,	#3
+	ld	(hl), #0x00
+;main.c:460: break;
+	jr	00122$
+00156$:
+;main.c:457: for (uint8_t j=0; j<BLANKSIZE; j++) {
+	ldhl	sp,	#7
+	inc	(hl)
+	jr	00155$
+00122$:
+;main.c:463: if (result == 0) {
+	ldhl	sp,	#3
+	ld	a, (hl)
+	or	a, a
+	jp	NZ, 00127$
+;main.c:464: playerY += ySpeed;
 	ld	a, (#_ySpeed)
 	ld	c, a
 	rlca
 	sbc	a, a
+	ld	hl, #_playerY
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	dec	hl
 	ld	b, a
-	ld	hl, #_playerY
-	ld	l, (hl)
-;	spillPairReg hl
-;	spillPairReg hl
-	ld	a, (_playerY + 1)
-	ld	h, a
-;	spillPairReg hl
-;	spillPairReg hl
-	add	hl, bc
-	ld	c, l
-	ld	b, h
-	ld	hl, #_playerY
+	ld	a, c
+	add	a, e
+	ld	c, a
+	ld	a, b
+	adc	a, d
+	ld	b, a
 	ld	a, c
 	ld	(hl+), a
-;main.c:415: uint16_t limitedPlayerY = u16Clamp(playerY, 61<<5, 107<<5);//0->144, with 16px margin for top & -8 for bottom, 45px for edges
+;main.c:466: uint16_t limitedPlayerY = u16Clamp(playerY, 61<<5, 107<<5);//0->144, with 16px margin for top & -8 for bottom, 45px for edges
 	ld	a, b
 	ld	(hl-), a
 	ld	a, (hl+)
@@ -4090,28 +4428,28 @@ _move::
 	sub	a, #0xa0
 	ld	a, d
 	sbc	a, #0x07
-	jr	NC, 00159$
+	jr	NC, 00171$
 	ld	de, #0x07a0
-	jr	00160$
-00159$:
+	jr	00172$
+00171$:
 	ld	a, #0x60
 	cp	a, e
 	ld	a, #0x0d
 	sbc	a, d
-	jr	NC, 00161$
+	jr	NC, 00173$
 	ld	de, #0x0d60
-00161$:
-00160$:
+00173$:
+00172$:
 	ld	c, e
 	ld	b, d
-;main.c:417: yOverflow = (playerY - limitedPlayerY);
+;main.c:468: yOverflow = (playerY - limitedPlayerY);
 	ld	a, (#_playerY)
 	sub	a, e
 	ld	(#_yOverflow),a
 	ld	a, (#_playerY + 1)
 	sbc	a, d
 	ld	hl, #_yOverflow + 1
-;main.c:418: if (yOverflow >= 0) {
+;main.c:469: if (yOverflow >= 0) {
 	ld	(hl-), a
 	ld	l, (hl)
 ;	spillPairReg hl
@@ -4120,8 +4458,8 @@ _move::
 ;	spillPairReg hl
 ;	spillPairReg hl
 	bit	7,a
-	jr	NZ, 00118$
-;main.c:419: yOverflow = yOverflow >> 5;
+	jr	NZ, 00124$
+;main.c:470: yOverflow = yOverflow >> 5;
 	ld	hl, #_yOverflow + 1
 	sra	(hl)
 	dec	hl
@@ -4142,9 +4480,9 @@ _move::
 	sra	(hl)
 	dec	hl
 	rr	(hl)
-	jr	00119$
-00118$:
-;main.c:422: yOverflow = -((-yOverflow) >> 5);
+	jr	00125$
+00124$:
+;main.c:473: yOverflow = -((-yOverflow) >> 5);
 	xor	a, a
 	ld	hl, #_yOverflow
 	sub	a, (hl)
@@ -4170,8 +4508,8 @@ _move::
 	sbc	a, a
 	sub	a, d
 	ld	(hl), a
-00119$:
-;main.c:424: bgY += yOverflow;
+00125$:
+;main.c:475: bgY += yOverflow;
 	ld	a, (#_bgY)
 	ld	hl, #_yOverflow
 	add	a, (hl)
@@ -4181,11 +4519,11 @@ _move::
 	ld	hl, #_yOverflow + 1
 	adc	a, (hl)
 	ld	(#_bgY + 1),a
-;main.c:425: playerY = limitedPlayerY;
+;main.c:476: playerY = limitedPlayerY;
 	ld	hl, #_playerY
 	ld	a, c
 	ld	(hl+), a
-;main.c:426: playerDrawY=playerY >> 5;
+;main.c:477: playerDrawY=playerY >> 5;
 	ld	a, b
 	ld	(hl-), a
 	ld	a, (hl+)
@@ -4203,13 +4541,13 @@ _move::
 	rr	c
 	ld	hl, #_playerDrawY
 	ld	(hl), c
-	jr	00122$
-00121$:
-;main.c:431: ySpeed = 0;
+	jr	00128$
+00127$:
+;main.c:482: ySpeed = 0;
 	ld	hl, #_ySpeed
 	ld	(hl), #0x00
-00122$:
-;main.c:435: move_sprite(0, playerDrawX, playerDrawY);
+00128$:
+;main.c:486: move_sprite(0, playerDrawX, playerDrawY);
 	ld	hl, #_playerDrawY
 	ld	c, (hl)
 	ld	hl, #_playerDrawX
@@ -4220,7 +4558,7 @@ _move::
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;main.c:438: if (bgX >= 256) {
+;main.c:489: if (bgX >= 256) {
 	ld	hl, #_bgX
 	ld	a, (hl+)
 	ld	c, a
@@ -4228,8 +4566,8 @@ _move::
 	ld	a, b
 	xor	a, #0x80
 	sub	a, #0x81
-	jr	C, 00124$
-;main.c:439: bgX = bgX % 256;
+	jr	C, 00130$
+;main.c:490: bgX = bgX % 256;
 	xor	a, a
 	inc	a
 	push	af
@@ -4240,77 +4578,77 @@ _move::
 	ld	a, e
 	ld	(hl+), a
 	ld	(hl), d
-00124$:
-;main.c:441: if (bgX < 0) {
-	ld	hl, #_bgX
-	ld	a, (hl+)
-	ld	c, a
-	ld	b, (hl)
-	bit	7, b
-	jr	Z, 00126$
-;main.c:442: bgX = 255 - (bgX % 256);
-	xor	a, a
-	inc	a
-	push	af
-	push	bc
-	call	__modsint
-	add	sp, #4
-	ld	a, #0xff
-	sub	a, e
-	ld	c, a
-	sbc	a, a
-	sub	a, d
-	ld	hl, #_bgX
-	ld	(hl), c
-	inc	hl
-	ld	(hl), a
-00126$:
-;main.c:444: if (bgY >= 256) {
-	ld	hl, #_bgY
-	ld	a, (hl+)
-	ld	c, a
-	ld	b, (hl)
-	ld	a, b
-	xor	a, #0x80
-	sub	a, #0x81
-	jr	C, 00128$
-;main.c:445: bgY = bgY % 256;
-	xor	a, a
-	inc	a
-	push	af
-	push	bc
-	call	__modsint
-	add	sp, #4
-	ld	hl, #_bgY
-	ld	a, e
-	ld	(hl+), a
-	ld	(hl), d
-00128$:
-;main.c:447: if (bgY < 0) {
-	ld	hl, #_bgY
-	ld	a, (hl+)
-	ld	c, a
-	ld	b, (hl)
-	bit	7, b
-	jr	Z, 00130$
-;main.c:448: bgY = 255 - (bgY % 256);
-	xor	a, a
-	inc	a
-	push	af
-	push	bc
-	call	__modsint
-	add	sp, #4
-	ld	a, #0xff
-	sub	a, e
-	ld	c, a
-	sbc	a, a
-	sub	a, d
-	ld	hl, #_bgY
-	ld	(hl), c
-	inc	hl
-	ld	(hl), a
 00130$:
-;main.c:451: move_bkg(bgX, bgY);
+;main.c:492: if (bgX < 0) {
+	ld	hl, #_bgX
+	ld	a, (hl+)
+	ld	c, a
+	ld	b, (hl)
+	bit	7, b
+	jr	Z, 00132$
+;main.c:493: bgX = 255 - (bgX % 256);
+	xor	a, a
+	inc	a
+	push	af
+	push	bc
+	call	__modsint
+	add	sp, #4
+	ld	a, #0xff
+	sub	a, e
+	ld	c, a
+	sbc	a, a
+	sub	a, d
+	ld	hl, #_bgX
+	ld	(hl), c
+	inc	hl
+	ld	(hl), a
+00132$:
+;main.c:495: if (bgY >= 256) {
+	ld	hl, #_bgY
+	ld	a, (hl+)
+	ld	c, a
+	ld	b, (hl)
+	ld	a, b
+	xor	a, #0x80
+	sub	a, #0x81
+	jr	C, 00134$
+;main.c:496: bgY = bgY % 256;
+	xor	a, a
+	inc	a
+	push	af
+	push	bc
+	call	__modsint
+	add	sp, #4
+	ld	hl, #_bgY
+	ld	a, e
+	ld	(hl+), a
+	ld	(hl), d
+00134$:
+;main.c:498: if (bgY < 0) {
+	ld	hl, #_bgY
+	ld	a, (hl+)
+	ld	c, a
+	ld	b, (hl)
+	bit	7, b
+	jr	Z, 00136$
+;main.c:499: bgY = 255 - (bgY % 256);
+	xor	a, a
+	inc	a
+	push	af
+	push	bc
+	call	__modsint
+	add	sp, #4
+	ld	a, #0xff
+	sub	a, e
+	ld	c, a
+	sbc	a, a
+	sub	a, d
+	ld	hl, #_bgY
+	ld	(hl), c
+	inc	hl
+	ld	(hl), a
+00136$:
+;main.c:502: move_bkg(bgX, bgY);
 	ld	hl, #_bgY
 	ld	c, (hl)
 	ld	a, (#_bgX)
@@ -4318,81 +4656,81 @@ _move::
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1080: SCX_REG=x, SCY_REG=y;
 	ld	a, c
 	ldh	(_SCY_REG + 0), a
-;main.c:454: if (ySpeed > 0) ySpeed--;
+;main.c:505: if (ySpeed > 0) ySpeed--;
 	ld	hl, #_ySpeed
 	ld	e, (hl)
 	xor	a, a
 	ld	d, a
 	sub	a, (hl)
 	bit	7, e
-	jr	Z, 00301$
+	jr	Z, 00344$
 	bit	7, d
-	jr	NZ, 00302$
+	jr	NZ, 00345$
 	cp	a, a
-	jr	00302$
-00301$:
+	jr	00345$
+00344$:
 	bit	7, d
-	jr	Z, 00302$
+	jr	Z, 00345$
 	scf
-00302$:
-	jr	NC, 00132$
+00345$:
+	jr	NC, 00138$
 	ld	hl, #_ySpeed
 	dec	(hl)
-00132$:
-;main.c:455: if (ySpeed < 0) ySpeed++;
+00138$:
+;main.c:506: if (ySpeed < 0) ySpeed++;
 	ld	hl, #_ySpeed
 	bit	7, (hl)
-	jr	Z, 00134$
+	jr	Z, 00140$
 	inc	(hl)
-00134$:
-;main.c:456: if (xSpeed > 0) xSpeed--;
+00140$:
+;main.c:507: if (xSpeed > 0) xSpeed--;
 	ld	hl, #_xSpeed
 	ld	e, (hl)
 	xor	a, a
 	ld	d, a
 	sub	a, (hl)
 	bit	7, e
-	jr	Z, 00303$
+	jr	Z, 00346$
 	bit	7, d
-	jr	NZ, 00304$
+	jr	NZ, 00347$
 	cp	a, a
-	jr	00304$
-00303$:
+	jr	00347$
+00346$:
 	bit	7, d
-	jr	Z, 00304$
+	jr	Z, 00347$
 	scf
-00304$:
-	jr	NC, 00136$
+00347$:
+	jr	NC, 00142$
 	ld	hl, #_xSpeed
 	dec	(hl)
-00136$:
-;main.c:457: if (xSpeed < 0) xSpeed++;
+00142$:
+;main.c:508: if (xSpeed < 0) xSpeed++;
 	ld	hl, #_xSpeed
 	bit	7, (hl)
-	jr	Z, 00145$
+	jr	Z, 00157$
 	inc	(hl)
-00145$:
-;main.c:461: }
-	inc	sp
+00157$:
+;main.c:512: }
+	add	sp, #8
 	ret
-;main.c:463: void takeDamage(int16_t amount) {
+;main.c:514: void takeDamage(int16_t amount) {
 ;	---------------------------------
 ; Function takeDamage
 ; ---------------------------------
 _takeDamage::
 	dec	sp
-;main.c:464: if (amount > shield) {
+;main.c:515: if (amount > shield) {
 	ld	a, (#_shield)
 	ld	c, a
 	rlca
 	sbc	a, a
 	ld	b, a
-;main.c:466: hull -= (amount - shield);
+;main.c:517: hull -= (amount - shield);
 	ldhl	sp,	#3
 	ld	a, (hl)
 	ldhl	sp,	#0
 	ld	(hl), a
-;main.c:464: if (amount > shield) {
+;main.c:515: if (amount > shield) {
 	ldhl	sp,	#3
 	ld	a, c
 	sub	a, (hl)
@@ -4413,39 +4751,39 @@ _takeDamage::
 	scf
 00112$:
 	jr	NC, 00102$
-;main.c:465: shield = 0;
+;main.c:516: shield = 0;
 	ld	hl, #_shield
 	ld	(hl), #0x00
-;main.c:466: hull -= (amount - shield);
+;main.c:517: hull -= (amount - shield);
 	ld	a, (#_hull)
 	ldhl	sp,	#0
 	sub	a, (hl)
 	ld	(#_hull),a
 	jr	00104$
 00102$:
-;main.c:469: shield -= amount;
+;main.c:520: shield -= amount;
 	ld	a, (#_shield)
 	ldhl	sp,	#0
 	sub	a, (hl)
 	ld	(#_shield),a
 00104$:
-;main.c:471: }
+;main.c:522: }
 	inc	sp
 	ret
-;main.c:473: void checkCollision() {
+;main.c:524: void checkCollision() {
 ;	---------------------------------
 ; Function checkCollision
 ; ---------------------------------
 _checkCollision::
 	add	sp, #-19
-;main.c:480: struct Enemy *eptr = enemies;
-;main.c:483: while (i < ENEMYCOUNT) {
+;main.c:531: struct Enemy *eptr = enemies;
+;main.c:534: while (i < ENEMYCOUNT) {
 	ld	hl, #_ENEMYCOUNT
 	ld	c, (hl)
 	xor	a, a
 	sub	a, c
 	jp	NC, 00123$
-;main.c:484: eptr += enemyCollisionCount;
+;main.c:535: eptr += enemyCollisionCount;
 	ld	hl, #_enemyCollisionCount
 	ld	l, (hl)
 ;	spillPairReg hl
@@ -4461,7 +4799,7 @@ _checkCollision::
 	add	hl, de
 	ld	c, l
 	ld	b, h
-;main.c:485: if (eptr->visible && eptr->alive) {
+;main.c:536: if (eptr->visible && eptr->alive) {
 	ld	hl, #0x000a
 	add	hl, bc
 	ld	a, (hl)
@@ -4483,7 +4821,7 @@ _checkCollision::
 	ld	a, (de)
 	or	a, a
 	jp	Z, 00108$
-;main.c:487: if (eptr->x > playerDrawX - PLAYERSIZE && eptr->x - (8>>(eptr->spriteCount-1)) < playerDrawX) 
+;main.c:538: if (eptr->x > playerDrawX - PLAYERSIZE && eptr->x - (8>>(eptr->spriteCount-1)) < playerDrawX) 
 	ld	e, c
 	ld	d, b
 	ld	a, (de)
@@ -4601,7 +4939,7 @@ _checkCollision::
 	scf
 00213$:
 	jp	NC, 00108$
-;main.c:489: if (eptr->y > playerDrawY - PLAYERSIZE && eptr->y -(8>>(eptr->spriteCount-1)) < playerDrawY) {
+;main.c:540: if (eptr->y > playerDrawY - PLAYERSIZE && eptr->y -(8>>(eptr->spriteCount-1)) < playerDrawY) {
 	ld	l, c
 ;	spillPairReg hl
 ;	spillPairReg hl
@@ -4707,13 +5045,13 @@ _checkCollision::
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
 	ld	hl, #(_shadow_OAM + 42)
 	ld	(hl), #0x7f
-;main.c:491: eptr->alive = 0;
+;main.c:542: eptr->alive = 0;
 	ldhl	sp,	#9
 	ld	a,	(hl+)
 	ld	h, (hl)
 	ld	l, a
 	ld	(hl), #0x00
-;main.c:492: takeDamage(eptr->damage);
+;main.c:543: takeDamage(eptr->damage);
 	ld	hl, #0x000b
 	add	hl, bc
 	ld	e, (hl)
@@ -4729,12 +5067,12 @@ _checkCollision::
 	inc	sp
 	pop	bc
 00108$:
-;main.c:503: struct Projectile *pptr = projectiles;
+;main.c:554: struct Projectile *pptr = projectiles;
 	ldhl	sp,	#16
 	ld	a, #<(_projectiles)
 	ld	(hl+), a
 	ld	(hl), #>(_projectiles)
-;main.c:505: while (j < PROJECTILECOUNT) {
+;main.c:556: while (j < PROJECTILECOUNT) {
 	ld	hl, #0x0002
 	add	hl, bc
 	push	hl
@@ -4764,7 +5102,7 @@ _checkCollision::
 	ld	a, (hl)
 	sub	a, e
 	jp	NC, 00123$
-;main.c:506: if (pptr->active) {
+;main.c:557: if (pptr->active) {
 	dec	hl
 	dec	hl
 	ld	a, (hl+)
@@ -4786,7 +5124,7 @@ _checkCollision::
 	ld	a, (de)
 	or	a, a
 	jp	Z, 00117$
-;main.c:507: if (eptr->x > pptr->x - 8 && eptr->x - (8>>(eptr->spriteCount-1)) < pptr->x) {
+;main.c:558: if (eptr->x > pptr->x - 8 && eptr->x - (8>>(eptr->spriteCount-1)) < pptr->x) {
 	ld	e, c
 	ld	d, b
 	ld	a, (de)
@@ -4910,7 +5248,7 @@ _checkCollision::
 	scf
 00223$:
 	jp	NC, 00117$
-;main.c:508: if (eptr->y > pptr->y - 8 && eptr->y -(8>>(eptr->spriteCount-1)) < pptr->y ) {
+;main.c:559: if (eptr->y > pptr->y - 8 && eptr->y -(8>>(eptr->spriteCount-1)) < pptr->y ) {
 	ldhl	sp,#2
 	ld	a, (hl+)
 	ld	e, a
@@ -5030,11 +5368,11 @@ _checkCollision::
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
 	ld	hl, #(_shadow_OAM + 42)
 	ld	(hl), #0x7f
-;main.c:510: eptr->alive = 0;
+;main.c:561: eptr->alive = 0;
 	ld	hl, #0x0009
 	add	hl, bc
 	ld	(hl), #0x00
-;main.c:511: initEnemies(0);
+;main.c:562: initEnemies(0);
 	push	bc
 	xor	a, a
 	push	af
@@ -5042,7 +5380,7 @@ _checkCollision::
 	call	_initEnemies
 	inc	sp
 	pop	bc
-;main.c:512: set_sprite_tile(20+j, 0x7f);
+;main.c:563: set_sprite_tile(20+j, 0x7f);
 	ldhl	sp,	#18
 	ld	a, (hl)
 	add	a, #0x14
@@ -5059,17 +5397,25 @@ _checkCollision::
 	inc	hl
 	inc	hl
 	ld	(hl), #0x7f
-;main.c:513: pptr->active = 0;
+;main.c:564: playSound(0);
+	push	bc
+	xor	a, a
+	push	af
+	inc	sp
+	call	_playSound
+	inc	sp
+	pop	bc
+;main.c:565: pptr->active = 0;
 	ldhl	sp,	#6
 	ld	a,	(hl+)
 	ld	h, (hl)
 	ld	l, a
 	ld	(hl), #0x00
 00117$:
-;main.c:517: j++;
+;main.c:569: j++;
 	ldhl	sp,	#18
 	inc	(hl)
-;main.c:518: pptr++;
+;main.c:570: pptr++;
 	dec	hl
 	dec	hl
 	ld	a, (hl+)
@@ -5086,46 +5432,50 @@ _checkCollision::
 	ldhl	sp,	#17
 	ld	(hl), a
 	jp	00118$
-;main.c:525: break;
+;main.c:577: break;
 00123$:
-;main.c:528: if (enemyCollisionCount == 0) {
+;main.c:580: if (enemyCollisionCount == 0) {
 	ld	a, (#_enemyCollisionCount)
 	or	a, a
 	jr	NZ, 00125$
-;main.c:529: enemyCollisionCount = ENEMYCOUNT - 1;
+;main.c:581: enemyCollisionCount = ENEMYCOUNT - 1;
 	ld	a, (#_ENEMYCOUNT)
 	dec	a
 	ld	(#_enemyCollisionCount),a
 	jr	00130$
 00125$:
-;main.c:532: enemyCollisionCount--;
+;main.c:584: enemyCollisionCount--;
 	ld	hl, #_enemyCollisionCount
 	dec	(hl)
 00130$:
-;main.c:581: }
+;main.c:633: }
 	add	sp, #19
 	ret
-;main.c:592: void fire() {
+;main.c:644: void fire() {
 ;	---------------------------------
 ; Function fire
 ; ---------------------------------
 _fire::
-	dec	sp
-;main.c:594: oldestProjectile += 1;
+	add	sp, #-6
+;main.c:646: oldestProjectile += 1;
 	ld	hl, #_oldestProjectile
 	inc	(hl)
 	ld	a, (hl)
-;main.c:595: if (oldestProjectile >= PROJECTILECOUNT) {
+;main.c:647: if (oldestProjectile >= PROJECTILECOUNT) {
 	ld	hl, #_PROJECTILECOUNT
 	ld	c, (hl)
 	ld	hl, #_oldestProjectile
 	ld	a, (hl)
 	sub	a, c
 	jr	C, 00102$
-;main.c:596: oldestProjectile = 0;
+;main.c:648: oldestProjectile = 0;
 	ld	(hl), #0x00
 00102$:
-;main.c:599: projectiles[oldestProjectile] = singleGun;
+;main.c:651: if (currentGun == 0) {
+	ld	a, (#_currentGun)
+	or	a, a
+	jr	NZ, 00104$
+;main.c:652: projectiles[oldestProjectile] = singleGun;
 	ld	hl, #_oldestProjectile
 	ld	c, (hl)
 	ld	b, #0x00
@@ -5145,7 +5495,58 @@ _fire::
 	push	hl
 	call	___memcpy
 	add	sp, #6
-;main.c:600: projectiles[oldestProjectile].x = playerDrawX;
+00104$:
+;main.c:654: if (currentGun == 1) {
+	ld	a, (#_currentGun)
+	dec	a
+	jr	NZ, 00106$
+;main.c:655: projectiles[oldestProjectile] = doubleGun;
+	ld	hl, #_oldestProjectile
+	ld	c, (hl)
+	ld	b, #0x00
+	ld	l, c
+	ld	h, b
+	add	hl, hl
+	add	hl, hl
+	add	hl, bc
+	add	hl, hl
+	add	hl, bc
+	ld	bc,#_projectiles
+	add	hl,bc
+	ld	de, #0x000b
+	push	de
+	ld	de, #_doubleGun
+	push	de
+	push	hl
+	call	___memcpy
+	add	sp, #6
+00106$:
+;main.c:657: if (currentGun == 2) {
+	ld	a, (#_currentGun)
+	sub	a, #0x02
+	jr	NZ, 00108$
+;main.c:658: projectiles[oldestProjectile] = missile;
+	ld	hl, #_oldestProjectile
+	ld	c, (hl)
+	ld	b, #0x00
+	ld	l, c
+	ld	h, b
+	add	hl, hl
+	add	hl, hl
+	add	hl, bc
+	add	hl, hl
+	add	hl, bc
+	ld	bc,#_projectiles
+	add	hl,bc
+	ld	de, #0x000b
+	push	de
+	ld	de, #_missile
+	push	de
+	push	hl
+	call	___memcpy
+	add	sp, #6
+00108$:
+;main.c:660: projectiles[oldestProjectile].x = playerDrawX;
 	ld	hl, #_oldestProjectile
 	ld	c, (hl)
 	ld	b, #0x00
@@ -5164,7 +5565,7 @@ _fire::
 	ld	c, #0x00
 	ld	(hl+), a
 	ld	(hl), c
-;main.c:601: projectiles[oldestProjectile].y = playerDrawY;
+;main.c:661: projectiles[oldestProjectile].y = playerDrawY;
 	ld	hl, #_oldestProjectile
 	ld	c, (hl)
 	ld	b, #0x00
@@ -5185,7 +5586,7 @@ _fire::
 	ld	c, #0x00
 	ld	(hl+), a
 	ld	(hl), c
-;main.c:602: projectiles[oldestProjectile].xSpeed = xDir * projectiles[oldestProjectile].speed;
+;main.c:662: projectiles[oldestProjectile].xSpeed = xDir * projectiles[oldestProjectile].speed;
 	ld	hl, #_oldestProjectile
 	ld	c, (hl)
 	ld	b, #0x00
@@ -5218,7 +5619,7 @@ _fire::
 	ld	a, e
 	pop	bc
 	ld	(bc), a
-;main.c:603: projectiles[oldestProjectile].ySpeed = yDir * projectiles[oldestProjectile].speed;
+;main.c:663: projectiles[oldestProjectile].ySpeed = yDir * projectiles[oldestProjectile].speed;
 	ld	hl, #_oldestProjectile
 	ld	c, (hl)
 	ld	b, #0x00
@@ -5251,11 +5652,11 @@ _fire::
 	ld	a, e
 	pop	bc
 	ld	(bc), a
-;main.c:594: oldestProjectile += 1;
+;main.c:646: oldestProjectile += 1;
 	ld	a, (#_oldestProjectile)
-	ldhl	sp,	#0
+	ldhl	sp,	#5
 	ld	(hl), a
-;main.c:599: projectiles[oldestProjectile] = singleGun;
+;main.c:652: projectiles[oldestProjectile] = singleGun;
 	ld	hl, #_oldestProjectile
 	ld	c, (hl)
 	ld	b, #0x00
@@ -5266,285 +5667,556 @@ _fire::
 	add	hl, bc
 	add	hl, hl
 	add	hl, bc
-;main.c:606: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
+;main.c:666: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
 	ld	bc,#_projectiles
 	add	hl,bc
+	ld	c, l
+	ld	b, h
+	ldhl	sp,	#5
+	ld	a, (hl)
+	add	a, #0x14
+	ld	(hl), a
+	ld	hl, #0x000a
+	add	hl, bc
+	ld	a, (hl)
+	ldhl	sp,	#4
+	ld	(hl), a
+;main.c:665: if (yDir != 0 && xDir == 0) {
+	ld	a, (#_yDir)
+	or	a, a
+	jp	Z, 00135$
+	ld	a, (#_xDir)
+	or	a, a
+	jp	NZ, 00135$
+;main.c:666: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
+	ldhl	sp,	#5
+	ld	a, (hl)
+	ldhl	sp,	#2
+	ld	(hl+), a
+	ld	(hl), #0x00
+	ld	a, #0x02
+00246$:
+	ldhl	sp,	#2
+	sla	(hl)
+	inc	hl
+	rl	(hl)
+	dec	a
+	jr	NZ, 00246$
+	dec	hl
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #_shadow_OAM
+	add	hl, de
+	inc	sp
+	inc	sp
 	ld	e, l
 	ld	d, h
-	ldhl	sp,	#0
-	ld	a, (hl)
-	add	a, #0x14
-	ld	c, a
-	ld	hl, #0x000a
-	add	hl, de
-	ld	e, (hl)
-;main.c:605: if (yDir != 0 && xDir == 0) {
-	ld	a, (#_yDir)
-	or	a, a
-	jr	Z, 00129$
-	ld	a, (#_xDir)
-	or	a, a
-	jr	NZ, 00129$
-;main.c:606: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
-;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
-	ld	l, c
-;	spillPairReg hl
-;	spillPairReg hl
-	ld	h, #0x00
-;	spillPairReg hl
-;	spillPairReg hl
-	add	hl, hl
-	add	hl, hl
-	ld	bc, #_shadow_OAM
-	add	hl, bc
-	inc	hl
-	inc	hl
-	ld	(hl), e
-;main.c:594: oldestProjectile += 1;
-	ld	a, (#_oldestProjectile)
-;main.c:606: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
-	add	a, #0x14
-	ld	e, a
-;main.c:607: if (yDir == 1) {
-	ld	a, (#_yDir)
-	dec	a
-	jr	NZ, 00104$
-;main.c:608: set_sprite_prop(20+oldestProjectile, S_FLIPY); 
-;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
-	ld	bc, #_shadow_OAM+0
-	ld	l, e
-;	spillPairReg hl
-;	spillPairReg hl
-	ld	h, #0x00
-;	spillPairReg hl
-;	spillPairReg hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, bc
-	inc	hl
-	inc	hl
-	inc	hl
-	ld	(hl), #0x40
-;main.c:608: set_sprite_prop(20+oldestProjectile, S_FLIPY); 
-	jp	00130$
-00104$:
-;main.c:613: set_sprite_prop(20+oldestProjectile, 0); 
-;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
-	ld	bc, #_shadow_OAM+0
-	ld	l, e
-;	spillPairReg hl
-;	spillPairReg hl
-	ld	h, #0x00
-;	spillPairReg hl
-;	spillPairReg hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, bc
-	inc	hl
-	inc	hl
-	inc	hl
-	ld	(hl), #0x00
-;main.c:613: set_sprite_prop(20+oldestProjectile, 0); 
-	jp	00130$
-00129$:
-;main.c:618: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type+1);
-;main.c:617: else if (xDir != 0 && yDir == 0) {
-	ld	a, (#_xDir)
-	or	a, a
-	jr	Z, 00125$
-	ld	a, (#_yDir)
-	or	a, a
-	jr	NZ, 00125$
-;main.c:618: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type+1);
-	inc	e
-;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
-	ld	l, c
-;	spillPairReg hl
-;	spillPairReg hl
-	ld	h, #0x00
-;	spillPairReg hl
-;	spillPairReg hl
-	add	hl, hl
-	add	hl, hl
-	ld	bc, #_shadow_OAM
-	add	hl, bc
-	inc	hl
-	inc	hl
-	ld	(hl), e
-;main.c:594: oldestProjectile += 1;
-	ld	a, (#_oldestProjectile)
-;main.c:606: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
-	add	a, #0x14
-	ld	e, a
-;main.c:619: if (xDir == 1) {
-	ld	a, (#_xDir)
-	dec	a
-	jr	NZ, 00107$
-;main.c:620: set_sprite_prop(20+oldestProjectile, 0); 
-;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
-	ld	bc, #_shadow_OAM+0
-	ld	l, e
-;	spillPairReg hl
-;	spillPairReg hl
-	ld	h, #0x00
-;	spillPairReg hl
-;	spillPairReg hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, bc
-	inc	hl
-	inc	hl
-	inc	hl
-	ld	(hl), #0x00
-;main.c:620: set_sprite_prop(20+oldestProjectile, 0); 
-	jp	00130$
-00107$:
-;main.c:623: set_sprite_prop(20+oldestProjectile, S_FLIPX); 
-;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
-	ld	bc, #_shadow_OAM+0
-	ld	l, e
-;	spillPairReg hl
-;	spillPairReg hl
-	ld	h, #0x00
-;	spillPairReg hl
-;	spillPairReg hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, bc
-	inc	hl
-	inc	hl
-	inc	hl
-	ld	(hl), #0x20
-;main.c:623: set_sprite_prop(20+oldestProjectile, S_FLIPX); 
-	jp	00130$
-00125$:
-;main.c:627: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type+2);
-	inc	e
-	inc	e
-;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
-	ld	l, c
-;	spillPairReg hl
-;	spillPairReg hl
-	ld	h, #0x00
-;	spillPairReg hl
-;	spillPairReg hl
-	add	hl, hl
-	add	hl, hl
-	ld	bc, #_shadow_OAM
-	add	hl, bc
-	inc	hl
-	inc	hl
-	ld	(hl), e
-;main.c:628: if (xDir == 1 && yDir == -1) {
-	ld	a, (#_xDir)
-	dec	a
-	ld	a, #0x01
-	jr	Z, 00226$
-	xor	a, a
-00226$:
-	ld	c, a
-;main.c:594: oldestProjectile += 1;
-	ld	hl, #_oldestProjectile
-	ld	b, (hl)
-;main.c:628: if (xDir == 1 && yDir == -1) {
-	ld	a, (#_yDir)
-	inc	a
-	ld	a, #0x01
-	jr	Z, 00228$
-	xor	a, a
-00228$:
-	ldhl	sp,	#0
-	ld	(hl), a
-;main.c:606: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
-	ld	a, b
-	add	a, #0x14
-	ld	e, a
-;main.c:628: if (xDir == 1 && yDir == -1) {
-	ld	a, c
-	or	a, a
-	jr	Z, 00121$
-	ld	a, (hl)
-	or	a, a
-	jr	Z, 00121$
-;main.c:629: set_sprite_prop(20+oldestProjectile, 0); //default is right & up
-;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
-	ld	d, #0x00
-	ld	l, e
-	ld	h, d
-	add	hl, hl
-	add	hl, hl
-	ld	de, #_shadow_OAM
-	add	hl, de
-	inc	hl
-	inc	hl
-	inc	hl
-	ld	(hl), #0x00
-;main.c:630: printf("1");
-	ld	de, #___str_0
 	push	de
-	call	_printf
-	pop	hl
-	jr	00130$
-00121$:
-;main.c:607: if (yDir == 1) {
-	ld	hl, #_yDir
-	ld	a, (hl)
-	dec	a
-	ld	a, #0x01
-	jr	Z, 00230$
-	xor	a, a
-00230$:
-	ld	l, a
-;	spillPairReg hl
-;	spillPairReg hl
-;main.c:632: else if (xDir == 1 && yDir == 1) {
-	ld	a, c
-	or	a, a
-	jr	Z, 00117$
-	ld	a, l
-	or	a, a
-	jr	Z, 00117$
-;main.c:633: set_sprite_prop(20+oldestProjectile, S_FLIPY); 
-;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
-	ld	l, e
-;	spillPairReg hl
-;	spillPairReg hl
-	ld	h, #0x00
-;	spillPairReg hl
-;	spillPairReg hl
-	add	hl, hl
-	add	hl, hl
-	ld	de, #_shadow_OAM
+	ld	hl, #0x0002
 	add	hl, de
-	inc	hl
-	inc	hl
-	inc	hl
-	ld	(hl), #0x40
-;main.c:635: printf("2");
-	ld	de, #___str_1
-	push	de
-	call	_printf
-	pop	hl
-	jr	00130$
-00117$:
-;main.c:638: else if (xDir == -1 && yDir == 1) {
 	push	hl
+	ld	a, l
+	ldhl	sp,	#4
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#3
+	ld	(hl-), a
+	ld	a, (hl+)
+	ld	e, a
+	ld	a, (hl+)
+	ld	d, a
+	ld	a, (hl)
+	ld	(de), a
+;main.c:646: oldestProjectile += 1;
+	ld	a, (#_oldestProjectile)
+;main.c:666: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
+	add	a, #0x14
+	ldhl	sp,	#5
+	ld	(hl), a
+;main.c:667: if (yDir == 1) {
+	ld	a, (#_yDir)
+	dec	a
+	jr	NZ, 00110$
+;main.c:668: set_sprite_prop(20+oldestProjectile, S_FLIPY); 
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
+	ldhl	sp,	#5
+	ld	a, (hl-)
+	ld	(hl+), a
+	ld	(hl), #0x00
+	ld	a, #0x02
+00249$:
+	ldhl	sp,	#4
+	sla	(hl)
+	inc	hl
+	rl	(hl)
+	dec	a
+	jr	NZ, 00249$
+	dec	hl
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #_shadow_OAM
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#4
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#3
+	ld	(hl-), a
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #0x0003
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#6
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#5
+	ld	(hl-), a
+	ld	a,	(hl+)
+	ld	h, (hl)
+	ld	l, a
+	ld	(hl), #0x40
+;main.c:668: set_sprite_prop(20+oldestProjectile, S_FLIPY); 
+	jp	00136$
+00110$:
+;main.c:673: set_sprite_prop(20+oldestProjectile, 0); 
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
+	ldhl	sp,	#5
+	ld	a, (hl-)
+	ld	(hl+), a
+	ld	(hl), #0x00
+	ld	a, #0x02
+00250$:
+	ldhl	sp,	#4
+	sla	(hl)
+	inc	hl
+	rl	(hl)
+	dec	a
+	jr	NZ, 00250$
+	ld	de, #_shadow_OAM
+	ld	a, (hl-)
+	ld	l, (hl)
+	ld	h, a
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#4
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#3
+	ld	(hl-), a
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #0x0003
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#6
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#5
+	ld	(hl-), a
+	ld	a,	(hl+)
+	ld	h, (hl)
+	ld	l, a
+	ld	(hl), #0x00
+;main.c:673: set_sprite_prop(20+oldestProjectile, 0); 
+	jp	00136$
+00135$:
+;main.c:678: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type+1);
+;main.c:677: else if (xDir != 0 && yDir == 0) {
+	ld	a, (#_xDir)
+	or	a, a
+	jp	Z, 00131$
+	ld	a, (#_yDir)
+	or	a, a
+	jp	NZ, 00131$
+;main.c:678: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type+1);
+	ldhl	sp,	#4
+	inc	(hl)
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
+	inc	hl
+	ld	a, (hl)
+	ldhl	sp,	#2
+	ld	(hl+), a
+	ld	(hl), #0x00
+	ld	a, #0x02
+00251$:
+	ldhl	sp,	#2
+	sla	(hl)
+	inc	hl
+	rl	(hl)
+	dec	a
+	jr	NZ, 00251$
+	dec	hl
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #_shadow_OAM
+	add	hl, de
+	inc	sp
+	inc	sp
+	ld	e, l
+	ld	d, h
+	push	de
+	ld	hl, #0x0002
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#4
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#3
+	ld	(hl-), a
+	ld	a, (hl+)
+	ld	e, a
+	ld	a, (hl+)
+	ld	d, a
+	ld	a, (hl)
+	ld	(de), a
+;main.c:646: oldestProjectile += 1;
+	ld	a, (#_oldestProjectile)
+;main.c:666: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
+	add	a, #0x14
+	ldhl	sp,	#5
+	ld	(hl), a
+;main.c:679: if (xDir == 1) {
+	ld	a, (#_xDir)
+	dec	a
+	jr	NZ, 00113$
+;main.c:680: set_sprite_prop(20+oldestProjectile, 0); 
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
+	ldhl	sp,	#5
+	ld	a, (hl-)
+	ld	(hl+), a
+	ld	(hl), #0x00
+	ld	a, #0x02
+00254$:
+	ldhl	sp,	#4
+	sla	(hl)
+	inc	hl
+	rl	(hl)
+	dec	a
+	jr	NZ, 00254$
+	dec	hl
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #_shadow_OAM
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#4
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#3
+	ld	(hl-), a
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #0x0003
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#6
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#5
+	ld	(hl-), a
+	ld	a,	(hl+)
+	ld	h, (hl)
+	ld	l, a
+	ld	(hl), #0x00
+;main.c:680: set_sprite_prop(20+oldestProjectile, 0); 
+	jp	00136$
+00113$:
+;main.c:683: set_sprite_prop(20+oldestProjectile, S_FLIPX); 
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
+	ldhl	sp,	#5
+	ld	a, (hl-)
+	ld	(hl+), a
+	ld	(hl), #0x00
+	ld	a, #0x02
+00255$:
+	ldhl	sp,	#4
+	sla	(hl)
+	inc	hl
+	rl	(hl)
+	dec	a
+	jr	NZ, 00255$
+	dec	hl
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #_shadow_OAM
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#4
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#3
+	ld	(hl-), a
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #0x0003
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#6
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#5
+	ld	(hl-), a
+	ld	a,	(hl+)
+	ld	h, (hl)
+	ld	l, a
+	ld	(hl), #0x20
+;main.c:683: set_sprite_prop(20+oldestProjectile, S_FLIPX); 
+	jp	00136$
+00131$:
+;main.c:687: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type+2);
+	ldhl	sp,	#4
+	ld	a, (hl)
+	add	a, #0x02
+	ldhl	sp,	#1
+	ld	(hl), a
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
+	ldhl	sp,	#5
+	ld	a, (hl-)
+	ld	(hl+), a
+	ld	(hl), #0x00
+	ld	a, #0x02
+00256$:
+	ldhl	sp,	#4
+	sla	(hl)
+	inc	hl
+	rl	(hl)
+	dec	a
+	jr	NZ, 00256$
+	ld	de, #_shadow_OAM
+	ld	a, (hl-)
+	ld	l, (hl)
+	ld	h, a
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#4
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#3
+	ld	(hl-), a
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #0x0002
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#6
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#5
+	ld	(hl-), a
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ldhl	sp,	#1
+	ld	a, (hl)
+	ld	(de), a
+;main.c:688: if (xDir == 1 && yDir == -1) {
+	ld	a, (#_xDir)
+	dec	a
+	ld	a, #0x01
+	jr	Z, 00258$
+	xor	a, a
+00258$:
+	ldhl	sp,	#2
+	ld	(hl), a
+;main.c:646: oldestProjectile += 1;
+	ld	a, (#_oldestProjectile)
+	ldhl	sp,	#5
+	ld	(hl), a
+;main.c:688: if (xDir == 1 && yDir == -1) {
+	ld	a, (#_yDir)
+	inc	a
+	ld	a, #0x01
+	jr	Z, 00260$
+	xor	a, a
+00260$:
+	ldhl	sp,	#3
+;main.c:666: set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
+	ld	(hl+), a
+	inc	hl
+	ld	a, (hl-)
+	add	a, #0x14
+;main.c:688: if (xDir == 1 && yDir == -1) {
+	ld	(hl-), a
+	dec	hl
+	ld	a, (hl)
+	or	a, a
+	jr	Z, 00127$
+	inc	hl
+	ld	a, (hl)
+	or	a, a
+	jr	Z, 00127$
+;main.c:689: set_sprite_prop(20+oldestProjectile, 0); //default is right & up
+	inc	hl
+	ld	a, (hl+)
+	ld	(hl), a
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
+	ld	a, (hl-)
+	ld	(hl+), a
+	ld	(hl), #0x00
+	ld	a, #0x02
+00261$:
+	ldhl	sp,	#4
+	sla	(hl)
+	inc	hl
+	rl	(hl)
+	dec	a
+	jr	NZ, 00261$
+	dec	hl
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #_shadow_OAM
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#4
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#3
+	ld	(hl-), a
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #0x0003
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#6
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#5
+	ld	(hl-), a
+	ld	a,	(hl+)
+	ld	h, (hl)
+	ld	l, a
+	ld	(hl), #0x00
+;main.c:689: set_sprite_prop(20+oldestProjectile, 0); //default is right & up
+	jp	00136$
+00127$:
+;main.c:667: if (yDir == 1) {
+	ld	a, (#_yDir)
+	dec	a
+	ld	a, #0x01
+	jr	Z, 00263$
+	xor	a, a
+00263$:
+	ldhl	sp,	#5
+	ld	(hl), a
+;main.c:691: else if (xDir == 1 && yDir == 1) {
+	ldhl	sp,	#2
+	ld	a, (hl)
+	or	a, a
+	jr	Z, 00123$
+	ldhl	sp,	#5
+	ld	a, (hl)
+	or	a, a
+	jr	Z, 00123$
+;main.c:692: set_sprite_prop(20+oldestProjectile, S_FLIPY); 
+	dec	hl
+	ld	a, (hl+)
+	ld	(hl), a
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
+	ld	a, (hl-)
+	ld	(hl+), a
+	ld	(hl), #0x00
+	ld	a, #0x02
+00264$:
+	ldhl	sp,	#4
+	sla	(hl)
+	inc	hl
+	rl	(hl)
+	dec	a
+	jr	NZ, 00264$
+	dec	hl
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #_shadow_OAM
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#4
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#3
+	ld	(hl-), a
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #0x0003
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#6
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#5
+	ld	(hl-), a
+	ld	a,	(hl+)
+	ld	h, (hl)
+	ld	l, a
+	ld	(hl), #0x40
+;main.c:692: set_sprite_prop(20+oldestProjectile, S_FLIPY); 
+	jr	00136$
+00123$:
+;main.c:694: else if (xDir == -1 && yDir == 1) {
 	ld	a, (#_xDir)
 	inc	a
-	pop	hl
 	ld	a, #0x01
-	jr	Z, 00232$
+	jr	Z, 00266$
 	xor	a, a
-00232$:
+00266$:
+	ld	c, a
 	or	a, a
-	jr	Z, 00113$
-	inc	l
-	dec	l
-	jr	Z, 00113$
-;main.c:639: set_sprite_prop(20+oldestProjectile, S_FLIPY | S_FLIPX); 
+	jr	Z, 00119$
+	ldhl	sp,	#5
+	ld	a, (hl)
+	or	a, a
+	jr	Z, 00119$
+;main.c:695: set_sprite_prop(20+oldestProjectile, S_FLIPY | S_FLIPX); 
+	dec	hl
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
+	ld	l, (hl)
 	ld	bc, #_shadow_OAM+0
-	ld	l, e
 ;	spillPairReg hl
 ;	spillPairReg hl
 	ld	h, #0x00
@@ -5557,24 +6229,22 @@ _fire::
 	inc	hl
 	inc	hl
 	ld	(hl), #0x60
-;main.c:640: printf("3");
-	ld	de, #___str_2
-	push	de
-	call	_printf
-	pop	hl
-	jr	00130$
-00113$:
-;main.c:643: else if (xDir == -1 && yDir == -1) {
+;main.c:695: set_sprite_prop(20+oldestProjectile, S_FLIPY | S_FLIPX); 
+	jr	00136$
+00119$:
+;main.c:697: else if (xDir == -1 && yDir == -1) {
+	ld	a, c
 	or	a, a
-	jr	Z, 00130$
-	ldhl	sp,	#0
+	jr	Z, 00136$
+	ldhl	sp,	#3
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00130$
-;main.c:644: set_sprite_prop(20+oldestProjectile, S_FLIPX); 
+	jr	Z, 00136$
+;main.c:698: set_sprite_prop(20+oldestProjectile, S_FLIPX); 
+	inc	hl
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1493: shadow_OAM[nb].prop=prop;
+	ld	l, (hl)
 	ld	bc, #_shadow_OAM+0
-	ld	l, e
 ;	spillPairReg hl
 ;	spillPairReg hl
 	ld	h, #0x00
@@ -5587,13 +6257,9 @@ _fire::
 	inc	hl
 	inc	hl
 	ld	(hl), #0x20
-;main.c:645: printf("4");
-	ld	de, #___str_3
-	push	de
-	call	_printf
-	pop	hl
-00130$:
-;main.c:650: move_sprite(20+oldestProjectile, playerDrawX, playerDrawY);
+;main.c:698: set_sprite_prop(20+oldestProjectile, S_FLIPX); 
+00136$:
+;main.c:702: move_sprite(20+oldestProjectile, playerDrawX, playerDrawY);
 	ld	hl, #_playerDrawY
 	ld	b, (hl)
 	ld	hl, #_playerDrawX
@@ -5615,7 +6281,7 @@ _fire::
 	ld	a, b
 	ld	(hl+), a
 	ld	(hl), c
-;main.c:651: fireCooldown = projectiles[oldestProjectile].delay;
+;main.c:703: fireCooldown = projectiles[oldestProjectile].delay;
 	ld	hl, #_oldestProjectile
 	ld	c, (hl)
 	ld	b, #0x00
@@ -5628,32 +6294,29 @@ _fire::
 	add	hl, bc
 	ld	bc,#_projectiles
 	add	hl,bc
-	ld	bc, #0x0009
+	ld	c, l
+	ld	b, h
+	ld	hl, #0x0009
 	add	hl, bc
 	ld	a, (hl)
 	ld	(#_fireCooldown),a
-;main.c:653: }
+;main.c:705: playSound(projectiles[oldestProjectile].type);
+	ld	hl, #0x000a
+	add	hl, bc
+	ld	a, (hl)
+	push	af
 	inc	sp
+	call	_playSound
+;main.c:709: }
+	add	sp, #7
 	ret
-___str_0:
-	.ascii "1"
-	.db 0x00
-___str_1:
-	.ascii "2"
-	.db 0x00
-___str_2:
-	.ascii "3"
-	.db 0x00
-___str_3:
-	.ascii "4"
-	.db 0x00
-;main.c:656: void moveProjectiles() {
+;main.c:712: void moveProjectiles() {
 ;	---------------------------------
 ; Function moveProjectiles
 ; ---------------------------------
 _moveProjectiles::
 	add	sp, #-9
-;main.c:657: for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
+;main.c:713: for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
 	ldhl	sp,	#8
 	ld	(hl), #0x00
 00112$:
@@ -5663,7 +6326,7 @@ _moveProjectiles::
 	ld	a, (hl)
 	sub	a, c
 	jp	NC, 00114$
-;main.c:658: projectiles[i].x -= xOverflow;
+;main.c:714: projectiles[i].x -= xOverflow;
 	ld	c, (hl)
 	ld	b, #0x00
 	ld	l, c
@@ -5698,7 +6361,7 @@ _moveProjectiles::
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;main.c:659: projectiles[i].y -= yOverflow;
+;main.c:715: projectiles[i].y -= yOverflow;
 	pop	de
 	push	de
 	ld	hl, #0x0002
@@ -5734,7 +6397,7 @@ _moveProjectiles::
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;main.c:661: if (projectiles[i].active) {
+;main.c:717: if (projectiles[i].active) {
 	pop	de
 	push	de
 	ld	hl, #0x0008
@@ -5744,7 +6407,7 @@ _moveProjectiles::
 	ld	a, (bc)
 	or	a, a
 	jp	Z, 00113$
-;main.c:662: int16_t newY = projectiles[i].y + projectiles[i].ySpeed;
+;main.c:718: int16_t newY = projectiles[i].y + projectiles[i].ySpeed;
 	ldhl	sp,#2
 	ld	a, (hl+)
 	ld	e, a
@@ -5776,7 +6439,7 @@ _moveProjectiles::
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;main.c:663: int16_t newX = projectiles[i].x + projectiles[i].xSpeed;
+;main.c:719: int16_t newX = projectiles[i].x + projectiles[i].xSpeed;
 	pop	de
 	push	de
 	ld	a, (de)
@@ -5802,7 +6465,7 @@ _moveProjectiles::
 	add	hl, bc
 	ld	c, l
 	ld	b, h
-;main.c:665: move_sprite(20+i, newX, newY);
+;main.c:721: move_sprite(20+i, newX, newY);
 	ldhl	sp,	#4
 	ld	a, (hl+)
 	inc	hl
@@ -5833,7 +6496,7 @@ _moveProjectiles::
 	ldhl	sp,	#6
 	ld	a, (hl)
 	ld	(de), a
-;main.c:666: projectiles[i].y = newY;
+;main.c:722: projectiles[i].y = newY;
 	ldhl	sp,#2
 	ld	a, (hl+)
 	ld	e, a
@@ -5844,13 +6507,13 @@ _moveProjectiles::
 	inc	de
 	ld	a, (hl)
 	ld	(de), a
-;main.c:667: projectiles[i].x = newX;
+;main.c:723: projectiles[i].x = newX;
 	pop	hl
 	push	hl
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;main.c:672: if (projectiles[i].x < 0 || projectiles[i].x > 170 || projectiles[i].y < 0 || projectiles[i].y > 154) {
+;main.c:728: if (projectiles[i].x < 0 || projectiles[i].x > 170 || projectiles[i].y < 0 || projectiles[i].y > 154) {
 	pop	de
 	push	de
 	ld	a, (de)
@@ -5882,7 +6545,7 @@ _moveProjectiles::
 	scf
 00148$:
 	jr	C, 00101$
-;main.c:659: projectiles[i].y -= yOverflow;
+;main.c:715: projectiles[i].y -= yOverflow;
 	ldhl	sp,#2
 	ld	a, (hl+)
 	ld	e, a
@@ -5891,7 +6554,7 @@ _moveProjectiles::
 	ld	c, a
 	inc	de
 	ld	a, (de)
-;main.c:672: if (projectiles[i].x < 0 || projectiles[i].x > 170 || projectiles[i].y < 0 || projectiles[i].y > 154) {
+;main.c:728: if (projectiles[i].x < 0 || projectiles[i].x > 170 || projectiles[i].y < 0 || projectiles[i].y > 154) {
 	ld	b, a
 	bit	7, b
 	jr	NZ, 00101$
@@ -5914,7 +6577,7 @@ _moveProjectiles::
 00150$:
 	jr	NC, 00113$
 00101$:
-;main.c:674: projectiles[i].active = 0;
+;main.c:730: projectiles[i].active = 0;
 	ldhl	sp,	#8
 	ld	c, (hl)
 	ld	b, #0x00
@@ -5930,7 +6593,7 @@ _moveProjectiles::
 	ld	bc, #0x0008
 	add	hl, bc
 	ld	(hl), #0x00
-;main.c:675: set_sprite_tile(20+i, 0x7f);
+;main.c:731: set_sprite_tile(20+i, 0x7f);
 	ldhl	sp,	#7
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
 	ld	l, (hl)
@@ -5946,29 +6609,29 @@ _moveProjectiles::
 	inc	hl
 	inc	hl
 	ld	(hl), #0x7f
-;main.c:675: set_sprite_tile(20+i, 0x7f);
+;main.c:731: set_sprite_tile(20+i, 0x7f);
 00113$:
-;main.c:657: for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
+;main.c:713: for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
 	ldhl	sp,	#8
 	inc	(hl)
 	jp	00112$
 00114$:
-;main.c:680: }
+;main.c:736: }
 	add	sp, #9
 	ret
-;main.c:683: void initProjectiles() {
+;main.c:739: void initProjectiles() {
 ;	---------------------------------
 ; Function initProjectiles
 ; ---------------------------------
 _initProjectiles::
-;main.c:684: set_sprite_data(20, 6, ProjectileTiles);
+;main.c:740: set_sprite_data(20, 9, ProjectileTiles);
 	ld	de, #_ProjectileTiles
 	push	de
-	ld	hl, #0x614
+	ld	hl, #0x914
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-;main.c:686: for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
+;main.c:742: for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
 	xor	a, a
 00103$:
 	ld	hl, #_PROJECTILECOUNT
@@ -5976,66 +6639,66 @@ _initProjectiles::
 	cp	a, c
 	ret	NC
 	inc	a
-;main.c:690: }
+;main.c:746: }
 	jr	00103$
-;main.c:692: void initGame() {
+;main.c:748: void initGame() {
 ;	---------------------------------
 ; Function initGame
 ; ---------------------------------
 _initGame::
-;main.c:695: xDir = 0;
+;main.c:751: xDir = 0;
 	ld	hl, #_xDir
 	ld	(hl), #0x00
-;main.c:696: yDir = 0;
+;main.c:752: yDir = -1;
 	ld	hl, #_yDir
-	ld	(hl), #0x00
-;main.c:697: xSpeed = 0;
+	ld	(hl), #0xff
+;main.c:753: xSpeed = 0;
 	ld	hl, #_xSpeed
 	ld	(hl), #0x00
-;main.c:698: ySpeed = 0;
+;main.c:754: ySpeed = 0;
 	ld	hl, #_ySpeed
 	ld	(hl), #0x00
-;main.c:701: playerX = 80<<5;
+;main.c:757: playerX = 80<<5;
 	ld	hl, #_playerX
 	ld	(hl), #0x00
 	inc	hl
 	ld	(hl), #0x0a
-;main.c:702: playerY = 80<<5;
+;main.c:758: playerY = 80<<5;
 	ld	hl, #_playerY
 	ld	(hl), #0x00
 	inc	hl
 	ld	(hl), #0x0a
-;main.c:704: playerDrawX = 80;
+;main.c:760: playerDrawX = 80;
 	ld	hl, #_playerDrawX
 	ld	(hl), #0x50
-;main.c:705: playerDrawY = 80;
+;main.c:761: playerDrawY = 80;
 	ld	hl, #_playerDrawY
 	ld	(hl), #0x50
-;main.c:708: bgX = 0;
+;main.c:764: bgX = 0;
 	xor	a, a
 	ld	hl, #_bgX
 	ld	(hl+), a
 	ld	(hl), a
-;main.c:709: bgY = 0;
+;main.c:765: bgY = 0;
 	xor	a, a
 	ld	hl, #_bgY
 	ld	(hl+), a
 	ld	(hl), a
-;main.c:711: hull = maxHull;
+;main.c:767: hull = maxHull;
 	ld	a, (#_maxHull)
 	ld	(#_hull),a
-;main.c:712: shield = maxShield;
+;main.c:768: shield = maxShield;
 	ld	a, (#_maxShield)
 	ld	(#_shield),a
-;main.c:714: DISPLAY_ON;
+;main.c:770: DISPLAY_ON;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x80
 	ldh	(_LCDC_REG + 0), a
-;main.c:715: SPRITES_8x8;
+;main.c:771: SPRITES_8x8;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xfb
 	ldh	(_LCDC_REG + 0), a
-;main.c:716: set_sprite_data(0, 8, cross);
+;main.c:772: set_sprite_data(0, 8, cross);
 	ld	de, #_cross
 	push	de
 	ld	hl, #0x800
@@ -6045,13 +6708,13 @@ _initGame::
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
 	ld	hl, #(_shadow_OAM + 2)
 	ld	(hl), #0x00
-;main.c:719: SHOW_SPRITES;
+;main.c:775: SHOW_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x02
 	ldh	(_LCDC_REG + 0), a
-;main.c:723: font_init();
+;main.c:779: font_init();
 	call	_font_init
-;main.c:724: min_font = font_load(font_min); // 36 tiles of characters
+;main.c:780: min_font = font_load(font_min); // 36 tiles of characters
 	ld	de, #_font_min
 	push	de
 	call	_font_load
@@ -6059,7 +6722,7 @@ _initGame::
 	ld	hl, #_min_font
 	ld	a, e
 	ld	(hl+), a
-;main.c:725: font_set(min_font);
+;main.c:781: font_set(min_font);
 	ld	a, d
 	ld	(hl-), a
 	ld	a, (hl+)
@@ -6068,7 +6731,7 @@ _initGame::
 	push	de
 	call	_font_set
 	pop	hl
-;main.c:726: set_win_tiles(1,0,4,1,hullabel);
+;main.c:782: set_win_tiles(1,0,4,1,hullabel);
 	ld	de, #_hullabel
 	push	de
 	ld	hl, #0x104
@@ -6077,7 +6740,7 @@ _initGame::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;main.c:727: set_win_tiles(1,1,5,1,shieldlabel);
+;main.c:783: set_win_tiles(1,1,5,1,shieldlabel);
 	ld	de, #_shieldlabel
 	push	de
 	ld	hl, #0x105
@@ -6086,21 +6749,21 @@ _initGame::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;main.c:732: set_bkg_data(0x50,1,healthblock);
+;main.c:788: set_bkg_data(0x50,1,healthblock);
 	ld	de, #_healthblock
 	push	de
 	ld	hl, #0x150
 	push	hl
 	call	_set_bkg_data
 	add	sp, #4
-;main.c:734: setHealthBar(0, hull);
+;main.c:790: setHealthBar(0, hull);
 	ld	a, (#_hull)
 	ld	h, a
 	ld	l, #0x00
 	push	hl
 	call	_setHealthBar
 	pop	hl
-;main.c:735: setHealthBar(1, shield);
+;main.c:791: setHealthBar(1, shield);
 	ld	a, (#_shield)
 	ld	h, a
 	ld	l, #0x01
@@ -6112,18 +6775,18 @@ _initGame::
 	ldh	(_WX_REG + 0), a
 	ld	a, #0x7e
 	ldh	(_WY_REG + 0), a
-;main.c:738: SHOW_WIN;;
+;main.c:794: SHOW_WIN;;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-;main.c:743: set_bkg_data(0x25, 6, backgroundtiles);		// load background tileset (start in vram, count, tilestruct)
+;main.c:799: set_bkg_data(0x25, 8, backgroundtiles);		// load background tileset (start in vram, count, tilestruct)
 	ld	de, #_backgroundtiles
 	push	de
-	ld	hl, #0x625
+	ld	hl, #0x825
 	push	hl
 	call	_set_bkg_data
 	add	sp, #4
-;main.c:744: set_bkg_tiles(0,0,background1Width, background1Height ,background1); //set tilemap to be a background
+;main.c:800: set_bkg_tiles(0,0,background1Width, background1Height ,background1); //set tilemap to be a background
 	ld	de, #_background1
 	push	de
 	ld	hl, #0x2020
@@ -6138,28 +6801,37 @@ _initGame::
 	ldh	(_SCX_REG + 0), a
 	xor	a, a
 	ldh	(_SCY_REG + 0), a
-;main.c:746: SHOW_BKG;
+;main.c:802: SHOW_BKG;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x01
 	ldh	(_LCDC_REG + 0), a
-;main.c:752: }
+;main.c:808: }
 	ret
-;main.c:754: void main(){
+;main.c:810: void main(){
 ;	---------------------------------
 ; Function main
 ; ---------------------------------
 _main::
-;main.c:766: waitpad(J_A);
+;main.c:822: NR52_REG = 0x80; // sound on 
+	ld	a, #0x80
+	ldh	(_NR52_REG + 0), a
+;main.c:823: NR50_REG = 0x77; // volume
+	ld	a, #0x77
+	ldh	(_NR50_REG + 0), a
+;main.c:824: NR51_REG = 0xFF; // all channels
+	ld	a, #0xff
+	ldh	(_NR51_REG + 0), a
+;main.c:828: waitpad(J_A);
 	ld	a, #0x10
 	push	af
 	inc	sp
 	call	_waitpad
 	inc	sp
-;main.c:767: uint16_t seed = LY_REG;
+;main.c:829: uint16_t seed = LY_REG;
 	ldh	a, (_LY_REG + 0)
 	ld	c, a
 	ld	b, #0x00
-;main.c:768: seed |= (uint16_t)DIV_REG << 8;
+;main.c:830: seed |= (uint16_t)DIV_REG << 8;
 	ldh	a, (_DIV_REG + 0)
 	ld	e, a
 	xor	a, a
@@ -6168,35 +6840,35 @@ _main::
 	ld	a, e
 	or	a, b
 	ld	b, a
-;main.c:769: initrand(seed);
+;main.c:831: initrand(seed);
 	push	bc
 	call	_initrand
 	pop	hl
-;main.c:774: initGame();
+;main.c:836: initGame();
 	call	_initGame
-;main.c:775: initEnemies(1);
+;main.c:837: initEnemies(1);
 	ld	a, #0x01
 	push	af
 	inc	sp
 	call	_initEnemies
 	inc	sp
-;main.c:776: initProjectiles();
+;main.c:838: initProjectiles();
 	call	_initProjectiles
-;main.c:778: while(1) {
-00107$:
-;main.c:781: joydata = joypad(); // query for button states
+;main.c:840: while(1) {
+00114$:
+;main.c:843: joydata = joypad(); // query for button states
 	call	_joypad
 	ld	hl, #_joydata
 	ld	(hl), e
-;main.c:783: updateDirection(); // set player direction
+;main.c:845: updateDirection(); // set player direction
 	call	_updateDirection
-;main.c:786: move(); 
+;main.c:848: move(); 
 	call	_move
-;main.c:788: updateEnemyPositions();
+;main.c:850: updateEnemyPositions();
 	call	_updateEnemyPositions
-;main.c:791: checkCollision(); 
+;main.c:853: checkCollision(); 
 	call	_checkCollision
-;main.c:585: if (shield < maxShield) {
+;main.c:637: if (shield < maxShield) {
 	ld	hl, #_maxShield
 	ld	c, (hl)
 	ld	e, c
@@ -6205,63 +6877,95 @@ _main::
 	ld	a, (hl)
 	sub	a, c
 	bit	7, e
-	jr	Z, 00142$
+	jr	Z, 00169$
 	bit	7, d
-	jr	NZ, 00143$
+	jr	NZ, 00170$
 	cp	a, a
-	jr	00143$
-00142$:
+	jr	00170$
+00169$:
 	bit	7, d
-	jr	Z, 00143$
+	jr	Z, 00170$
 	scf
-00143$:
-	jr	NC, 00113$
-;main.c:586: shield += 1;
+00170$:
+	jr	NC, 00120$
+;main.c:638: shield += 1;
 	ld	hl, #_shield
 	inc	(hl)
-00113$:
-;main.c:588: setHealthBar(0, hull);
+00120$:
+;main.c:640: setHealthBar(0, hull);
 	ld	a, (#_hull)
 	ld	h, a
 	ld	l, #0x00
 	push	hl
 	call	_setHealthBar
 	pop	hl
-;main.c:589: setHealthBar(1, shield);
+;main.c:641: setHealthBar(1, shield);
 	ld	a, (#_shield)
 	ld	h, a
 	ld	l, #0x01
 	push	hl
 	call	_setHealthBar
 	pop	hl
-;main.c:796: if (joydata & J_B && fireCooldown == 0) {
+;main.c:858: if (joydata & J_B && fireCooldown == 0) {
 	ld	a, (#_joydata)
 	bit	5, a
 	jr	Z, 00102$
 	ld	a, (#_fireCooldown)
 	or	a, a
 	jr	NZ, 00102$
-;main.c:797: fire();
+;main.c:859: fire();
 	call	_fire
 00102$:
-;main.c:799: if (fireCooldown > 0) {
+;main.c:861: if (fireCooldown > 0) {
 	ld	hl, #_fireCooldown
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00105$
-;main.c:800: --fireCooldown;
+;main.c:862: --fireCooldown;
 	dec	(hl)
 00105$:
-;main.c:803: moveProjectiles();
+;main.c:865: if (joydata & J_SELECT && switchDelay == 0) {
+	ld	a, (#_joydata)
+	bit	6, a
+	jr	Z, 00109$
+	ld	a, (#_switchDelay)
+	or	a, a
+	jr	NZ, 00109$
+;main.c:866: currentGun++;
+	ld	hl, #_currentGun
+	inc	(hl)
+;main.c:867: if (currentGun >= GUNCOUNT) {
+	ld	hl, #_GUNCOUNT
+	ld	c, (hl)
+	ld	hl, #_currentGun
+	ld	a, (hl)
+	sub	a, c
+	jr	C, 00107$
+;main.c:868: currentGun = 0;
+	ld	(hl), #0x00
+00107$:
+;main.c:870: switchDelay = 30;
+	ld	hl, #_switchDelay
+	ld	(hl), #0x1e
+00109$:
+;main.c:872: if (switchDelay != 0) {
+	ld	hl, #_switchDelay
+	ld	a, (hl)
+	or	a, a
+	jr	Z, 00112$
+;main.c:873: switchDelay--;
+	dec	(hl)
+00112$:
+;main.c:875: moveProjectiles();
 	call	_moveProjectiles
-;main.c:815: SHOW_WIN;	
+;main.c:887: SHOW_WIN;	
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-;main.c:816: wait_vbl_done(); // Idle until next frame
+;main.c:888: wait_vbl_done(); // Idle until next frame
 	call	_wait_vbl_done
-;main.c:821: }
-	jr	00107$
+;main.c:893: }
+	jp	00114$
 	.area _CODE
 	.area _INITIALIZER
 __xinit__hullabel:
@@ -6309,6 +7013,16 @@ __xinit__doubleGun:
 	.db #0x01	; 1
 	.db #0x0f	; 15
 	.db #0x17	; 23
+__xinit__missile:
+	.dw #0x0000
+	.dw #0x0000
+	.db #0x00	;  0
+	.db #0xff	; -1
+	.db #0x01	; 1
+	.db #0x00	; 0
+	.db #0x01	; 1
+	.db #0x1e	; 30
+	.db #0x1a	; 26
 __xinit__oldestProjectile:
 	.db #0x00	; 0
 __xinit__fireCooldown:
@@ -6316,7 +7030,7 @@ __xinit__fireCooldown:
 __xinit__xDir:
 	.db #0x00	;  0
 __xinit__yDir:
-	.db #0x00	;  0
+	.db #0xff	; -1
 __xinit__xSpeed:
 	.db #0x00	;  0
 __xinit__ySpeed:
@@ -6338,5 +7052,9 @@ __xinit__xOverflow:
 __xinit__yOverflow:
 	.dw #0x0000
 __xinit__enemyCollisionCount:
+	.db #0x00	; 0
+__xinit__currentGun:
+	.db #0x00	; 0
+__xinit__switchDelay:
 	.db #0x00	; 0
 	.area _CABS (ABS)

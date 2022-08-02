@@ -34,3 +34,16 @@ struct Projectile doubleGun =  {
 	15, //delay
 	23
 };
+
+struct Projectile missile =  {
+	0, //int16_t x;
+	0, //int16_t y;
+	0, //int8_t xDir;
+	-1, //int8_t yDir;
+	1, //int8_t speed;
+	0, //int8_t damage;
+	1, //active
+	30, //delay
+	26
+};
+

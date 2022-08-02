@@ -15,7 +15,8 @@
 
 
 //global variables
-const unsigned char BLANK[1] = {0x26}; 
+const uint8_t BLANKSIZE = 3;
+const unsigned char BLANK[3] = {0x26, 0x2b, 0x2c}; 
 const unsigned char EMPTYSPRITE = 0x50;
 
 struct Enemy enemies[5];
@@ -45,7 +46,7 @@ const uint8_t PLAYERSIZE = 8;
 
 
 int8_t xDir = 0;
-int8_t yDir = 0;
+int8_t yDir = -1;
 int8_t xSpeed = 0;
 int8_t ySpeed = 0;
 
@@ -78,6 +79,10 @@ int16_t yOverflow = 0;
 //loops through every enemy ~11x per second
 uint8_t enemyCollisionCount = 0;
 
+
+const uint8_t GUNCOUNT = 3;
+uint8_t currentGun = 0;
+uint8_t switchDelay = 0;
 
 void interruptLCD(){
     HIDE_WIN;
@@ -212,7 +217,40 @@ inline int8_t abs(int8_t value) {
 }
 
 
+void playSound(uint8_t type) {
+	if (type == 20) { //singlegun
+		NR10_REG = 0x00;
+		NR11_REG = 0x81;
+		NR12_REG = 0x43;
+		NR13_REG = 0X00;//0x6D;
+		NR14_REG = 0x86;
+		return;
+	}
+	if (type == 23) {
+		NR10_REG = 0x00;
+		NR11_REG = 0x81;
+		NR12_REG = 0x53;
+		NR13_REG = 0X00;//0x6D;
+		NR14_REG = 0x86;
+	}
+	if (type == 26) {
+		NR10_REG = 0x00;
+		NR11_REG = 0x89;
+		NR12_REG = 0x55;
+		NR13_REG = 0x70;//0Xbe;//0x6D;
+		NR14_REG = 0x84;
+	}
+	if (type == 0) {  // explosion
+		NR41_REG = 0x20;  
+		NR42_REG = 0xa2;//0xa3;  
+		NR43_REG = 0x57;  
+		NR44_REG = 0x80;  
 
+	}
+
+	//20, a3, 37/47/57, 80
+	
+}
 
 
 void updateEnemyPositions() {
@@ -360,7 +398,14 @@ void move() {
 
 
 	uint16_t ind = 32*bgindY + bgindX;
-	uint8_t result = background1[ind] != BLANK[0];
+	uint8_t result = 1; // 0 incase of clear path, 1 for blocked
+	for (uint8_t i=0; i<BLANKSIZE; i++) {
+		if (background1[ind] == BLANK[i] ) {
+			result = 0;
+			break;
+		}
+	}
+
 	if (result == 0) {
 		playerX+=xSpeed;
 
@@ -408,7 +453,13 @@ void move() {
 
 
 	ind = 32*bgindY + bgindX;
-	result = background1[ind] != BLANK[0];
+	result = 1;
+	for (uint8_t j=0; j<BLANKSIZE; j++) {
+		if (background1[ind] == BLANK[j] ) {
+			result = 0;
+			break;
+		}
+	}
 	if (result == 0) {
 		playerY += ySpeed;
 
@@ -510,6 +561,7 @@ void checkCollision() {
 								eptr->alive = 0;
 								initEnemies(0);
 								set_sprite_tile(20+j, 0x7f);
+								playSound(0);
 								pptr->active = 0;
 							}
 						}
@@ -596,7 +648,15 @@ void fire() {
 		oldestProjectile = 0;
 	}
 
-	projectiles[oldestProjectile] = singleGun;
+	if (currentGun == 0) {
+		projectiles[oldestProjectile] = singleGun;
+	}
+	if (currentGun == 1) {
+		projectiles[oldestProjectile] = doubleGun;
+	}
+	if (currentGun == 2) {
+		projectiles[oldestProjectile] = missile;
+	}
 	projectiles[oldestProjectile].x = playerDrawX;
 	projectiles[oldestProjectile].y = playerDrawY;
 	projectiles[oldestProjectile].xSpeed = xDir * projectiles[oldestProjectile].speed;
@@ -627,28 +687,24 @@ void fire() {
 		set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type+2);
 		if (xDir == 1 && yDir == -1) {
 			set_sprite_prop(20+oldestProjectile, 0); //default is right & up
-			printf("1");
 		}
 		else if (xDir == 1 && yDir == 1) {
 			set_sprite_prop(20+oldestProjectile, S_FLIPY); 
-
-						printf("2");
-
 		}
 		else if (xDir == -1 && yDir == 1) {
 			set_sprite_prop(20+oldestProjectile, S_FLIPY | S_FLIPX); 
-						printf("3");
-
 		}  
 		else if (xDir == -1 && yDir == -1) {
 			set_sprite_prop(20+oldestProjectile, S_FLIPX); 
-						printf("4");
-
 		}
 	}
 	//set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
 	move_sprite(20+oldestProjectile, playerDrawX, playerDrawY);
 	fireCooldown = projectiles[oldestProjectile].delay;
+
+	playSound(projectiles[oldestProjectile].type);
+
+
 
 }
 
@@ -681,7 +737,7 @@ void moveProjectiles() {
 
 
 void initProjectiles() {
-	set_sprite_data(20, 6, ProjectileTiles);
+	set_sprite_data(20, 9, ProjectileTiles);
 
 	for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
 		projectiles[i].active == 0;	
@@ -693,7 +749,7 @@ void initGame() {
 
 
 	xDir = 0;
-	yDir = 0;
+	yDir = -1;
 	xSpeed = 0;
 	ySpeed = 0;
 
@@ -740,7 +796,7 @@ void initGame() {
 
 
 
-	set_bkg_data(0x25, 6, backgroundtiles);		// load background tileset (start in vram, count, tilestruct)
+	set_bkg_data(0x25, 8, backgroundtiles);		// load background tileset (start in vram, count, tilestruct)
 	set_bkg_tiles(0,0,background1Width, background1Height ,background1); //set tilemap to be a background
 	move_bkg(0,0);
 	SHOW_BKG;
@@ -761,6 +817,12 @@ void main(){
     enable_interrupts();
     set_interrupts(VBL_IFLAG | LCD_IFLAG);   
 	*/
+
+
+	NR52_REG = 0x80; // sound on 
+    NR50_REG = 0x77; // volume
+    NR51_REG = 0xFF; // all channels
+
 
 	//printf("PRESS A TO START");
 	waitpad(J_A);
@@ -800,6 +862,16 @@ void main(){
 				--fireCooldown;
 			}
 
+			if (joydata & J_SELECT && switchDelay == 0) {
+				currentGun++;
+				if (currentGun >= GUNCOUNT) {
+					currentGun = 0;
+				}
+				switchDelay = 30;
+			}
+			if (switchDelay != 0) {
+				switchDelay--;
+			}
 			moveProjectiles();
 
 			//TODO: use this pattern to access arrays in a loop...
