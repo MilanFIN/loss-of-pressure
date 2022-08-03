@@ -83,10 +83,15 @@ uint8_t enemyCollisionCount = 0;
 const uint8_t GUNCOUNT = 3;
 uint8_t currentGun = 0;
 uint8_t switchDelay = 0;
+//ugly references directly to vram locations, where gun icons are loaded to
+unsigned char gunMap[] = {0x51, 0x56, 0x58};
 
-void interruptLCD(){
-    HIDE_WIN;
+
+void interruptLCD()
+{
+    HIDE_SPRITES;
 }
+
 
 void setHealthBar(uint8_t row, uint8_t hp) {
 	if (hp >= 80) {
@@ -355,6 +360,8 @@ void initEnemies(uint8_t loadSprites) {
 			enemies[i].y = ySpawnPositions[posIndex];
 
 			set_sprite_tile(10+i, enemies[i].sprite0);
+
+			
 			move_sprite(10+i, enemies[i].x, enemies[i].y);
 	  	}
   }
@@ -633,6 +640,13 @@ void checkCollision() {
 }
 
 
+void setGunIcon() {
+	
+
+	set_win_tiles(15, 0,1,1,gunMap+currentGun);
+
+}
+ 
 inline void updateShieldsAndHull() {
 	if (shield < maxShield) {
 		shield += 1;
@@ -777,10 +791,11 @@ void initGame() {
 	
 
 	font_init();
+	//font_color(0, 0);
     min_font = font_load(font_min); // 36 tiles of characters
     font_set(min_font);
 	set_win_tiles(1,0,4,1,hullabel);
-	set_win_tiles(1,1,5,1,shieldlabel);
+	set_win_tiles(1,1,4,1,shieldlabel);
 
 
 
@@ -791,7 +806,6 @@ void initGame() {
 	setHealthBar(1, shield);
 
 	move_win(7,126);
-	SHOW_WIN;;
 
 
 
@@ -799,7 +813,15 @@ void initGame() {
 	set_bkg_data(0x25, 8, backgroundtiles);		// load background tileset (start in vram, count, tilestruct)
 	set_bkg_tiles(0,0,background1Width, background1Height ,background1); //set tilemap to be a background
 	move_bkg(0,0);
+
+	set_bkg_data(0x51, 9, ProjectileTiles);
+
+	set_win_tiles(10, 0,5,1,weaponlabel);
+	set_win_tiles(10, 1,5,1,scorelabel);
+
+	setGunIcon();
 	SHOW_BKG;
+	SHOW_WIN;;
 
 
 
@@ -809,15 +831,17 @@ void initGame() {
 
 void main(){
 
-	/*
+	
     STAT_REG = 0x45;
-    LYC_REG = 0x0e;//0x08;  //  Fire LCD Interupt on the 8th scan line (just first row)
+    LYC_REG = 0x7e;//0x08;  //  Fire LCD Interupt on the 8th scan line (just first row)
     disable_interrupts();
     add_LCD(interruptLCD);
     enable_interrupts();
     set_interrupts(VBL_IFLAG | LCD_IFLAG);   
-	*/
-
+	
+    //LYC_REG = 0xa0 - 1; //LCD interrupt 15th scan line
+    //add_LCD(interruptLCD);
+    //add_VBL(interruptVBL);
 
 	NR52_REG = 0x80; // sound on 
     NR50_REG = 0x77; // volume
@@ -838,7 +862,7 @@ void main(){
 		initProjectiles();
 
 		while(1) {
-
+			SHOW_SPRITES;
 
 			joydata = joypad(); // query for button states
 
@@ -867,6 +891,7 @@ void main(){
 				if (currentGun >= GUNCOUNT) {
 					currentGun = 0;
 				}
+				setGunIcon();
 				switchDelay = 30;
 			}
 			if (switchDelay != 0) {
