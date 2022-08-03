@@ -13,6 +13,8 @@
 #include <gbdk/font.h>
 #include <rand.h>
 
+#include <gbdk/bcd.h>
+
 
 //global variables
 const uint8_t BLANKSIZE = 3;
@@ -87,6 +89,11 @@ uint8_t switchDelay = 0;
 unsigned char gunMap[] = {0x51, 0x56, 0x58};
 
 
+uint16_t score = 0;
+BCD bcd = MAKE_BCD(00000);
+BCD INCREMENT = MAKE_BCD(00001);
+
+
 void interruptLCD()
 {
     HIDE_SPRITES;
@@ -94,6 +101,7 @@ void interruptLCD()
 
 
 void setHealthBar(uint8_t row, uint8_t hp) {
+
 	if (hp >= 80) {
 		unsigned char blockmap[] = {0x50,0x50,0x50,0x50,0x50};
 		set_win_tiles(5,row,5,1,blockmap);
@@ -118,6 +126,19 @@ void setHealthBar(uint8_t row, uint8_t hp) {
 	set_win_tiles(5,row,5,1,blockmap);
 	return;
 
+}
+
+void updateScore() {
+
+	uint8_t len = 0;
+	unsigned char buf[10];
+	len = bcd2text(&bcd, 0x01, buf);
+	set_win_tiles(15, 1, 5, 1, buf+3);
+}
+
+void incrementScore() {
+	score += 1;
+	bcd_add(&bcd, &INCREMENT);
 }
 
 void updateDirection() {
@@ -549,6 +570,8 @@ void checkCollision() {
 						eptr->alive = 0;
 						takeDamage(eptr->damage);
 						initEnemies(0);
+						playSound(0);
+
 					}
 				}
 			}
@@ -570,6 +593,8 @@ void checkCollision() {
 								set_sprite_tile(20+j, 0x7f);
 								playSound(0);
 								pptr->active = 0;
+								incrementScore();
+								updateScore();
 							}
 						}
 					}
@@ -816,15 +841,15 @@ void initGame() {
 
 	set_bkg_data(0x51, 9, ProjectileTiles);
 
-	set_win_tiles(10, 0,5,1,weaponlabel);
-	set_win_tiles(10, 1,5,1,scorelabel);
+	set_win_tiles(10, 0,4,1,weaponlabel);
+	set_win_tiles(10, 1,4,1,scorelabel);
 
 	setGunIcon();
 	SHOW_BKG;
 	SHOW_WIN;;
 
-
-
+	bcd = MAKE_BCD(00000);
+	updateScore();
 	
 
 }
@@ -833,15 +858,13 @@ void main(){
 
 	
     STAT_REG = 0x45;
-    LYC_REG = 0x7e;//0x08;  //  Fire LCD Interupt on the 8th scan line (just first row)
+    LYC_REG = 0x7e; //line 126
     disable_interrupts();
     add_LCD(interruptLCD);
     enable_interrupts();
     set_interrupts(VBL_IFLAG | LCD_IFLAG);   
-	
-    //LYC_REG = 0xa0 - 1; //LCD interrupt 15th scan line
-    //add_LCD(interruptLCD);
-    //add_VBL(interruptVBL);
+
+
 
 	NR52_REG = 0x80; // sound on 
     NR50_REG = 0x77; // volume
