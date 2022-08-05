@@ -7,6 +7,8 @@
 #include "data/windowmap.c"
 #include "data/healthblock.c"
 #include "data/enemy.c"
+#include "data/enemy1.c"
+
 #include "data/projectile.c"
 #include "data/projectiles.c"
 
@@ -14,6 +16,8 @@
 #include <rand.h>
 
 #include <gbdk/bcd.h>
+
+#include "data/player1.c"
 
 
 //global variables
@@ -44,7 +48,7 @@ uint8_t oldestProjectile = 0;
 uint8_t fireCooldown = 0;
 
 
-const uint8_t PLAYERSIZE = 8;
+const uint8_t PLAYERSIZE = 16;
 
 
 int8_t xDir = 0;
@@ -188,6 +192,7 @@ void updateDirection() {
 
 	uint8_t direction = 0;
 
+	/*
 	if (xDir == 0 && yDir < 0) {
 		direction = 0;
 	}
@@ -212,8 +217,56 @@ void updateDirection() {
 	if (xDir < 0 && yDir < 0) {
 		direction = 7;
 	}
+	*/
 
-	set_sprite_tile(0, direction);
+	if (xDir == 0 && yDir > 0) {
+		set_sprite_tile(0, 0);
+		set_sprite_tile(1, 2);
+		set_sprite_prop(0, S_FLIPY); 
+		set_sprite_prop(1, S_FLIPY); 
+	}
+	else if (xDir == 0 && yDir < 0) {
+		set_sprite_tile(0, 0);
+		set_sprite_tile(1, 2);
+		set_sprite_prop(0, 0); 
+		set_sprite_prop(1, 0); 
+	}
+	else if (xDir > 0 && yDir == 0) {
+		set_sprite_tile(0, 4);
+		set_sprite_tile(1, 6);
+		set_sprite_prop(0, 0); 
+		set_sprite_prop(1, 0); 
+	}
+	else if (xDir < 0 && yDir == 0) {
+		set_sprite_tile(0, 4);
+		set_sprite_tile(1, 6);
+		set_sprite_prop(0, S_FLIPX); 
+		set_sprite_prop(1, S_FLIPX); 
+	}
+	else if (xDir > 0 && yDir < 0) {
+		set_sprite_tile(0, 8);
+		set_sprite_tile(1, 10);
+		set_sprite_prop(0, 0); 
+		set_sprite_prop(1, 0); 
+	}
+	else if (xDir > 0 && yDir > 0) {
+		set_sprite_tile(0, 8);
+		set_sprite_tile(1, 10);
+		set_sprite_prop(0, S_FLIPY); 
+		set_sprite_prop(1, S_FLIPY); 
+	}	
+	else if (xDir < 0 && yDir > 0) {
+		set_sprite_tile(0, 8);
+		set_sprite_tile(1, 10);
+		set_sprite_prop(0, S_FLIPY | S_FLIPX); 
+		set_sprite_prop(1, S_FLIPY | S_FLIPX); 
+	}	
+	else if (xDir < 0 && yDir < 0) {
+		set_sprite_tile(0, 8);
+		set_sprite_tile(1, 10);
+		set_sprite_prop(0, S_FLIPX); 
+		set_sprite_prop(1, S_FLIPX); 
+	}
 }
 
 
@@ -282,7 +335,9 @@ void playSound(uint8_t type) {
 void updateEnemyPositions() {
 	//update enemy speeds and positions
 	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
-
+		if (!enemies[i].alive) {
+			continue;
+		}
 		enemies[i].x -= xOverflow;
 		enemies[i].y -= yOverflow;
 
@@ -357,7 +412,7 @@ void updateEnemyPositions() {
 			}
 
 		}
-		move_sprite(10+i, enemies[i].x, enemies[i].y);
+		move_sprite(10+i, enemies[i].x+4, enemies[i].y+12);
 	}
 }
 
@@ -365,7 +420,7 @@ void initEnemies(uint8_t loadSprites) {
 
 	if (loadSprites) {
 		//loading enemy sprites to vram
-		set_sprite_data(9, 2, enemy1);
+		set_sprite_data(0x30, 1, enemy1);
 
 	}
 
@@ -408,10 +463,10 @@ void move() {
 	//x direction collision detections first
 
 	//sprite center by default
-	uint8_t xCollisionPoint = playerDrawX -4; 
+	uint8_t xCollisionPoint = playerDrawX; 
 
 	if (xSpeed > 0) {
-		xCollisionPoint = playerDrawX; //right edge
+		xCollisionPoint = playerDrawX +8; //right edge
 	}
 	if (xSpeed < 0) {
 		xCollisionPoint = playerDrawX -8; //left edge
@@ -422,7 +477,7 @@ void move() {
 
 
 	//-12 as y coordinate is 0 at bottom edge of 16 high sprite & this sprite is only 8 high and pinned to top
-	uint8_t bgindY = ((playerDrawY-12 + bgY) >> 3)%32; 
+	uint8_t bgindY = ((playerDrawY + bgY) >> 3)%32; 
 
 
 	uint16_t ind = 32*bgindY + bgindX;
@@ -464,17 +519,17 @@ void move() {
 	//y direction collision detections second
 
 	//sprite center by default
-	uint8_t yCollisionPoint = playerDrawY -12; 
+	uint8_t yCollisionPoint = playerDrawY; 
 
 	if (ySpeed > 0) {
-		yCollisionPoint = playerDrawY - 8; //bottom edge, only half the height, so -8
+		yCollisionPoint = playerDrawY +8; //bottom edge
 	}
 	if (ySpeed < 0) {
-		yCollisionPoint = playerDrawY -16; //top edge, 
+		yCollisionPoint = playerDrawY -8; //top edge, 
 	}
 
 	
-	bgindX = ((playerDrawX -4 + bgX) >> 3)%32;
+	bgindX = ((playerDrawX + bgX) >> 3)%32;
 
 
 	bgindY = ((yCollisionPoint + bgY) >> 3)%32; 
@@ -510,8 +565,17 @@ void move() {
 		ySpeed = 0;
 	}
 
+	if (xDir >= 0) {
+		move_sprite(0, playerDrawX , playerDrawY + 8);
 
-	move_sprite(0, playerDrawX, playerDrawY);
+		move_sprite(1, playerDrawX +8, playerDrawY +8);
+	}
+	else {
+		move_sprite(1, playerDrawX , playerDrawY +8);
+
+		move_sprite(0, playerDrawX +8, playerDrawY +8);
+	}
+
 
 	
 	if (bgX >= 256) {
@@ -557,38 +621,35 @@ void checkCollision() {
 
 
 	struct Enemy *eptr = enemies;
-	uint8_t i = 0;
+	uint8_t i = enemyCollisionCount;
 
 	while (i < ENEMYCOUNT) {
 		eptr += enemyCollisionCount;
 			if (eptr->visible && eptr->alive) {
 
-				if (eptr->x > playerDrawX - PLAYERSIZE && eptr->x - (8>>(eptr->spriteCount-1)) < playerDrawX) 
-				{
-					if (eptr->y > playerDrawY - PLAYERSIZE && eptr->y -(8>>(eptr->spriteCount-1)) < playerDrawY) {
-						set_sprite_tile(10+i, 0x7f);
+				
+				if (abs(eptr->x - playerDrawX) <= 8 ) {
+					if (abs(eptr->y - playerDrawY) <= 8) {
+						set_sprite_tile(0x30+i, 0x7f);
 						eptr->alive = 0;
+						eptr->visible = 0;
 						takeDamage(eptr->damage);
 						initEnemies(0);
 						playSound(0);
 
 					}
 				}
-			}
-		//}
+				
 
-
-		//projectiles
-		//if (projectileCollisionCount == 0) {
-		//	if (eptr->visible && eptr->alive) {
 				struct Projectile *pptr = projectiles;
 				uint8_t j = 0;
 				while (j < PROJECTILECOUNT) {
 					if (pptr->active) {
 						if (eptr->x > pptr->x - 8 && eptr->x - (8>>(eptr->spriteCount-1)) < pptr->x) {
 							if (eptr->y > pptr->y - 8 && eptr->y -(8>>(eptr->spriteCount-1)) < pptr->y ) {
-								set_sprite_tile(10+i, 0x7f);
+								set_sprite_tile(0x30+i, 0x7f);
 								eptr->alive = 0;
+								eptr->visible = 0;
 								initEnemies(0);
 								set_sprite_tile(20+j, 0x7f);
 								playSound(0);
@@ -601,11 +662,7 @@ void checkCollision() {
 					j++;
 					pptr++;
 				}
-		//	}
-		//}
-		
-		//i++;
-		//eptr++;
+		}
 		break;
 	}
 
@@ -615,50 +672,6 @@ void checkCollision() {
 	else {
 		enemyCollisionCount--;
 	}
-
-/*
-
-			*/
-
-
-	//option 2
-	/*
-	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
-		if (enemies[i].visible && enemies[i].alive) {
-			uint8_t x = enemies[i].x;
-			uint8_t y = enemies[i].y;
-
-			if (x > playerDrawX - PLAYERSIZE && x - (8>>(enemies[i].spriteCount-1)) < playerDrawX
-					&& y > playerDrawY - PLAYERSIZE && y -(8>>(enemies[i].spriteCount-1)) < playerDrawY ) 
-			{
-				set_sprite_tile(10+i, 0x7f);
-				enemies[i].alive = 0;
-				takeDamage(enemies[i].damage);
-				initEnemies(0);
-			}
-
-
-
-						
-			for (uint8_t j = 0; j < PROJECTILECOUNT; ++j) {
-				if (projectiles[j].active) {
-					uint8_t pX = projectiles[j].x;
-					uint8_t pY = projectiles[j].y;
-					if (x > pX - 8 && x - (8>>(enemies[i].spriteCount-1)) < pX
-							&& y > pY - 8 && y -(8>>(enemies[i].spriteCount-1)) < pY ) {
-
-						set_sprite_tile(10+i, 0x7f);
-						enemies[i].alive = 0;
-						initEnemies(0);
-
-						set_sprite_tile(20+j, 0x7f);
-						projectiles[j].active = 0;
-					}
-				}
-			}
-		}	
-	}
-	*/
 
 
 
@@ -701,44 +714,13 @@ void fire() {
 	projectiles[oldestProjectile].xSpeed = xDir * projectiles[oldestProjectile].speed;
 	projectiles[oldestProjectile].ySpeed = yDir * projectiles[oldestProjectile].speed;
 
-	if (yDir != 0 && xDir == 0) {
-		set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
-		if (yDir == 1) {
-			set_sprite_prop(20+oldestProjectile, S_FLIPY); 
 
-		}
-		else {
+	//TODO support for multidir projectiles
+	set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
 
-			set_sprite_prop(20+oldestProjectile, 0); 
-		}
 
-	}
-	else if (xDir != 0 && yDir == 0) {
-		set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type+1);
-		if (xDir == 1) {
-			set_sprite_prop(20+oldestProjectile, 0); 
-		}
-		else {
-			set_sprite_prop(20+oldestProjectile, S_FLIPX); 
-		}
-	}
-	else {
-		set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type+2);
-		if (xDir == 1 && yDir == -1) {
-			set_sprite_prop(20+oldestProjectile, 0); //default is right & up
-		}
-		else if (xDir == 1 && yDir == 1) {
-			set_sprite_prop(20+oldestProjectile, S_FLIPY); 
-		}
-		else if (xDir == -1 && yDir == 1) {
-			set_sprite_prop(20+oldestProjectile, S_FLIPY | S_FLIPX); 
-		}  
-		else if (xDir == -1 && yDir == -1) {
-			set_sprite_prop(20+oldestProjectile, S_FLIPX); 
-		}
-	}
 	//set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
-	move_sprite(20+oldestProjectile, playerDrawX, playerDrawY);
+	//move_sprite(20+oldestProjectile, playerDrawX, playerDrawY);
 	fireCooldown = projectiles[oldestProjectile].delay;
 
 	playSound(projectiles[oldestProjectile].type);
@@ -757,10 +739,13 @@ void moveProjectiles() {
 			int16_t newY = projectiles[i].y + projectiles[i].ySpeed;
 			int16_t newX = projectiles[i].x + projectiles[i].xSpeed;
 
-			move_sprite(20+i, newX, newY);
+			
 			projectiles[i].y = newY;
 			projectiles[i].x = newX;
+			
 
+
+			move_sprite(20+i, newX +4 , newY +12);
 
 
 			//if (abs(projectiles[i].x - playerDrawX) > 100 || abs(projectiles[i].y - playerDrawY) > 100) {
@@ -776,7 +761,7 @@ void moveProjectiles() {
 
 
 void initProjectiles() {
-	set_sprite_data(20, 9, ProjectileTiles);
+	set_sprite_data(0x20, 1, ProjectileTiles); //TODO NOSTA MÄÄRÄÄ
 
 	for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
 		projectiles[i].active == 0;	
@@ -807,13 +792,16 @@ void initGame() {
 	shield = maxShield;
 
 	DISPLAY_ON;
-	SPRITES_8x8;
-	set_sprite_data(0, 8, cross);
+	SPRITES_8x16;
+	set_sprite_data(0, 12, Player1);
+
 	set_sprite_tile(0, 0);
+	set_sprite_tile(1, 2);
+
 	//move_sprite(0, playerX, playerY);
 	SHOW_SPRITES;
 	
-	
+
 
 	font_init();
 	//font_color(0, 0);

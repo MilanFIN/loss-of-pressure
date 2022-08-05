@@ -1,6 +1,6 @@
 /*
 
- ENEMY1.H
+ PLAYER1.H
 
  Include File.
 
@@ -9,8 +9,8 @@
   Format               : Gameboy 4 color.
   Compression          : None.
   Counter              : None.
-  Tile size            : 8 x 8
-  Tiles                : 0 to 0
+  Tile size            : 16 x 16
+  Tiles                : 0 to 3
 
   Palette colors       : None.
   SGB Palette          : None.
@@ -22,14 +22,14 @@
 
 */
 
-#ifndef __enemy1_h_INCLUDE
-#define __enemy1_h_INCLUDE
+#ifndef __player1_h_INCLUDE
+#define __player1_h_INCLUDE
 
 /* Bank of tiles. */
-#define enemy1Bank 0
+#define Player1Bank 0
 /* Start of tile array. */
-extern const unsigned char enemy1[];
+extern const unsigned char Player1[];
 
 #endif
 
-/* End of ENEMY1.H */
+/* End of PLAYER1.H */

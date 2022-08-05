@@ -20,7 +20,7 @@ struct Projectile singleGun =  {
 	0, //int8_t damage;
 	1, //active
 	15, //delay
-	20
+	0x20
 };
 
 struct Projectile doubleGun =  {
@@ -32,7 +32,7 @@ struct Projectile doubleGun =  {
 	0, //int8_t damage;
 	1, //active
 	15, //delay
-	23
+	0x23
 };
 
 struct Projectile missile =  {
@@ -44,6 +44,6 @@ struct Projectile missile =  {
 	0, //int8_t damage;
 	1, //active
 	30, //delay
-	26
+	0x26
 };
 
