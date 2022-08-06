@@ -332,9 +332,47 @@ void playSound(uint8_t type) {
 	
 }
 
+void initEnemies(uint8_t loadSprites) {
+
+	if (loadSprites) {
+		//loading enemy sprites to vram
+		set_sprite_data(0x40, 1, enemy1);
+		set_sprite_data(0x50, 4, largeenemies);
+	}
+
+	struct Enemy *eptr = enemies;
+	//initializing enemy list with structs
+  	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
+	  	if (eptr->alive == 0) {
+			(*eptr) = bigblob;
+
+			uint8_t posIndex =  ((uint8_t)rand()) % (uint8_t)8;//(rand() & 8);
+			eptr->x = xSpawnPositions[posIndex];
+			eptr->y = ySpawnPositions[posIndex];
+
+			if (eptr->spriteCount == 1) {
+				set_sprite_tile(10+ (i<<1), eptr->sprite0);
+				move_sprite(10+ (i<<1), eptr->x, eptr->y);
+			}
+			else {
+				set_sprite_tile(10+ (i<<1), eptr->sprite0);
+				move_sprite(10+ (i<<1), eptr->x, eptr->y);
+
+				set_sprite_tile(10+ (i<<1) +1, eptr->sprite1);
+				move_sprite(10+ (i<<1) +1, eptr->x, eptr->y);
+			}
+
+
+	  	}
+		eptr++;
+  	}
+
+}
+
 
 void updateEnemyPositions() {
 	//update enemy speeds and positions
+	
 	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
 		if (!enemies[i].alive) {
 			continue;
@@ -343,18 +381,32 @@ void updateEnemyPositions() {
 		enemies[i].y -= yOverflow;
 
 
-		if (enemies[i].x < playerDrawX) {
-			enemies[i].xSpeed += enemies[i].accel;
+		if (abs(enemies[i].x - playerDrawX) > 8) {
+			if (enemies[i].x < playerDrawX) {
+				enemies[i].xSpeed += enemies[i].accel;
+			}
+			else {
+				enemies[i].xSpeed -= enemies[i].accel;
+			}
 		}
 		else {
-			enemies[i].xSpeed -= enemies[i].accel;
+			if (enemies[i].xSpeed > 0) enemies[i].xSpeed--;
+			if (enemies[i].xSpeed < 0) enemies[i].xSpeed++;
+
 		}
-		if (enemies[i].y < playerDrawY) {
-			enemies[i].ySpeed += enemies[i].accel;
+		if (abs(enemies[i].y - playerDrawY) > 8) {
+			if (enemies[i].y < playerDrawY) {
+				enemies[i].ySpeed += enemies[i].accel;
+			}
+			else {
+				enemies[i].ySpeed -= enemies[i].accel;
+			}
 		}
 		else {
-			enemies[i].ySpeed -= enemies[i].accel;
+			if (enemies[i].ySpeed > 0) enemies[i].ySpeed--;
+			if (enemies[i].ySpeed < 0) enemies[i].ySpeed++;
 		}
+
 		//clamp to max speed
 		enemies[i].xSpeed = clamp(enemies[i].xSpeed, -enemies[i].speed, enemies[i].speed);
 		enemies[i].ySpeed = clamp(enemies[i].ySpeed, -enemies[i].speed, enemies[i].speed);
@@ -387,12 +439,8 @@ void updateEnemyPositions() {
 			enemies[i].y += yMovement;
 			enemies[i].yReserve +=  (-yMovement) << 3;
 		}
-		
-		
-
-
-
 	}
+
 
 
 
@@ -404,7 +452,6 @@ void updateEnemyPositions() {
 					enemies[i].visible = 0;
 					set_sprite_tile(10+(i<<1), 0x7f);
 					set_sprite_tile(10+(i<<1)+1, 0x7f);
-
 				} 
 			}
 			else {
@@ -413,71 +460,46 @@ void updateEnemyPositions() {
 					set_sprite_tile(10+(i<<1), enemies[i].sprite0);
 					if (enemies[i].spriteCount == 2) {
 						set_sprite_tile(10+(i<<1)+1, enemies[i].sprite1);
-
 					}
 				}
+				else if (enemies[i].x < -100 || enemies[i].x > 272 || enemies[i].y < -100 || enemies[i].y > 252) {
+					enemies[i].alive = 0;
+					set_sprite_tile(10+(i<<1), 0x7f);
+					set_sprite_tile(10+(i<<1)+1, 0x7f);
+					initEnemies(0);
+				}
 			}
-
 		}
 		if (enemies[i].spriteCount == 1) {
 			move_sprite(10+ (i<<1), enemies[i].x+4, enemies[i].y+12);
-
-		}
-		else {
-			move_sprite(10+ (i<<1), enemies[i].x, enemies[i].y);
-			move_sprite(10+ (i<<1) +1, enemies[i].x, enemies[i].y);
-
-			move_sprite(10+ (i<<1), enemies[i].x , enemies[i].y + 8);
-
-			move_sprite(10+ (i<<1)+1, enemies[i].x +8, enemies[i].y +8);
-
-		}
-
-
-
-	}
-}
-
-void initEnemies(uint8_t loadSprites) {
-
-	if (loadSprites) {
-		//loading enemy sprites to vram
-		set_sprite_data(0x40, 1, enemy1);
-
-
-		set_sprite_data(0x50, 4, largeenemies);
-
-
-
-	}
-
-	//initializing enemy list with structs
-  for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
-	  	if (enemies[i].alive == 0) {
-
-			enemies[i] = blob;
-		
-
-			uint8_t posIndex =  ((uint8_t)rand()) % (uint8_t)8;//(rand() & 8);
-			enemies[i].x = xSpawnPositions[posIndex];
-			enemies[i].y = ySpawnPositions[posIndex];
-
-			if (enemies[i].spriteCount == 1) {
-				set_sprite_tile(10+ (i<<1), enemies[i].sprite0);
-				move_sprite(10+ (i<<1), enemies[i].x, enemies[i].y);
+			if (enemies[i].xSpeed >= 0) {
+				set_sprite_prop(10+(i<<1), 0);
 			}
 			else {
-				set_sprite_tile(10+ (i<<1), enemies[i].sprite0);
-				move_sprite(10+ (i<<1), enemies[i].x, enemies[i].y);
+				set_sprite_prop(10+(i<<1), S_FLIPX);
+			}
+		}
+		else {
 
-				set_sprite_tile(10+ (i<<1) +1, enemies[i].sprite1);
-				move_sprite(10+ (i<<1) +1, enemies[i].x, enemies[i].y);
+			if (enemies[i].xSpeed >= 0) {
+				set_sprite_prop(10+(i<<1), 0);
+				set_sprite_prop(10+(i<<1)+1, 0);
+				move_sprite(10+ (i<<1), enemies[i].x , enemies[i].y + 8);
+				move_sprite(10+ (i<<1)+1, enemies[i].x +8, enemies[i].y +8);
+			}
+			else {
+				set_sprite_prop(10+(i<<1), S_FLIPX);
+				set_sprite_prop(10+(i<<1)+1, S_FLIPX);
+				move_sprite(10+ (i<<1), enemies[i].x +8, enemies[i].y + 8);
+				move_sprite(10+ (i<<1)+1, enemies[i].x, enemies[i].y +8);
 			}
 
+		}
 
-	  	}
-  }
+	}
 }
+
+
 
 
 void move() {
@@ -656,52 +678,58 @@ void checkCollision() {
 	//option 1
 
 
-	struct Enemy *eptr = enemies;
+	struct Enemy *eptr = enemies + enemyCollisionCount;
 	uint8_t i = enemyCollisionCount;
 
-	while (i < ENEMYCOUNT) {
-		eptr += enemyCollisionCount;
-			if (eptr->visible && eptr->alive) {
+	if (eptr->visible && eptr->alive) {
 
+		if ((eptr->spriteCount == 1 && abs(eptr->x - playerDrawX) <= 8 ) || 
+			(eptr->spriteCount == 2 && abs(eptr->x - playerDrawX) <= 16 )) {
+			if ((eptr->spriteCount == 1 && abs(eptr->y - playerDrawY) <= 8 ) || 
+				(eptr->spriteCount == 2 && abs(eptr->y - playerDrawY) <= 16 )) {
 				
-				if (abs(eptr->x - playerDrawX) <= 8 ) {
-					if (abs(eptr->y - playerDrawY) <= 8) {
-						set_sprite_tile(10+(i<<1), 0x7f);
-						set_sprite_tile(10+(i<<1)+1, 0x7f);
-						eptr->alive = 0;
-						eptr->visible = 0;
-						takeDamage(eptr->damage);
-						initEnemies(0);
-						playSound(0);
+				set_sprite_tile(10+(i<<1), 0x7f);
+				set_sprite_tile(10+(i<<1)+1, 0x7f);
+				eptr->alive = 0;
+				eptr->visible = 0;
+				takeDamage(eptr->damage);
+				initEnemies(0);
+				playSound(0);
 
-					}
-				}
-				
-
-				struct Projectile *pptr = projectiles;
-				uint8_t j = 0;
-				while (j < PROJECTILECOUNT) {
-					if (pptr->active) {
-						if (eptr->x > pptr->x - 8 && eptr->x - (8>>(eptr->spriteCount-1)) < pptr->x) {
-							if (eptr->y > pptr->y - 8 && eptr->y -(8>>(eptr->spriteCount-1)) < pptr->y ) {
-								set_sprite_tile(10+(i<<1), 0x7f);
-								set_sprite_tile(10+(i<<1)+1, 0x7f);
-								eptr->alive = 0;
-								eptr->visible = 0;
-								initEnemies(0);
-								set_sprite_tile(30+j, 0x7f);
-								playSound(0);
-								pptr->active = 0;
-								incrementScore();
-								updateScore();
-							}
-						}
-					}
-					j++;
-					pptr++;
-				}
+			}
 		}
-		break;
+		
+
+		struct Projectile *pptr = projectiles;
+		uint8_t j = 0;
+		while (j < PROJECTILECOUNT) {
+			if (pptr->active) {
+				
+				//if (eptr->x > pptr->x - 8 && eptr->x - (8>>(eptr->spriteCount-1)) < pptr->x) {
+				//	if (eptr->y > pptr->y - 8 && eptr->y -(8>>(eptr->spriteCount-1)) < pptr->y ) {
+				if ((eptr->spriteCount == 1 && abs(eptr->x - pptr->x) <= 8 ) || 
+					(eptr->spriteCount == 2 && abs(eptr->x - pptr->x) <= 16 )) {
+					if ((eptr->spriteCount == 1 && abs(eptr->y - pptr->y) <= 8 ) || 
+						(eptr->spriteCount == 2 && abs(eptr->y - pptr->y) <= 16 )) {
+
+
+							set_sprite_tile(10+(i<<1), 0x7f);
+							set_sprite_tile(10+(i<<1)+1, 0x7f);
+							eptr->alive = 0;
+							eptr->visible = 0;
+							initEnemies(0);
+							set_sprite_tile(30+j, 0x7f);
+							playSound(0);
+							pptr->active = 0;
+							incrementScore();
+							updateScore();
+					}
+				}
+			}
+			
+			j++;
+			pptr++;
+		}
 	}
 
 	if (enemyCollisionCount == 0) {
