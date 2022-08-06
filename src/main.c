@@ -21,6 +21,16 @@
 #include "data/player1.c"
 
 
+/* //TODO: overflow area koordinaatit pielessä
+
+grafiikkaa:
+	- vihollinen jolla on "shield" kehä ympärillä
+	- joku avaruusalus
+	- nopea pieni "bogey"
+*/
+
+
+
 //global variables
 const uint8_t BLANKSIZE = 3;
 const unsigned char BLANK[3] = {0x26, 0x2b, 0x2c}; 
@@ -28,6 +38,7 @@ const unsigned char EMPTYSPRITE = 0x50;
 
 struct Enemy enemies[5];
 const uint8_t ENEMYCOUNT = 5;
+
 
 //enemy spawn positions
 const uint8_t xSpawnPositions[8] = {
@@ -336,15 +347,18 @@ void initEnemies(uint8_t loadSprites) {
 
 	if (loadSprites) {
 		//loading enemy sprites to vram
-		set_sprite_data(0x40, 1, enemy1);
-		set_sprite_data(0x50, 4, largeenemies);
+		set_sprite_data(0x40, 5, enemy1);
+		set_sprite_data(0x50, 8, largeenemies);
 	}
 
 	struct Enemy *eptr = enemies;
 	//initializing enemy list with structs
   	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
 	  	if (eptr->alive == 0) {
-			(*eptr) = bigblob;
+
+			uint8_t enemyInd = ((uint8_t)rand()) % (uint8_t) enemyOptionCount;
+			//printf("%d\n", enemyInd);
+			(*eptr) = enemyOptions[enemyInd];
 
 			uint8_t posIndex =  ((uint8_t)rand()) % (uint8_t)8;//(rand() & 8);
 			eptr->x = xSpawnPositions[posIndex];
@@ -542,7 +556,7 @@ void move() {
 	uint8_t result = 1; // 0 incase of clear path, 1 for blocked
 	///* TODO: ENABLE
 	for (uint8_t i=0; i<BLANKSIZE; i++) {
-		if (background2[ind] == BLANK[i] ) {
+		if (background1[ind] == BLANK[i] ) {
 			result = 0;
 			break;
 		}
@@ -552,7 +566,7 @@ void move() {
 	if (result == 0) {
 		playerX+=xSpeed;
 
-		uint16_t limitedPlayerX = u16Clamp(playerX, 58<<5, 110<<5);//0->160, with 8 px margin for left edge & 50px for the edges
+		uint16_t limitedPlayerX = u16Clamp(playerX, 68<<5, 92<<5);//0->160, with 8 px margin for left edge & 50px for the edges
 		
 		xOverflow = (playerX - limitedPlayerX);
 		if (xOverflow >= 0) {
@@ -604,23 +618,12 @@ void move() {
 			break;
 		}
 	}
-	for (uint8_t j=0; j<BLANKSIZE; j++) {
-		if (background3[ind] == BLANK[j] ) {
-			result = 0;
-			break;
-		}
-	}
-	for (uint8_t j=0; j<BLANKSIZE; j++) {
-		if (background4[ind] == BLANK[j] ) {
-			result = 0;
-			break;
-		}
-	}
+
 	//*/
 	if (result == 0) {
 		playerY += ySpeed;
 
-		uint16_t limitedPlayerY = u16Clamp(playerY, 61<<5, 107<<5);//0->144, with 16px margin for top & -8 for bottom, 45px for edges
+		uint16_t limitedPlayerY = u16Clamp(playerY, 48<<5, 78<<5);//0->144, with 16px margin for top & -8 for bottom, 45px for edges
 		
 		yOverflow = (playerY - limitedPlayerY);
 		if (yOverflow >= 0) {
@@ -878,6 +881,15 @@ void moveProjectiles() {
 	
 }
 
+void initEnemyOptions() {
+	enemyOptions[0] = blob;
+	enemyOptions[1] = bomb;
+	enemyOptions[2] = miniship;
+	enemyOptions[3] = shieldship;
+
+	enemyOptions[4] = bigblob;
+}
+
 
 void initProjectiles() {
 	set_sprite_data(0x20, 17, ProjectileTiles); //TODO NOSTA MÄÄRÄÄ
@@ -960,11 +972,12 @@ void initGame() {
 
 	bcd = MAKE_BCD(00000);
 	updateScore();
-	
-
 }
 
 void main(){
+
+
+	initEnemyOptions();
 
 	
     STAT_REG = 0x45;
