@@ -2,6 +2,7 @@ typedef struct Projectile {
 
 	int16_t x;
 	int16_t y;
+	int8_t offset;
 	int8_t xSpeed;
 	int8_t ySpeed;
 	uint8_t speed;
@@ -13,7 +14,8 @@ typedef struct Projectile {
 
 struct Projectile singleGun =  {
 	0, //int16_t x;
-	0, //int16_t y;
+	0, //int16_t y;,
+	0, //offset
 	0, //int8_t xDir;
 	-1, //int8_t yDir;
 	2, //int8_t speed;
@@ -26,24 +28,26 @@ struct Projectile singleGun =  {
 struct Projectile doubleGun =  {
 	0, //int16_t x;
 	0, //int16_t y;
+	0, //offset
 	0, //int8_t xDir;
 	-1, //int8_t yDir;
 	2, //int8_t speed;
 	0, //int8_t damage;
 	1, //active
 	15, //delay
-	0x23
+	0x26
 };
 
 struct Projectile missile =  {
 	0, //int16_t x;
 	0, //int16_t y;
+	0, //offset
 	0, //int8_t xDir;
 	-1, //int8_t yDir;
 	1, //int8_t speed;
 	0, //int8_t damage;
 	1, //active
 	30, //delay
-	0x26
+	0x2c
 };
 

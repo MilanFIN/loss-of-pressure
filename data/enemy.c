@@ -28,7 +28,7 @@ struct Enemy blob =  {
 	0, // xReserve;
 	0, // yReserve;
 
-	0x30,// sprite0;
+	0x40,// sprite0;
 	0,//uint8_t sprite1;
 
 	1,// spriteCount;
@@ -43,6 +43,26 @@ struct Enemy blob =  {
 	0// ySpeed; 
 };
 
+struct Enemy bigblob =  {
+	0,//x
+	0, //y
+	0, // xReserve;
+	0, // yReserve;
+
+	0x50,// sprite0;
+	0x52,//uint8_t sprite1;
+
+	2,// spriteCount;
+
+	1, // alive;
+	1, // visible;
+	50, // damage;
+
+	3,// speed;
+	1,// accel;
+	0,// xSpeed;
+	0// ySpeed; 
+};
 
 
 

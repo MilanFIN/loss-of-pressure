@@ -8,6 +8,7 @@
 #include "data/healthblock.c"
 #include "data/enemy.c"
 #include "data/enemy1.c"
+#include "data/largeenemies.c"
 
 #include "data/projectile.c"
 #include "data/projectiles.c"
@@ -90,7 +91,7 @@ const uint8_t GUNCOUNT = 3;
 uint8_t currentGun = 0;
 uint8_t switchDelay = 0;
 //ugly references directly to vram locations, where gun icons are loaded to
-unsigned char gunMap[] = {0x51, 0x56, 0x58};
+unsigned char gunMap[] = {0x53, 0x5b, 0x61};
 
 
 uint16_t score = 0;
@@ -401,18 +402,39 @@ void updateEnemyPositions() {
 			if (enemies[i].visible == 1) {
 				if (enemies[i].x < 0 || enemies[i].x > 172 || enemies[i].y < 0 || enemies[i].y > 152) {
 					enemies[i].visible = 0;
-					set_sprite_tile(10+i, 0x7f);
+					set_sprite_tile(10+(i<<1), 0x7f);
+					set_sprite_tile(10+(i<<1)+1, 0x7f);
+
 				} 
 			}
 			else {
 				if (enemies[i].x >= 0 && enemies[i].x < 172 && enemies[i].y > 0 && enemies[i].y < 152) {
 					enemies[i].visible = 1;
-					set_sprite_tile(10+i, enemies[i].sprite0);
+					set_sprite_tile(10+(i<<1), enemies[i].sprite0);
+					if (enemies[i].spriteCount == 2) {
+						set_sprite_tile(10+(i<<1)+1, enemies[i].sprite1);
+
+					}
 				}
 			}
 
 		}
-		move_sprite(10+i, enemies[i].x+4, enemies[i].y+12);
+		if (enemies[i].spriteCount == 1) {
+			move_sprite(10+ (i<<1), enemies[i].x+4, enemies[i].y+12);
+
+		}
+		else {
+			move_sprite(10+ (i<<1), enemies[i].x, enemies[i].y);
+			move_sprite(10+ (i<<1) +1, enemies[i].x, enemies[i].y);
+
+			move_sprite(10+ (i<<1), enemies[i].x , enemies[i].y + 8);
+
+			move_sprite(10+ (i<<1)+1, enemies[i].x +8, enemies[i].y +8);
+
+		}
+
+
+
 	}
 }
 
@@ -420,7 +442,12 @@ void initEnemies(uint8_t loadSprites) {
 
 	if (loadSprites) {
 		//loading enemy sprites to vram
-		set_sprite_data(0x30, 1, enemy1);
+		set_sprite_data(0x40, 1, enemy1);
+
+
+		set_sprite_data(0x50, 4, largeenemies);
+
+
 
 	}
 
@@ -435,10 +462,19 @@ void initEnemies(uint8_t loadSprites) {
 			enemies[i].x = xSpawnPositions[posIndex];
 			enemies[i].y = ySpawnPositions[posIndex];
 
-			set_sprite_tile(10+i, enemies[i].sprite0);
+			if (enemies[i].spriteCount == 1) {
+				set_sprite_tile(10+ (i<<1), enemies[i].sprite0);
+				move_sprite(10+ (i<<1), enemies[i].x, enemies[i].y);
+			}
+			else {
+				set_sprite_tile(10+ (i<<1), enemies[i].sprite0);
+				move_sprite(10+ (i<<1), enemies[i].x, enemies[i].y);
 
-			
-			move_sprite(10+i, enemies[i].x, enemies[i].y);
+				set_sprite_tile(10+ (i<<1) +1, enemies[i].sprite1);
+				move_sprite(10+ (i<<1) +1, enemies[i].x, enemies[i].y);
+			}
+
+
 	  	}
   }
 }
@@ -630,7 +666,8 @@ void checkCollision() {
 				
 				if (abs(eptr->x - playerDrawX) <= 8 ) {
 					if (abs(eptr->y - playerDrawY) <= 8) {
-						set_sprite_tile(0x30+i, 0x7f);
+						set_sprite_tile(10+(i<<1), 0x7f);
+						set_sprite_tile(10+(i<<1)+1, 0x7f);
 						eptr->alive = 0;
 						eptr->visible = 0;
 						takeDamage(eptr->damage);
@@ -647,11 +684,12 @@ void checkCollision() {
 					if (pptr->active) {
 						if (eptr->x > pptr->x - 8 && eptr->x - (8>>(eptr->spriteCount-1)) < pptr->x) {
 							if (eptr->y > pptr->y - 8 && eptr->y -(8>>(eptr->spriteCount-1)) < pptr->y ) {
-								set_sprite_tile(0x30+i, 0x7f);
+								set_sprite_tile(10+(i<<1), 0x7f);
+								set_sprite_tile(10+(i<<1)+1, 0x7f);
 								eptr->alive = 0;
 								eptr->visible = 0;
 								initEnemies(0);
-								set_sprite_tile(20+j, 0x7f);
+								set_sprite_tile(30+j, 0x7f);
 								playSound(0);
 								pptr->active = 0;
 								incrementScore();
@@ -715,12 +753,49 @@ void fire() {
 	projectiles[oldestProjectile].ySpeed = yDir * projectiles[oldestProjectile].speed;
 
 
-	//TODO support for multidir projectiles
-	set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
-
-
-	//set_sprite_tile(20+oldestProjectile, projectiles[oldestProjectile].type);
-	//move_sprite(20+oldestProjectile, playerDrawX, playerDrawY);
+	
+	if (yDir != 0 && xDir == 0) {
+		set_sprite_tile(30+oldestProjectile, projectiles[oldestProjectile].type);
+		if (yDir == 1) {
+			set_sprite_prop(30+oldestProjectile, S_FLIPY); 
+			projectiles[oldestProjectile].offset = 4;
+		}
+		else {
+			set_sprite_prop(30+oldestProjectile, 0); 
+			projectiles[oldestProjectile].offset = 12;
+		}
+	}
+	else if (xDir != 0 && yDir == 0) {
+		set_sprite_tile(30+oldestProjectile, projectiles[oldestProjectile].type+2);
+		if (xDir == 1) {
+			set_sprite_prop(30+oldestProjectile, 0);
+			projectiles[oldestProjectile].offset = 12;
+		}
+		else {
+			set_sprite_prop(30+oldestProjectile, S_FLIPX); 
+			projectiles[oldestProjectile].offset = 12;
+		}
+	}
+	else {
+		set_sprite_tile(30+oldestProjectile, projectiles[oldestProjectile].type+4);
+		if (xDir == 1 && yDir == -1) {
+			set_sprite_prop(30+oldestProjectile, 0); //default is right & up
+			projectiles[oldestProjectile].offset = 12;
+		}
+		else if (xDir == 1 && yDir == 1) {
+			set_sprite_prop(30+oldestProjectile, S_FLIPY); 
+			projectiles[oldestProjectile].offset = 4;
+		}
+		else if (xDir == -1 && yDir == 1) {
+			set_sprite_prop(30+oldestProjectile, S_FLIPY | S_FLIPX);
+			projectiles[oldestProjectile].offset = 4;
+		}  
+		else if (xDir == -1 && yDir == -1) {
+			set_sprite_prop(30+oldestProjectile, S_FLIPX); 
+			projectiles[oldestProjectile].offset = 12;
+		}
+	}
+	
 	fireCooldown = projectiles[oldestProjectile].delay;
 
 	playSound(projectiles[oldestProjectile].type);
@@ -745,14 +820,14 @@ void moveProjectiles() {
 			
 
 
-			move_sprite(20+i, newX +4 , newY +12);
+			move_sprite(30+i, newX +4 , newY + projectiles[i].offset);
 
 
 			//if (abs(projectiles[i].x - playerDrawX) > 100 || abs(projectiles[i].y - playerDrawY) > 100) {
 			if (projectiles[i].x < 0 || projectiles[i].x > 170 || projectiles[i].y < 0 || projectiles[i].y > 154) {
 
 				projectiles[i].active = 0;
-				set_sprite_tile(20+i, 0x7f);
+				set_sprite_tile(30+i, 0x7f);
 			}
 		}
 	}
@@ -761,7 +836,7 @@ void moveProjectiles() {
 
 
 void initProjectiles() {
-	set_sprite_data(0x20, 1, ProjectileTiles); //TODO NOSTA MÄÄRÄÄ
+	set_sprite_data(0x20, 17, ProjectileTiles); //TODO NOSTA MÄÄRÄÄ
 
 	for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
 		projectiles[i].active == 0;	
@@ -827,7 +902,7 @@ void initGame() {
 	set_bkg_tiles(0,0,background1Width, background1Height ,background1); //set tilemap to be a background
 	move_bkg(0,0);
 
-	set_bkg_data(0x51, 9, ProjectileTiles);
+	set_bkg_data(0x51, 18, ProjectileTiles);
 
 	set_win_tiles(10, 0,4,1,weaponlabel);
 	set_win_tiles(10, 1,4,1,scorelabel);
