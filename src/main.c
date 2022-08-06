@@ -13,21 +13,15 @@
 #include "data/projectile.c"
 #include "data/projectiles.c"
 
+#include "data/upgrades.c"
+#include "data/pickup.c"
+
 #include <gbdk/font.h>
 #include <rand.h>
 
 #include <gbdk/bcd.h>
 
 #include "data/player1.c"
-
-
-/* //TODO: overflow area koordinaatit pielessä
-
-grafiikkaa:
-	- vihollinen jolla on "shield" kehä ympärillä
-	- joku avaruusalus
-	- nopea pieni "bogey"
-*/
 
 
 
@@ -98,15 +92,21 @@ int16_t yOverflow = 0;
 uint8_t enemyCollisionCount = 0;
 
 
-const uint8_t GUNCOUNT = 3;
+
+uint8_t gunLevel = 0;
 uint8_t currentGun = 0;
+uint8_t missiles = 1;
+
+BCD MISSILES = MAKE_BCD(1);
 uint8_t switchDelay = 0;
 //ugly references directly to vram locations, where gun icons are loaded to
 unsigned char gunMap[] = {0x53, 0x5b, 0x61};
 
+struct Pickup pickup;
+
 
 uint16_t score = 0;
-BCD bcd = MAKE_BCD(00000);
+BCD SCORE = MAKE_BCD(00000);
 BCD INCREMENT = MAKE_BCD(00001);
 
 
@@ -148,13 +148,25 @@ void updateScore() {
 
 	uint8_t len = 0;
 	unsigned char buf[10];
-	len = bcd2text(&bcd, 0x01, buf);
+	len = bcd2text(&SCORE, 0x01, buf);
 	set_win_tiles(15, 1, 5, 1, buf+3);
+}
+
+void updateMissileCount(int8_t amount) {
+	if (amount == -1) {
+		missiles--;
+		bcd_sub(&MISSILES, &INCREMENT);
+	}
+	uint8_t len = 0;
+	unsigned char buf[10];
+	len = bcd2text(&MISSILES, 0x01, buf);
+	set_win_tiles(18, 0, 2, 1, buf+6);
+
 }
 
 void incrementScore() {
 	score += 1;
-	bcd_add(&bcd, &INCREMENT);
+	bcd_add(&SCORE, &INCREMENT);
 }
 
 void updateDirection() {
@@ -554,14 +566,12 @@ void move() {
 
 	uint16_t ind = 32*bgindY + bgindX;
 	uint8_t result = 1; // 0 incase of clear path, 1 for blocked
-	///* TODO: ENABLE
 	for (uint8_t i=0; i<BLANKSIZE; i++) {
 		if (background1[ind] == BLANK[i] ) {
 			result = 0;
 			break;
 		}
 	}
-	//*/
 
 	if (result == 0) {
 		playerX+=xSpeed;
@@ -611,7 +621,6 @@ void move() {
 
 	ind = 32*bgindY + bgindX;
 	result = 1;
-	///* TODO: ENABLE
 	for (uint8_t j=0; j<BLANKSIZE; j++) {
 		if (background1[ind] == BLANK[j] ) {
 			result = 0;
@@ -619,7 +628,6 @@ void move() {
 		}
 	}
 
-	//*/
 	if (result == 0) {
 		playerY += ySpeed;
 
@@ -764,10 +772,13 @@ void checkCollision() {
 
 
 void setGunIcon() {
-	
 
-	set_win_tiles(15, 0,1,1,gunMap+currentGun);
-
+	if (currentGun == 0) {
+		set_win_tiles(15, 0,1,1,gunMap+gunLevel);
+	}
+	else {
+		set_win_tiles(15, 0,1,1,gunMap+2);
+	}
 }
  
 inline void updateShieldsAndHull() {
@@ -786,13 +797,27 @@ void fire() {
 	}
 
 	if (currentGun == 0) {
-		projectiles[oldestProjectile] = singleGun;
+		if (gunLevel == 0) {
+			projectiles[oldestProjectile] = singleGun;
+		}
+		else {
+			projectiles[oldestProjectile] = doubleGun;
+		}
 	}
 	if (currentGun == 1) {
-		projectiles[oldestProjectile] = doubleGun;
-	}
-	if (currentGun == 2) {
+		if (missiles == 0) {
+			currentGun = 0;
+			setGunIcon();
+			return;
+		}
+
 		projectiles[oldestProjectile] = missile;
+		updateMissileCount(-1);
+
+		if (missiles == 0) {
+			currentGun = 0;
+			setGunIcon();
+		}
 	}
 	projectiles[oldestProjectile].x = playerDrawX;
 	projectiles[oldestProjectile].y = playerDrawY;
@@ -892,7 +917,7 @@ void initEnemyOptions() {
 
 
 void initProjectiles() {
-	set_sprite_data(0x20, 17, ProjectileTiles); //TODO NOSTA MÄÄRÄÄ
+	set_sprite_data(0x20, 17, ProjectileTiles); 
 
 	for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
 		projectiles[i].active == 0;	
@@ -970,8 +995,18 @@ void initGame() {
 	SHOW_BKG;
 	SHOW_WIN;;
 
-	bcd = MAKE_BCD(00000);
+	SCORE = MAKE_BCD(00000);
 	updateScore();
+	MISSILES = MAKE_BCD(1);
+	updateMissileCount(0);
+
+	//TODO: drop pickup (ammo or weapon upgrade) from enemies based on score & probabilities
+	pickup = ammo;
+	//printf("%d", ammo.active);
+
+
+	set_win_tiles(17, 0,1,1,gunMap+2);
+
 }
 
 void main(){
@@ -1033,8 +1068,10 @@ void main(){
 			}
 
 			if (joydata & J_SELECT && switchDelay == 0) {
-				currentGun++;
-				if (currentGun >= GUNCOUNT) {
+				if (currentGun == 0) {
+					currentGun = 1;
+				}
+				else if (currentGun == 1) {
 					currentGun = 0;
 				}
 				setGunIcon();
@@ -1045,14 +1082,7 @@ void main(){
 			}
 			moveProjectiles();
 
-			//TODO: use this pattern to access arrays in a loop...
-			// create a pointer to array and increment when needed
-			/*
-			struct Enemy *ptr = enemies;
-			printf("%d ", (ptr->damage));
-			ptr++;
-			printf("%d\n", (ptr->damage));
-			*/
+
 
 
 	        SHOW_WIN;	
