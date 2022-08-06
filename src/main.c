@@ -540,12 +540,14 @@ void move() {
 
 	uint16_t ind = 32*bgindY + bgindX;
 	uint8_t result = 1; // 0 incase of clear path, 1 for blocked
+	///* TODO: ENABLE
 	for (uint8_t i=0; i<BLANKSIZE; i++) {
-		if (background1[ind] == BLANK[i] ) {
+		if (background2[ind] == BLANK[i] ) {
 			result = 0;
 			break;
 		}
 	}
+	//*/
 
 	if (result == 0) {
 		playerX+=xSpeed;
@@ -595,12 +597,26 @@ void move() {
 
 	ind = 32*bgindY + bgindX;
 	result = 1;
+	///* TODO: ENABLE
 	for (uint8_t j=0; j<BLANKSIZE; j++) {
 		if (background1[ind] == BLANK[j] ) {
 			result = 0;
 			break;
 		}
 	}
+	for (uint8_t j=0; j<BLANKSIZE; j++) {
+		if (background3[ind] == BLANK[j] ) {
+			result = 0;
+			break;
+		}
+	}
+	for (uint8_t j=0; j<BLANKSIZE; j++) {
+		if (background4[ind] == BLANK[j] ) {
+			result = 0;
+			break;
+		}
+	}
+	//*/
 	if (result == 0) {
 		playerY += ySpeed;
 
@@ -925,9 +941,12 @@ void initGame() {
 
 
 
-
+	// TODO: debug 
 	set_bkg_data(0x25, 8, backgroundtiles);		// load background tileset (start in vram, count, tilestruct)
 	set_bkg_tiles(0,0,background1Width, background1Height ,background1); //set tilemap to be a background
+	
+	
+	
 	move_bkg(0,0);
 
 	set_bkg_data(0x51, 18, ProjectileTiles);
