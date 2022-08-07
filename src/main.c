@@ -157,6 +157,12 @@ void updateMissileCount(int8_t amount) {
 		missiles--;
 		bcd_sub(&MISSILES, &INCREMENT);
 	}
+	else {
+		for(uint8_t i=0; i<amount;i++) {
+			++missiles;
+			bcd_add(&MISSILES, &INCREMENT);
+		}
+	}
 	uint8_t len = 0;
 	unsigned char buf[10];
 	len = bcd2text(&MISSILES, 0x01, buf);
@@ -897,7 +903,6 @@ void moveProjectiles() {
 
 			//if (abs(projectiles[i].x - playerDrawX) > 100 || abs(projectiles[i].y - playerDrawY) > 100) {
 			if (projectiles[i].x < 0 || projectiles[i].x > 170 || projectiles[i].y < 0 || projectiles[i].y > 154) {
-
 				projectiles[i].active = 0;
 				set_sprite_tile(30+i, 0x7f);
 			}
@@ -909,9 +914,24 @@ void tickPickups() {
 	pickup.x -= xOverflow;
 	pickup.y -= yOverflow;
 
-	move_sprite(3, pickup.x , pickup.y);
+	move_sprite(3, pickup.x + 4, pickup.y + 12);
 	if (pickup.active) {
-		
+		if (abs(pickup.x - playerDrawX) < 10) {
+			if (abs(pickup.y - playerDrawY) < 10) {
+				if (pickup.type == 0) { //upgrade
+					if (gunLevel < 1) {
+						gunLevel += 1;
+						setGunIcon();
+					}
+				}
+				if (pickup.type == 1) { //missile ammo
+					updateMissileCount(pickup.amount);
+				}
+				pickup.active = 0;
+				set_sprite_tile(3, 0x7f);
+			}
+		}
+
 	}
 }
 
@@ -1012,7 +1032,8 @@ void initGame() {
 
 
 	//TODO: drop pickup (ammo or weapon upgrade) from enemies based on score & probabilities
-	pickup = ammo;
+	pickup = ammo;//upgrade;
+	pickup.active = 1;
 	//printf("%d", ammo.active);
 
 
@@ -1022,7 +1043,7 @@ void initGame() {
 	set_sprite_tile(3, 0x70); //0x7f
 	pickup.x = 100;
 	pickup.y = 80;
-	move_sprite(3, pickup.x, pickup.y);
+	move_sprite(3, pickup.x + 4, pickup.y + 12);
 
 }
 
