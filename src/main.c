@@ -27,6 +27,7 @@
 /*
 TODO: 
 - hull pickup,  30-50hp
+	- pickup piilota jos etäisyyttä liikaa...
 - projectiles ++ speed, vähentää hitautta, kun alle 4 projectilea näkyvillä kerralla
 - räjähdyssprite viholliselle
 - >100hp = pelaaja kuoli -> aseta hp = 0 ja trikkaa seuraava
