@@ -24,6 +24,28 @@
 #include "data/player1.c"
 
 
+/*
+TODO: 
+- hull pickup,  30-50hp
+- projectiles ++ speed, vähentää hitautta, kun alle 4 projectilea näkyvillä kerralla
+- räjähdyssprite viholliselle
+- >100hp = pelaaja kuoli -> aseta hp = 0 ja trikkaa seuraava
+	- animoitu rähändys pelaajalle pelin päättyessä
+- maalle sijoittuvia ratoja, esim pilvenpiirtäjiä
+- aavikkoa?
+
+- vihollisten hp
+	- .
+
+- äänet
+	- ampumiseen, pitää korjata 
+	- pickup
+	- shield kun täysi
+	- eri ääni oma damage ja viholliset
+
+
+*/
+
 
 //global variables
 const uint8_t BLANKSIZE = 3;
@@ -92,7 +114,7 @@ int16_t yOverflow = 0;
 uint8_t enemyCollisionCount = 0;
 
 
-
+const uint8_t MAXGUNLEVEL = 1; //0&1
 uint8_t gunLevel = 0;
 uint8_t currentGun = 0;
 uint8_t missiles = 1;
@@ -704,6 +726,30 @@ void takeDamage(int16_t amount) {
 	}
 }
 
+void spawnPickup(int16_t x, int16_t y) {
+	uint8_t spawn = ((uint8_t)rand()) % (uint8_t) 16;
+	if (spawn == 0) {
+		uint8_t type = ((uint8_t)rand()) % (uint8_t) 2;
+
+		if (type == 0 && gunLevel < MAXGUNLEVEL) {
+			pickup = upgrade;
+		}
+		else {
+			pickup = ammo;
+		}
+		pickup.active = 1;
+		
+		pickup.x = x;
+		pickup.y = y;
+		
+		set_sprite_tile(3, pickup.tile); //0x7f
+
+	}
+
+
+
+}
+
 void checkCollision() {
 	//playerDrawX
 
@@ -748,6 +794,9 @@ void checkCollision() {
 
 							set_sprite_tile(10+(i<<1), 0x7f);
 							set_sprite_tile(10+(i<<1)+1, 0x7f);
+
+							spawnPickup(eptr->x, eptr->y);
+
 							eptr->alive = 0;
 							eptr->visible = 0;
 							initEnemies(0);
@@ -756,6 +805,8 @@ void checkCollision() {
 							pptr->active = 0;
 							incrementScore();
 							updateScore();
+
+
 					}
 				}
 			}
@@ -1031,18 +1082,13 @@ void initGame() {
 	set_win_tiles(17, 0,1,1,gunMap+2);
 
 
-	//TODO: drop pickup (ammo or weapon upgrade) from enemies based on score & probabilities
-	pickup = ammo;//upgrade;
-	pickup.active = 1;
-	//printf("%d", ammo.active);
-
-
-
+	//init pickup, not active yet, so settting empty tile
+	pickup = upgrade;//upgrade;
 	//init pickup upgrade/missile, using tile #40, 0x7f is an empty tile
 	set_sprite_data(0x70, 4, Pickups);
-	set_sprite_tile(3, 0x70); //0x7f
-	pickup.x = 100;
-	pickup.y = 80;
+	set_sprite_tile(3, 0x7f); //0x7f
+	//pickup.x = 100;
+	//pickup.y = 80;
 	move_sprite(3, pickup.x + 4, pickup.y + 12);
 
 }
