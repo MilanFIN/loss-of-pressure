@@ -1,6 +1,6 @@
 /*
 
- UPGRADES.H
+ PICKUPS.H
 
  Include File.
 
@@ -22,14 +22,14 @@
 
 */
 
-#ifndef __upgrades_h_INCLUDE
-#define __upgrades_h_INCLUDE
+#ifndef __pickups_h_INCLUDE
+#define __pickups_h_INCLUDE
 
 /* Bank of tiles. */
-#define UpgradesBank 0
+#define PickupsBank 0
 /* Start of tile array. */
-extern const unsigned char Upgrades[];
+extern const unsigned char Pickups[];
 
 #endif
 
-/* End of UPGRADES.H */
+/* End of PICKUPS.H */

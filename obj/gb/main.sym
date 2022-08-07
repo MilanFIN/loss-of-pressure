@@ -31,13 +31,13 @@ Symbol Table
     _NR52_REG                                                      ****** GX
   0 _PLAYERSIZE                                                    00085F GR
   0 _PROJECTILECOUNT                                               00085E GR
+  0 _Pickups                                                       000708 GR
   0 _Player1                                                       000748 GR
   0 _ProjectileTiles                                               0005E8 GR
   2 _SCORE                                                         0000B2 GR
     _SCX_REG                                                       ****** GX
     _SCY_REG                                                       ****** GX
     _STAT_REG                                                      ****** GX
-  0 _Upgrades                                                      000708 GR
     _WX_REG                                                        ****** GX
     _WY_REG                                                        ****** GX
     ___memcpy                                                      ****** GX
@@ -126,15 +126,15 @@ Symbol Table
   2 _hullabel                                                      000000 GR
   0 _incrementScore                                                0009DF GR
   0 _initEnemies                                                   000C85 GR
-  0 _initEnemyOptions                                              0026A3 GR
-  0 _initGame                                                      002710 GR
-  0 _initProjectiles                                               0026F9 GR
+  0 _initEnemyOptions                                              0026DA GR
+  0 _initGame                                                      002747 GR
+  0 _initProjectiles                                               002730 GR
     _initrand                                                      ****** GX
   0 _interruptLCD                                                  000000 GR
   1 _joydata                                                       0000DC GR
     _joypad                                                        ****** GX
   0 _largeenemies                                                  000568 GR
-  0 _main                                                          002886 GR
+  0 _main                                                          0028ED GR
   0 _maxHull                                                       000860 GR
   0 _maxShield                                                     000861 GR
   1 _min_font                                                      0000DF GR
@@ -168,6 +168,7 @@ Symbol Table
   2 _singleGun                                                     000060 GR
   2 _switchDelay                                                   0000AC GR
   0 _takeDamage                                                    001BE3 GR
+  0 _tickPickups                                                   0026A3 GR
   0 _updateDirection                                               0009F8 GR
   0 _updateEnemyPositions                                          000E30 GR
   0 _updateMissileCount                                            00099D GR
@@ -177,12 +178,12 @@ Symbol Table
   2 _weapon                                                        00008A GR
   2 _weaponlabel                                                   000008 GR
   2 _xDir                                                          000092 GR
-  2 _xOverflow                                                     0000A0 GR
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy Z80-like CPU), page 4.
 Hexadecimal [24-Bits]
 
 Symbol Table
 
+  2 _xOverflow                                                     0000A0 GR
   0 _xSpawnPositions                                               00084E GR
   2 _xSpeed                                                        000094 GR
   2 _yDir                                                          000093 GR
@@ -190,12 +191,13 @@ Symbol Table
   0 _ySpawnPositions                                               000856 GR
   2 _ySpeed                                                        000095 GR
 
+
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy Z80-like CPU), page 5.
 Hexadecimal [24-Bits]
 
 Area Table
 
-   0 _CODE                                      size   2983   flags    0
+   0 _CODE                                      size   29ED   flags    0
    1 _DATA                                      size     E7   flags    0
    2 _INITIALIZED                               size     BA   flags    0
    3 _DABS                                      size      0   flags    8

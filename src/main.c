@@ -13,8 +13,8 @@
 #include "data/projectile.c"
 #include "data/projectiles.c"
 
-#include "data/upgrades.c"
 #include "data/pickup.c"
+#include "data/pickups.c"
 
 #include <gbdk/font.h>
 #include <rand.h>
@@ -903,7 +903,16 @@ void moveProjectiles() {
 			}
 		}
 	}
-	
+}
+
+void tickPickups() {
+	pickup.x -= xOverflow;
+	pickup.y -= yOverflow;
+
+	move_sprite(3, pickup.x , pickup.y);
+	if (pickup.active) {
+		
+	}
 }
 
 void initEnemyOptions() {
@@ -999,13 +1008,21 @@ void initGame() {
 	updateScore();
 	MISSILES = MAKE_BCD(1);
 	updateMissileCount(0);
+	set_win_tiles(17, 0,1,1,gunMap+2);
+
 
 	//TODO: drop pickup (ammo or weapon upgrade) from enemies based on score & probabilities
 	pickup = ammo;
 	//printf("%d", ammo.active);
 
 
-	set_win_tiles(17, 0,1,1,gunMap+2);
+
+	//init pickup upgrade/missile, using tile #40, 0x7f is an empty tile
+	set_sprite_data(0x70, 4, Pickups);
+	set_sprite_tile(3, 0x70); //0x7f
+	pickup.x = 100;
+	pickup.y = 80;
+	move_sprite(3, pickup.x, pickup.y);
 
 }
 
@@ -1081,6 +1098,7 @@ void main(){
 				switchDelay--;
 			}
 			moveProjectiles();
+			tickPickups();
 
 
 
