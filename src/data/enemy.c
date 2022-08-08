@@ -20,7 +20,7 @@ typedef struct Enemy {
 	uint8_t accel;
 	int8_t xSpeed;
 	int8_t ySpeed; 
-	int8_t hp; 
+	int16_t hp; 
 };
 
 struct Enemy blob =  {
@@ -42,7 +42,7 @@ struct Enemy blob =  {
 	1,// accel;
 	0,// xSpeed;
 	0,// ySpeed; 
-	100 //hp
+	50 //hp
 };
 
 struct Enemy bomb =  {
@@ -64,7 +64,7 @@ struct Enemy bomb =  {
 	1,// accel;
 	0,// xSpeed;
 	0,// ySpeed; 
-	100 //hp
+	50 //hp
 };
 
 struct Enemy miniship =  {
@@ -86,7 +86,7 @@ struct Enemy miniship =  {
 	1,// accel;
 	0,// xSpeed;
 	0,// ySpeed; 
-	100 //hp
+	50 //hp
 };
 
 struct Enemy bigblob =  {
@@ -130,7 +130,7 @@ struct Enemy shieldship =  {
 	1,// accel;
 	0,// xSpeed;
 	0,// ySpeed; 
-	100 //hp
+	70 //hp
 };
 const uint8_t enemyOptionCount = 5;
 struct Enemy enemyOptions[5];

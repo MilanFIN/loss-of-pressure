@@ -117,7 +117,8 @@ const uint8_t MAXGUNLEVEL = 1; //0&1
 uint8_t gunLevel = 0;
 uint8_t currentGun = 0;
 uint8_t missiles = 1;
-uint8_t splashArea = 10;
+//constant for scaling splash damage dropoff, (bit shifting value left) 0 for linear (-1dmg/px), 1 for multiplied by 2 (-2dmg/px), 2 for -4dmg/px
+const uint8_t SPLASHDROPOFF = 1;
 
 
 BCD MISSILES = MAKE_BCD(0);
@@ -181,7 +182,7 @@ void updateMissileCount(int8_t amount) {
 		bcd_sub(&MISSILES, &INCREMENT);
 	}
 	else {
-		for(uint8_t i=0; i<amount;i++) {
+		for(int8_t i=0; i<amount;i++) {
 			++missiles;
 			bcd_add(&MISSILES, &INCREMENT);
 		}
@@ -758,6 +759,19 @@ void spawnPickup(int16_t x, int16_t y) {
 
 }
 
+void killEnemy(uint8_t i) {
+	set_sprite_tile(10+(i<<1), 0x7f);
+	set_sprite_tile(10+(i<<1)+1, 0x7f);
+
+	spawnPickup(enemies[i].x, enemies[i].y);
+
+	enemies[i].alive = 0;
+	enemies[i].visible = 0;
+	playSound(0);
+	incrementScore();
+	updateScore();
+}
+
 void checkCollision() {
 	//playerDrawX
 
@@ -803,10 +817,20 @@ void checkCollision() {
 							pptr->active = 0;
 
 							if (pptr->type == 0x2c) { //missile
+
+								int16_t x = eptr->x;
+								int16_t y = eptr->y;
+
 								for (uint8_t k=0; k < ENEMYCOUNT;++k) {
-									int16_t dmgDropOff = ((i16abs(pptr->x - enemies[k].x) + i16abs(pptr->y - enemies[k].y))<<1);
-									printf("%d\n", dmgDropOff);
-									//TODO deduct hp & kill enemies if needed, spawn pickups etc
+									int16_t dmgDropOff = ((i16abs(eptr->x - enemies[k].x) + i16abs(eptr->y - enemies[k].y))<<SPLASHDROPOFF);
+									int16_t dmg = pptr->damage - dmgDropOff;
+									if (dmg > 0) {
+										enemies[k].hp -= dmg;
+										if (enemies[k].hp <= 0) {
+											killEnemy(k);
+										}
+									}
+									
 								}
 
 							}
@@ -815,20 +839,8 @@ void checkCollision() {
 
 								if (eptr->hp <= 0) {
 
-									set_sprite_tile(10+(i<<1), 0x7f);
-									set_sprite_tile(10+(i<<1)+1, 0x7f);
-
-									spawnPickup(eptr->x, eptr->y);
-
-									eptr->alive = 0;
-									eptr->visible = 0;
-									playSound(0);
-									incrementScore();
-									updateScore();
+									killEnemy(i);
 								}
-
-
-
 							}
 
 
