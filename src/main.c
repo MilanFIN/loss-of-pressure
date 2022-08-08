@@ -26,17 +26,15 @@
 
 /*
 TODO: 
-- hull pickup,  30-50hp
-	- pickup piilota jos etäisyyttä liikaa...
-- projectiles ++ speed, vähentää hitautta, kun alle 4 projectilea näkyvillä kerralla
+- projectiles ++ speed, vähentää hitautta, kun alle 4 projectilea näkyvillä kerralla, collision hajoaa jos nopeus nousee
 - räjähdyssprite viholliselle
 - >100hp = pelaaja kuoli -> aseta hp = 0 ja trikkaa seuraava
 	- animoitu rähändys pelaajalle pelin päättyessä
 - maalle sijoittuvia ratoja, esim pilvenpiirtäjiä
 - aavikkoa?
 
-- vihollisten hp
-	- .
+- missilelle areal damage osumasta, esim kaikki viholliset läpi ja tarkista etäisyys
+
 
 - äänet
 	- ampumiseen, pitää korjata 
@@ -98,7 +96,7 @@ int16_t bgY = 0;
 
 uint8_t joydata;
 
-int8_t hull;
+uint8_t hull;
 const int8_t maxHull = 100;
 
 int8_t shield;
@@ -585,7 +583,7 @@ void move() {
 		xCollisionPoint = playerDrawX -8; //left edge
 	}
 
-	
+
 	int16_t bgindX = ((xCollisionPoint + bgX) >> 3)%32;
 
 
@@ -730,9 +728,11 @@ void takeDamage(int16_t amount) {
 void spawnPickup(int16_t x, int16_t y) {
 	uint8_t spawn = ((uint8_t)rand()) % (uint8_t) 16;
 	if (spawn == 0) {
-		uint8_t type = ((uint8_t)rand()) % (uint8_t) 2;
-
-		if (type == 0 && gunLevel < MAXGUNLEVEL) {
+		uint8_t type = ((uint8_t)rand()) % (uint8_t) 4;
+		if (type == 0) {
+			pickup = health;
+		}
+		else if (type == 1 && gunLevel < MAXGUNLEVEL) {
 			pickup = upgrade;
 		}
 		else {
@@ -792,20 +792,30 @@ void checkCollision() {
 					if ((eptr->spriteCount == 1 && abs(eptr->y - pptr->y) <= 8 ) || 
 						(eptr->spriteCount == 2 && abs(eptr->y - pptr->y) <= 16 )) {
 
-
-							set_sprite_tile(10+(i<<1), 0x7f);
-							set_sprite_tile(10+(i<<1)+1, 0x7f);
-
-							spawnPickup(eptr->x, eptr->y);
-
-							eptr->alive = 0;
-							eptr->visible = 0;
-							initEnemies(0);
+							eptr->hp -= pptr->damage;
 							set_sprite_tile(30+j, 0x7f);
-							playSound(0);
 							pptr->active = 0;
-							incrementScore();
-							updateScore();
+
+
+							if (eptr->hp <= 0) {
+
+
+
+								set_sprite_tile(10+(i<<1), 0x7f);
+								set_sprite_tile(10+(i<<1)+1, 0x7f);
+
+								spawnPickup(eptr->x, eptr->y);
+
+								eptr->alive = 0;
+								eptr->visible = 0;
+								initEnemies(0);
+								playSound(0);
+								incrementScore();
+								updateScore();
+
+							}
+
+
 
 
 					}
@@ -968,19 +978,39 @@ void tickPickups() {
 
 	move_sprite(3, pickup.x + 4, pickup.y + 12);
 	if (pickup.active) {
-		if (abs(pickup.x - playerDrawX) < 10) {
-			if (abs(pickup.y - playerDrawY) < 10) {
-				if (pickup.type == 0) { //upgrade
-					if (gunLevel < 1) {
-						gunLevel += 1;
-						setGunIcon();
+		if (pickup.visible) {
+			if (abs(pickup.x - playerDrawX) < 10) {
+				if (abs(pickup.y - playerDrawY) < 10) {
+					if (pickup.type == 0) { //upgrade
+						if (gunLevel < 1) {
+							gunLevel += 1;
+							setGunIcon();
+						}
 					}
+					if (pickup.type == 1) { //missile ammo
+						updateMissileCount(pickup.amount);
+					}
+					if (pickup.type == 2) {
+						if (hull + pickup.amount <= 100) {
+							hull += pickup.amount;
+						}
+						else {
+							hull = 100;
+						}
+					}
+					pickup.active = 0;
+					set_sprite_tile(3, 0x7f);
 				}
-				if (pickup.type == 1) { //missile ammo
-					updateMissileCount(pickup.amount);
-				}
-				pickup.active = 0;
+			}
+			if (pickup.x < -10 || pickup.x > 170 || pickup.y < 0 || pickup.y > 155) {
+				pickup.visible = 0;
 				set_sprite_tile(3, 0x7f);
+			}
+		}
+		else {
+			if (pickup.x >= -10 && pickup.x <= 170 && pickup.y >= 0 && pickup.y <= 155) {
+				pickup.visible = 1;
+				set_sprite_tile(3, pickup.tile);
 			}
 		}
 
@@ -1086,7 +1116,7 @@ void initGame() {
 	//init pickup, not active yet, so settting empty tile
 	pickup = upgrade;//upgrade;
 	//init pickup upgrade/missile, using tile #40, 0x7f is an empty tile
-	set_sprite_data(0x70, 4, Pickups);
+	set_sprite_data(0x70, 6, Pickups);
 	set_sprite_tile(3, 0x7f); //0x7f
 	//pickup.x = 100;
 	//pickup.y = 80;
@@ -1170,6 +1200,9 @@ void main(){
 
 
 
+			if (hull > 100) {
+				hull = 0;
+			}
 
 	        SHOW_WIN;	
 			wait_vbl_done(); // Idle until next frame
