@@ -117,8 +117,10 @@ const uint8_t MAXGUNLEVEL = 1; //0&1
 uint8_t gunLevel = 0;
 uint8_t currentGun = 0;
 uint8_t missiles = 1;
+uint8_t splashArea = 10;
 
-BCD MISSILES = MAKE_BCD(1);
+
+BCD MISSILES = MAKE_BCD(0);
 uint8_t switchDelay = 0;
 //ugly references directly to vram locations, where gun icons are loaded to
 unsigned char gunMap[] = {0x53, 0x5b, 0x61};
@@ -342,6 +344,11 @@ inline int16_t i16Clamp( int16_t value, int16_t min, int16_t max )
     return (value < min) ? min : (value > max) ? max : value;
 }
 inline int8_t abs(int8_t value) {
+	if (value >= 0) return value;
+	else return - value;
+}
+
+inline uint16_t i16abs(int16_t value) {
 	if (value >= 0) return value;
 	else return - value;
 }
@@ -784,7 +791,7 @@ void checkCollision() {
 		uint8_t j = 0;
 		while (j < PROJECTILECOUNT) {
 			if (pptr->active) {
-				
+
 				//if (eptr->x > pptr->x - 8 && eptr->x - (8>>(eptr->spriteCount-1)) < pptr->x) {
 				//	if (eptr->y > pptr->y - 8 && eptr->y -(8>>(eptr->spriteCount-1)) < pptr->y ) {
 				if ((eptr->spriteCount == 1 && abs(eptr->x - pptr->x) <= 8 ) || 
@@ -792,30 +799,40 @@ void checkCollision() {
 					if ((eptr->spriteCount == 1 && abs(eptr->y - pptr->y) <= 8 ) || 
 						(eptr->spriteCount == 2 && abs(eptr->y - pptr->y) <= 16 )) {
 
-							eptr->hp -= pptr->damage;
 							set_sprite_tile(30+j, 0x7f);
 							pptr->active = 0;
 
+							if (pptr->type == 0x2c) { //missile
+								for (uint8_t k=0; k < ENEMYCOUNT;++k) {
+									int16_t dmgDropOff = ((i16abs(pptr->x - enemies[k].x) + i16abs(pptr->y - enemies[k].y))<<1);
+									printf("%d\n", dmgDropOff);
+									//TODO deduct hp & kill enemies if needed, spawn pickups etc
+								}
 
-							if (eptr->hp <= 0) {
+							}
+							else { //all single target guns
+								eptr->hp -= pptr->damage;
+
+								if (eptr->hp <= 0) {
+
+									set_sprite_tile(10+(i<<1), 0x7f);
+									set_sprite_tile(10+(i<<1)+1, 0x7f);
+
+									spawnPickup(eptr->x, eptr->y);
+
+									eptr->alive = 0;
+									eptr->visible = 0;
+									playSound(0);
+									incrementScore();
+									updateScore();
+								}
 
 
-
-								set_sprite_tile(10+(i<<1), 0x7f);
-								set_sprite_tile(10+(i<<1)+1, 0x7f);
-
-								spawnPickup(eptr->x, eptr->y);
-
-								eptr->alive = 0;
-								eptr->visible = 0;
-								initEnemies(0);
-								playSound(0);
-								incrementScore();
-								updateScore();
 
 							}
 
 
+							initEnemies(0);
 
 
 					}

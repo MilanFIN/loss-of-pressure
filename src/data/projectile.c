@@ -45,7 +45,7 @@ struct Projectile missile =  {
 	0, //int8_t xDir;
 	-1, //int8_t yDir;
 	1, //int8_t speed;
-	100, //int8_t damage;
+	125, //int8_t damage;
 	1, //active
 	30, //delay
 	0x2c
