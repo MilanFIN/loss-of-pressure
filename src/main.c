@@ -116,7 +116,7 @@ uint8_t enemyCollisionCount = 0;
 const uint8_t MAXGUNLEVEL = 1; //0&1
 uint8_t gunLevel = 0;
 uint8_t currentGun = 0;
-uint8_t missiles = 1;
+uint8_t missiles = 0;
 //constant for scaling splash damage dropoff, (bit shifting value left) 0 for linear (-1dmg/px), 1 for multiplied by 2 (-2dmg/px), 2 for -4dmg/px
 const uint8_t SPLASHDROPOFF = 1;
 
