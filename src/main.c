@@ -23,18 +23,22 @@
 
 #include "data/player1.c"
 
+#include "data/explosions.c"
+#include "data/ex/ex1.c"
+
+#include "data/ex/ex2.c"
+#include "data/ex/ex3.c"
 
 /*
 TODO: 
-- projectiles ++ speed, vähentää hitautta, kun alle 4 projectilea näkyvillä kerralla, collision hajoaa jos nopeus nousee
 - räjähdyssprite viholliselle
 - >100hp = pelaaja kuoli -> aseta hp = 0 ja trikkaa seuraava
 	- animoitu rähändys pelaajalle pelin päättyessä
 - maalle sijoittuvia ratoja, esim pilvenpiirtäjiä
 - aavikkoa?
 
-- missilelle areal damage osumasta, esim kaikki viholliset läpi ja tarkista etäisyys
-
+- vihollisten skaalaus scoren myötä
+	- esim 5-10 spawntaulukkoa, joista valitaan sen mukaan mikä score range on
 
 - äänet
 	- ampumiseen, pitää korjata 
@@ -132,6 +136,13 @@ struct Pickup pickup;
 uint16_t score = 0;
 BCD SCORE = MAKE_BCD(00000);
 BCD INCREMENT = MAKE_BCD(00001);
+
+
+uint8_t exCount = 3;
+uint8_t oldestEx = 0;
+struct Explosion explosions[3];
+const uint8_t EXPLFRAMETIME = 10;
+
 
 
 void interruptLCD()
@@ -770,6 +781,10 @@ void killEnemy(uint8_t i) {
 	playSound(0);
 	incrementScore();
 	updateScore();
+
+
+	//spawn explosion in place;
+
 }
 
 void checkCollision() {
@@ -1046,6 +1061,20 @@ void tickPickups() {
 	}
 }
 
+void tickEx() {
+	explosions[oldestEx].frameCounter++;
+	if (explosions[oldestEx].frameCounter > EXPLFRAMETIME) {
+		explosions[oldestEx].frameCounter = 0;
+		explosions[oldestEx].frame += 1; 
+		if (explosions[oldestEx].frame > 3) {
+			explosions[oldestEx].frame = 0;
+		}
+		set_sprite_tile(20, explosions[oldestEx].tile + (explosions[oldestEx].frame *4));
+		set_sprite_tile(21, explosions[oldestEx].tile+(explosions[oldestEx].frame *4) +2);
+	}
+
+}
+
 void initEnemyOptions() {
 	enemyOptions[0] = blob;
 	enemyOptions[1] = bomb;
@@ -1151,6 +1180,26 @@ void initGame() {
 	//pickup.y = 80;
 	move_sprite(3, pickup.x + 4, pickup.y + 12);
 
+	for (uint8_t i = 0; i<exCount; ++i) {
+		explosions[i] = ex;
+	}
+	set_sprite_data(0x80, 16, Ex1);
+	set_sprite_data(0x90, 16, Ex2);
+	set_sprite_data(0xa0, 16, Ex3);
+
+	
+	explosions[oldestEx].visible = 1;
+	explosions[oldestEx].x = playerDrawX;
+	explosions[oldestEx].y = playerDrawY;
+	explosions[oldestEx].tile = 0x80;
+	explosions[oldestEx].frame = 0;
+	set_sprite_tile(20, explosions[oldestEx].tile + (explosions[oldestEx].frame<<1));
+	set_sprite_tile(21, explosions[oldestEx].tile+(explosions[oldestEx].frame<<1) +2);
+
+	move_sprite(20, explosions[oldestEx].x, explosions[oldestEx].y+8);
+	move_sprite(21, explosions[oldestEx].x+8, explosions[oldestEx].y+8);
+
+
 }
 
 void main(){
@@ -1226,6 +1275,7 @@ void main(){
 			}
 			moveProjectiles();
 			tickPickups();
+			tickEx();
 
 
 
