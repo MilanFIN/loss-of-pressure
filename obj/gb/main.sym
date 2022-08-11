@@ -12,7 +12,8 @@ Symbol Table
     _DIV_REG                                                       ****** GX
   0 _EMPTYSPRITE                                                   000B8D GR
   0 _ENEMYCOUNT                                                    000B8E GR
-  0 _EXPLFRAMETIME                                                 000BA5 GR
+  0 _EXPLFRAMETIME                                                 000BA6 GR
+  0 _EXTICKFREQUENCY                                               000BA8 GR
   0 _Ex1                                                           000889 GR
   0 _Ex2                                                           000989 GR
   0 _Ex3                                                           000A89 GR
@@ -57,17 +58,17 @@ Symbol Table
   7 __xinit__bgY                                                   00009F R
   7 __xinit__bigblob                                               000046 R
   7 __xinit__blob                                                  000010 R
-  7 __xinit__bomb                                                  000022 R
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy Z80-like CPU), page 2.
 Hexadecimal [24-Bits]
 
 Symbol Table
 
+  7 __xinit__bomb                                                  000022 R
   7 __xinit__currentGun                                            0000A7 R
   7 __xinit__doubleGun                                             000077 R
   7 __xinit__enemyCollisionCount                                   0000A5 R
-  7 __xinit__exCount                                               0000BB R
-  7 __xinit__exTiles                                               0000BD R
+  7 __xinit__exTick                                                0000BF R
+  7 __xinit__exTiles                                               0000BC R
   7 __xinit__fireCooldown                                          000092 R
   7 __xinit__gunLevel                                              0000A6 R
   7 __xinit__gunMap                                                0000AE R
@@ -75,7 +76,7 @@ Symbol Table
   7 __xinit__miniship                                              000034 R
   7 __xinit__missile                                               000084 R
   7 __xinit__missiles                                              0000A8 R
-  7 __xinit__oldestEx                                              0000BC R
+  7 __xinit__oldestEx                                              0000BB R
   7 __xinit__oldestProjectile                                      000091 R
   7 __xinit__playerDrawX                                           00009B R
   7 __xinit__playerDrawY                                           00009C R
@@ -106,7 +107,7 @@ Symbol Table
   2 _bigblob                                                       000046 GR
   2 _blob                                                          000010 GR
   2 _bomb                                                          000022 GR
-  0 _checkCollision                                                002149 GR
+  0 _checkCollision                                                0021B2 GR
   0 _cross                                                         000007 GR
   2 _currentGun                                                    0000A7 GR
   2 _doubleGun                                                     000077 GR
@@ -116,15 +117,17 @@ Symbol Table
   0 _enemyOptionCount                                              000517 GR
   1 _enemyOptions                                                  000000 GR
   0 _ex                                                            000883 GR
-  2 _exCount                                                       0000BB GR
-  2 _exTiles                                                       0000BD GR
+  0 _exCount                                                       000BA5 GR
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy Z80-like CPU), page 3.
 Hexadecimal [24-Bits]
 
 Symbol Table
 
+  2 _exTick                                                        0000BF GR
+  0 _exTileCount                                                   000BA7 GR
+  2 _exTiles                                                       0000BC GR
   1 _explosions                                                    000103 GR
-  0 _fire                                                          00264C GR
+  0 _fire                                                          0026B5 GR
   2 _fireCooldown                                                  000092 GR
     _font_init                                                     ****** GX
     _font_load                                                     ****** GX
@@ -136,30 +139,30 @@ Symbol Table
   0 _healthblock                                                   000507 GR
   1 _hull                                                          0000F6 GR
   2 _hullabel                                                      000000 GR
-  0 _incrementScore                                                000D55 GR
-  0 _initEnemies                                                   000FFB GR
-  0 _initEnemyOptions                                              003045 GR
-  0 _initGame                                                      0030B2 GR
-  0 _initProjectiles                                               00309B GR
+  0 _incrementScore                                                000D58 GR
+  0 _initEnemies                                                   000FFE GR
+  0 _initEnemyOptions                                              0031E8 GR
+  0 _initGame                                                      003255 GR
+  0 _initProjectiles                                               00323E GR
     _initrand                                                      ****** GX
   0 _interruptLCD                                                  000000 GR
   1 _joydata                                                       0000F5 GR
     _joypad                                                        ****** GX
-  0 _killEnemy                                                     001FC2 GR
+  0 _killEnemy                                                     001FC5 GR
   0 _largeenemies                                                  000568 GR
-  0 _main                                                          0032AC GR
+  0 _main                                                          003450 GR
   0 _maxHull                                                       000BA1 GR
   0 _maxShield                                                     000BA2 GR
   1 _min_font                                                      0000F8 GR
   2 _miniship                                                      000034 GR
   2 _missile                                                       000084 GR
   2 _missiles                                                      0000A8 GR
-  0 _move                                                          0019C5 GR
-  0 _moveProjectiles                                               002BF5 GR
-  2 _oldestEx                                                      0000BC GR
+  0 _move                                                          0019C8 GR
+  0 _moveProjectiles                                               002C5E GR
+  2 _oldestEx                                                      0000BB GR
   2 _oldestProjectile                                              000091 GR
   1 _pickup                                                        0000FA GR
-  0 _playSound                                                     000F98 GR
+  0 _playSound                                                     000F9B GR
   2 _playerDrawX                                                   00009B GR
   2 _playerDrawY                                                   00009C GR
   2 _playerX                                                       000097 GR
@@ -168,32 +171,32 @@ Symbol Table
     _rand                                                          ****** GX
   2 _score                                                         0000B1 GR
   2 _scorelabel                                                    00000C GR
-  0 _setGunIcon                                                    002619 GR
-  0 _setHealthBar                                                  000BA6 GR
+  0 _setGunIcon                                                    002682 GR
+  0 _setHealthBar                                                  000BA9 GR
     _set_bkg_data                                                  ****** GX
     _set_bkg_tiles                                                 ****** GX
     _set_interrupts                                                ****** GX
     _set_sprite_data                                               ****** GX
     _set_win_tiles                                                 ****** GX
-    _shadow_OAM                                                    ****** GX
-  1 _shield                                                        0000F7 GR
-  2 _shieldlabel                                                   000004 GR
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy Z80-like CPU), page 4.
 Hexadecimal [24-Bits]
 
 Symbol Table
 
+    _shadow_OAM                                                    ****** GX
+  1 _shield                                                        0000F7 GR
+  2 _shieldlabel                                                   000004 GR
   2 _shieldship                                                    000058 GR
   2 _singleGun                                                     00006A GR
-  0 _spawnPickup                                                   001F4D GR
+  0 _spawnPickup                                                   001F50 GR
   2 _switchDelay                                                   0000AD GR
-  0 _takeDamage                                                    001F09 GR
-  0 _tickEx                                                        002F25 GR
-  0 _tickPickups                                                   002D56 GR
-  0 _updateDirection                                               000D6E GR
-  0 _updateEnemyPositions                                          001166 GR
-  0 _updateMissileCount                                            000CE1 GR
-  0 _updateScore                                                   000CB7 GR
+  0 _takeDamage                                                    001F0C GR
+  0 _tickEx                                                        003011 GR
+  0 _tickPickups                                                   002E41 GR
+  0 _updateDirection                                               000D71 GR
+  0 _updateEnemyPositions                                          001169 GR
+  0 _updateMissileCount                                            000CE4 GR
+  0 _updateScore                                                   000CBA GR
   0 _upgrade                                                       000708 GR
     _wait_vbl_done                                                 ****** GX
     _waitpad                                                       ****** GX
@@ -213,7 +216,7 @@ Hexadecimal [24-Bits]
 
 Area Table
 
-   0 _CODE                                      size   33B9   flags    0
+   0 _CODE                                      size   356F   flags    0
    1 _DATA                                      size    115   flags    0
    2 _INITIALIZED                               size     C0   flags    0
    3 _DABS                                      size      0   flags    8

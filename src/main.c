@@ -138,12 +138,15 @@ BCD SCORE = MAKE_BCD(00000);
 BCD INCREMENT = MAKE_BCD(00001);
 
 
-uint8_t exCount = 3;
+const uint8_t exCount = 3;
 uint8_t oldestEx = 0;
 struct Explosion explosions[3];
-const uint8_t EXPLFRAMETIME = 10;
+const uint8_t EXPLFRAMETIME = 3;
+const uint8_t exTileCount = 3;
 uint8_t exTiles[3] = {0x80, 0x90, 0xa0}; //vram hex addresses for first tile in animation
 
+const uint8_t EXTICKFREQUENCY = 1; //init value for below...
+uint8_t exTick = 1; //substracted every frame, 0 triggers explosion tick (advancing frames etc.)
 
 
 
@@ -791,12 +794,18 @@ void killEnemy(uint8_t i) {
 	explosions[oldestEx].visible = 1;
 	explosions[oldestEx].x = enemies[i].x;
 	explosions[oldestEx].y = enemies[i].y;
-	explosions[oldestEx].tile = exTiles[0];
+
+	
+	uint8_t tileNum = ((uint8_t)rand()) % exTileCount;
+
+	explosions[oldestEx].tile = exTiles[tileNum];
 	explosions[oldestEx].frame = 0;
-	set_sprite_tile(20, explosions[oldestEx].tile + (explosions[oldestEx].frame<<1));
-	set_sprite_tile(21, explosions[oldestEx].tile+(explosions[oldestEx].frame<<1) +2);
-	move_sprite(20, explosions[oldestEx].x, explosions[oldestEx].y+8);
-	move_sprite(21, explosions[oldestEx].x+8, explosions[oldestEx].y+8);
+	explosions[oldestEx].frameCounter = 0;
+
+	set_sprite_tile(20 + 2*oldestEx, explosions[oldestEx].tile + (explosions[oldestEx].frame<<1));
+	set_sprite_tile(21 + 2*oldestEx, explosions[oldestEx].tile+(explosions[oldestEx].frame<<1) +2);
+	move_sprite(20 + 2*oldestEx, explosions[oldestEx].x, explosions[oldestEx].y+8);
+	move_sprite(21 + 2*oldestEx, explosions[oldestEx].x+8, explosions[oldestEx].y+8);
 
 	oldestEx++;
 	if (oldestEx >= exCount) {
@@ -1010,10 +1019,10 @@ void fire() {
 
 void moveProjectiles() {
 	for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
-		projectiles[i].x -= xOverflow;
-		projectiles[i].y -= yOverflow;
-
 		if (projectiles[i].active) {
+			projectiles[i].x -= xOverflow;
+			projectiles[i].y -= yOverflow;
+
 			int16_t newY = projectiles[i].y + projectiles[i].ySpeed;
 			int16_t newX = projectiles[i].x + projectiles[i].xSpeed;
 
@@ -1031,17 +1040,19 @@ void moveProjectiles() {
 				projectiles[i].active = 0;
 				set_sprite_tile(30+i, 0x7f);
 			}
+		
 		}
 	}
 }
 
 void tickPickups() {
 
-	move_sprite(3, pickup.x + 4, pickup.y + 12);
 	if (pickup.active) {
+		pickup.x -= xOverflow;
+		pickup.y -= yOverflow;
+		move_sprite(3, pickup.x + 4, pickup.y + 12);
 		if (pickup.visible) {
-			pickup.x -= xOverflow;
-			pickup.y -= yOverflow;
+
 			if (abs(pickup.x - playerDrawX) < 10) {
 				if (abs(pickup.y - playerDrawY) < 10) {
 					if (pickup.type == 0) { //upgrade
@@ -1086,8 +1097,8 @@ void tickEx() {
 
 			explosions[i].x -= xOverflow;
 			explosions[i].y -= yOverflow;
-			move_sprite(20, explosions[i].x, explosions[i].y+8);
-			move_sprite(21, explosions[i].x+8, explosions[i].y+8);
+			move_sprite(20 + 2*i, explosions[i].x, explosions[i].y+8);
+			move_sprite(21 + 2*i, explosions[i].x+8, explosions[i].y+8);
 
 			explosions[i].frameCounter++;
 			if (explosions[i].frameCounter > EXPLFRAMETIME) {
@@ -1095,12 +1106,12 @@ void tickEx() {
 				explosions[i].frame += 1; 
 				if (explosions[i].frame > 3) {
 					explosions[i].visible = 0;
-					set_sprite_tile(20, 0x7f);
-					set_sprite_tile(21, 0x7f);
+					set_sprite_tile(20 + 2*i, 0x7f);
+					set_sprite_tile(21 + 2*i, 0x7f);
 				}
 				else {
-					set_sprite_tile(20, explosions[i].tile + (explosions[i].frame *4));
-					set_sprite_tile(21, explosions[i].tile+(explosions[i].frame *4) +2);
+					set_sprite_tile(20 + 2*i, explosions[i].tile + (explosions[i].frame *4));
+					set_sprite_tile(21 + 2*i, explosions[i].tile+(explosions[i].frame *4) +2);
 				}
 			}
 		}
@@ -1297,7 +1308,14 @@ void main(){
 			}
 			moveProjectiles();
 			tickPickups();
-			tickEx();
+
+			if (exTick == 0) {
+				tickEx();
+				exTick = EXTICKFREQUENCY;
+			}
+			else {
+				exTick--;
+			}
 
 
 
