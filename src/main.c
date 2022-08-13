@@ -145,8 +145,8 @@ const uint8_t EXPLFRAMETIME = 3;
 const uint8_t exTileCount = 3;
 uint8_t exTiles[3] = {0x80, 0x90, 0xa0}; //vram hex addresses for first tile in animation
 
-const uint8_t EXTICKFREQUENCY = 1; //init value for below...
-uint8_t exTick = 1; //substracted every frame, 0 triggers explosion tick (advancing frames etc.)
+const uint8_t AUXTICKFREQUENCY = 1; //init value for below...
+uint8_t auxTick = 1; //used to stagger different actions to different frames to save resources
 
 
 
@@ -446,6 +446,38 @@ void initEnemies(uint8_t loadSprites) {
 
 }
 
+void initEnemy(uint8_t i) {
+	struct Enemy *eptr = enemies + i;
+
+  	if (eptr->alive == 0) {
+
+		uint8_t enemyInd = ((uint8_t)rand()) % (uint8_t) enemyOptionCount;
+		//printf("%d\n", enemyInd);
+		(*eptr) = enemyOptions[enemyInd];
+
+		uint8_t posIndex =  ((uint8_t)rand()) % (uint8_t)8;//(rand() & 8);
+		eptr->x = xSpawnPositions[posIndex];
+		eptr->y = ySpawnPositions[posIndex];
+
+		if (eptr->spriteCount == 1) {
+			set_sprite_tile(10+ (i<<1), eptr->sprite0);
+			move_sprite(10+ (i<<1), eptr->x, eptr->y);
+		}
+		else {
+			set_sprite_tile(10+ (i<<1), eptr->sprite0);
+			move_sprite(10+ (i<<1), eptr->x, eptr->y);
+
+			set_sprite_tile(10+ (i<<1) +1, eptr->sprite1);
+			move_sprite(10+ (i<<1) +1, eptr->x, eptr->y);
+		}
+
+
+	
+
+	}
+
+}
+
 
 void updateEnemyPositions() {
 	//update enemy speeds and positions
@@ -516,37 +548,10 @@ void updateEnemyPositions() {
 			enemies[i].y += yMovement;
 			enemies[i].yReserve +=  (-yMovement) << 3;
 		}
-	}
 
 
 
-
-	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
-		//hide if not on screen, this must be done as the background loops around, and the enemy sprites shouldn't!
-		if (enemies[i].alive) {
-			if (enemies[i].visible == 1) {
-				if (enemies[i].x < 0 || enemies[i].x > 172 || enemies[i].y < 0 || enemies[i].y > 152) {
-					enemies[i].visible = 0;
-					set_sprite_tile(10+(i<<1), 0x7f);
-					set_sprite_tile(10+(i<<1)+1, 0x7f);
-				} 
-			}
-			else {
-				if (enemies[i].x >= 0 && enemies[i].x < 172 && enemies[i].y > 0 && enemies[i].y < 152) {
-					enemies[i].visible = 1;
-					set_sprite_tile(10+(i<<1), enemies[i].sprite0);
-					if (enemies[i].spriteCount == 2) {
-						set_sprite_tile(10+(i<<1)+1, enemies[i].sprite1);
-					}
-				}
-				else if (enemies[i].x < -100 || enemies[i].x > 272 || enemies[i].y < -100 || enemies[i].y > 252) {
-					enemies[i].alive = 0;
-					set_sprite_tile(10+(i<<1), 0x7f);
-					set_sprite_tile(10+(i<<1)+1, 0x7f);
-					initEnemies(0);
-				}
-			}
-		}
+		//setting positions
 		if (enemies[i].spriteCount == 1) {
 			move_sprite(10+ (i<<1), enemies[i].x+4, enemies[i].y+12);
 			if (enemies[i].xSpeed >= 0) {
@@ -574,6 +579,36 @@ void updateEnemyPositions() {
 		}
 
 	}
+
+
+	uint8_t i = enemyCollisionCount;
+	//hide if not on screen, this must be done as the background loops around, and the enemy sprites shouldn't!
+	if (enemies[i].alive) {
+		if (enemies[i].visible == 1) {
+			if (enemies[i].x < 0 || enemies[i].x > 172 || enemies[i].y < 0 || enemies[i].y > 152) {
+				enemies[i].visible = 0;
+				set_sprite_tile(10+(i<<1), 0x7f);
+				set_sprite_tile(10+(i<<1)+1, 0x7f);
+			} 
+		}
+		else {
+			if (enemies[i].x >= 0 && enemies[i].x < 172 && enemies[i].y > 0 && enemies[i].y < 152) {
+				enemies[i].visible = 1;
+				set_sprite_tile(10+(i<<1), enemies[i].sprite0);
+				if (enemies[i].spriteCount == 2) {
+					set_sprite_tile(10+(i<<1)+1, enemies[i].sprite1);
+				}
+			}
+			else if (enemies[i].x < -100 || enemies[i].x > 272 || enemies[i].y < -100 || enemies[i].y > 252) {
+				enemies[i].alive = 0;
+				set_sprite_tile(10+(i<<1), 0x7f);
+				set_sprite_tile(10+(i<<1)+1, 0x7f);
+				initEnemy(i);
+			}
+		}
+	}
+
+
 }
 
 
@@ -582,7 +617,6 @@ void updateEnemyPositions() {
 void move() {
 
 	//gas 
-	
 	if (joydata & J_A) {
 		xSpeed += xDir + xDir + xDir;
 		ySpeed += yDir + yDir + yDir;
@@ -787,10 +821,6 @@ void killEnemy(uint8_t i) {
 	incrementScore();
 	updateScore();
 
-
-	//spawn explosion in place;
-
-
 	explosions[oldestEx].visible = 1;
 	explosions[oldestEx].x = enemies[i].x;
 	explosions[oldestEx].y = enemies[i].y;
@@ -827,6 +857,9 @@ void checkCollision() {
 
 	if (eptr->visible && eptr->alive) {
 
+		uint8_t alive = 1;
+
+
 		if ((eptr->spriteCount == 1 && abs(eptr->x - playerDrawX) <= 8 ) || 
 			(eptr->spriteCount == 2 && abs(eptr->x - playerDrawX) <= 16 )) {
 			if ((eptr->spriteCount == 1 && abs(eptr->y - playerDrawY) <= 8 ) || 
@@ -837,66 +870,71 @@ void checkCollision() {
 				eptr->alive = 0;
 				eptr->visible = 0;
 				takeDamage(eptr->damage);
-				initEnemies(0);
+				initEnemy(i);
 				playSound(0);
+
+				alive = 0;
 
 			}
 		}
 		
 
-		struct Projectile *pptr = projectiles;
-		uint8_t j = 0;
-		while (j < PROJECTILECOUNT) {
-			if (pptr->active) {
+		if (alive) {
+			struct Projectile *pptr = projectiles;
+			uint8_t j = 0;
+			while (j < PROJECTILECOUNT) {
+				if (pptr->active) {
 
-				//if (eptr->x > pptr->x - 8 && eptr->x - (8>>(eptr->spriteCount-1)) < pptr->x) {
-				//	if (eptr->y > pptr->y - 8 && eptr->y -(8>>(eptr->spriteCount-1)) < pptr->y ) {
-				if ((eptr->spriteCount == 1 && abs(eptr->x - pptr->x) <= 8 ) || 
-					(eptr->spriteCount == 2 && abs(eptr->x - pptr->x) <= 16 )) {
-					if ((eptr->spriteCount == 1 && abs(eptr->y - pptr->y) <= 8 ) || 
-						(eptr->spriteCount == 2 && abs(eptr->y - pptr->y) <= 16 )) {
+					if ((eptr->spriteCount == 1 && abs(eptr->x - pptr->x) <= 8 ) || 
+						(eptr->spriteCount == 2 && abs(eptr->x - pptr->x) <= 16 )) {
+						if ((eptr->spriteCount == 1 && abs(eptr->y - pptr->y) <= 8 ) || 
+							(eptr->spriteCount == 2 && abs(eptr->y - pptr->y) <= 16 )) {
 
-							set_sprite_tile(30+j, 0x7f);
-							pptr->active = 0;
+								set_sprite_tile(30+j, 0x7f);
+								pptr->active = 0;
 
-							if (pptr->type == 0x2c) { //missile
+								if (pptr->type == 0x2c) { //missile
 
-								int16_t x = eptr->x;
-								int16_t y = eptr->y;
+									int16_t x = eptr->x;
+									int16_t y = eptr->y;
 
-								for (uint8_t k=0; k < ENEMYCOUNT;++k) {
-									int16_t dmgDropOff = ((i16abs(eptr->x - enemies[k].x) + i16abs(eptr->y - enemies[k].y))<<SPLASHDROPOFF);
-									int16_t dmg = pptr->damage - dmgDropOff;
-									if (dmg > 0) {
-										enemies[k].hp -= dmg;
-										if (enemies[k].hp <= 0) {
-											killEnemy(k);
+									for (uint8_t k=0; k < ENEMYCOUNT;++k) {
+										int16_t dmgDropOff = ((i16abs(eptr->x - enemies[k].x) + i16abs(eptr->y - enemies[k].y))<<SPLASHDROPOFF);
+										int16_t dmg = pptr->damage - dmgDropOff;
+										if (dmg > 0) {
+											enemies[k].hp -= dmg;
+											if (enemies[k].hp <= 0) {
+												killEnemy(k);
+												initEnemy(k);
+											}
 										}
+										
 									}
-									
+
+								}
+								else { //all single target guns
+									eptr->hp -= pptr->damage;
+
+									if (eptr->hp <= 0) {
+
+										killEnemy(i);
+										initEnemy(i);
+
+									}
 								}
 
-							}
-							else { //all single target guns
-								eptr->hp -= pptr->damage;
-
-								if (eptr->hp <= 0) {
-
-									killEnemy(i);
-								}
-							}
 
 
-							initEnemies(0);
 
-
+						}
 					}
 				}
+				
+				j++;
+				pptr++;
 			}
-			
-			j++;
-			pptr++;
 		}
+
 	}
 
 	if (enemyCollisionCount == 0) {
@@ -944,7 +982,7 @@ void fire() {
 			projectiles[oldestProjectile] = doubleGun;
 		}
 	}
-	if (currentGun == 1) {
+	else if (currentGun == 1) {
 		if (missiles == 0) {
 			currentGun = 0;
 			setGunIcon();
@@ -1010,7 +1048,7 @@ void fire() {
 	
 	fireCooldown = projectiles[oldestProjectile].delay;
 
-	playSound(projectiles[oldestProjectile].type);
+	//playSound(projectiles[oldestProjectile].type);
 
 
 
@@ -1051,7 +1089,7 @@ void tickPickups() {
 		pickup.x -= xOverflow;
 		pickup.y -= yOverflow;
 		move_sprite(3, pickup.x + 4, pickup.y + 12);
-		if (pickup.visible) {
+		if (pickup.visible && auxTick == 1) {
 
 			if (abs(pickup.x - playerDrawX) < 10) {
 				if (abs(pickup.y - playerDrawY) < 10) {
@@ -1101,17 +1139,19 @@ void tickEx() {
 			move_sprite(21 + 2*i, explosions[i].x+8, explosions[i].y+8);
 
 			explosions[i].frameCounter++;
-			if (explosions[i].frameCounter > EXPLFRAMETIME) {
-				explosions[i].frameCounter = 0;
-				explosions[i].frame += 1; 
-				if (explosions[i].frame > 3) {
-					explosions[i].visible = 0;
-					set_sprite_tile(20 + 2*i, 0x7f);
-					set_sprite_tile(21 + 2*i, 0x7f);
-				}
-				else {
-					set_sprite_tile(20 + 2*i, explosions[i].tile + (explosions[i].frame *4));
-					set_sprite_tile(21 + 2*i, explosions[i].tile+(explosions[i].frame *4) +2);
+			if (auxTick == 0) {
+				if (explosions[i].frameCounter > EXPLFRAMETIME) {
+					explosions[i].frameCounter = 0;
+					explosions[i].frame += 1; 
+					if (explosions[i].frame > 3) {
+						explosions[i].visible = 0;
+						set_sprite_tile(20 + 2*i, 0x7f);
+						set_sprite_tile(21 + 2*i, 0x7f);
+					}
+					else {
+						set_sprite_tile(20 + 2*i, explosions[i].tile + (explosions[i].frame *4));
+						set_sprite_tile(21 + 2*i, explosions[i].tile+(explosions[i].frame *4) +2);
+					}
 				}
 			}
 		}
@@ -1308,13 +1348,13 @@ void main(){
 			}
 			moveProjectiles();
 			tickPickups();
+			tickEx();
 
-			if (exTick == 0) {
-				tickEx();
-				exTick = EXTICKFREQUENCY;
+			if (auxTick == 0) {
+				auxTick = AUXTICKFREQUENCY;
 			}
 			else {
-				exTick--;
+				auxTick--;
 			}
 
 
