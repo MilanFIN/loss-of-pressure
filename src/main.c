@@ -289,54 +289,58 @@ void updateDirection() {
 	}
 	*/
 
-	if (xDir == 0 && yDir > 0) {
-		set_sprite_tile(0, 0);
-		set_sprite_tile(1, 2);
-		set_sprite_prop(0, S_FLIPY); 
-		set_sprite_prop(1, S_FLIPY); 
+	if (auxTick == 0) {
+		if (xDir == 0 && yDir > 0) {
+			set_sprite_tile(0, 0);
+			set_sprite_tile(1, 2);
+			set_sprite_prop(0, S_FLIPY); 
+			set_sprite_prop(1, S_FLIPY); 
+		}
+		else if (xDir == 0 && yDir < 0) {
+			set_sprite_tile(0, 0);
+			set_sprite_tile(1, 2);
+			set_sprite_prop(0, 0); 
+			set_sprite_prop(1, 0); 
+		}
+		else if (xDir > 0 && yDir == 0) {
+			set_sprite_tile(0, 4);
+			set_sprite_tile(1, 6);
+			set_sprite_prop(0, 0); 
+			set_sprite_prop(1, 0); 
+		}
+		else if (xDir < 0 && yDir == 0) {
+			set_sprite_tile(0, 4);
+			set_sprite_tile(1, 6);
+			set_sprite_prop(0, S_FLIPX); 
+			set_sprite_prop(1, S_FLIPX); 
+		}
+		else if (xDir > 0 && yDir < 0) {
+			set_sprite_tile(0, 8);
+			set_sprite_tile(1, 10);
+			set_sprite_prop(0, 0); 
+			set_sprite_prop(1, 0); 
+		}
+		else if (xDir > 0 && yDir > 0) {
+			set_sprite_tile(0, 8);
+			set_sprite_tile(1, 10);
+			set_sprite_prop(0, S_FLIPY); 
+			set_sprite_prop(1, S_FLIPY); 
+		}	
+		else if (xDir < 0 && yDir > 0) {
+			set_sprite_tile(0, 8);
+			set_sprite_tile(1, 10);
+			set_sprite_prop(0, S_FLIPY | S_FLIPX); 
+			set_sprite_prop(1, S_FLIPY | S_FLIPX); 
+		}	
+		else { // if (xDir < 0 && yDir < 0) {
+			set_sprite_tile(0, 8);
+			set_sprite_tile(1, 10);
+			set_sprite_prop(0, S_FLIPX); 
+			set_sprite_prop(1, S_FLIPX); 
+		}
 	}
-	else if (xDir == 0 && yDir < 0) {
-		set_sprite_tile(0, 0);
-		set_sprite_tile(1, 2);
-		set_sprite_prop(0, 0); 
-		set_sprite_prop(1, 0); 
-	}
-	else if (xDir > 0 && yDir == 0) {
-		set_sprite_tile(0, 4);
-		set_sprite_tile(1, 6);
-		set_sprite_prop(0, 0); 
-		set_sprite_prop(1, 0); 
-	}
-	else if (xDir < 0 && yDir == 0) {
-		set_sprite_tile(0, 4);
-		set_sprite_tile(1, 6);
-		set_sprite_prop(0, S_FLIPX); 
-		set_sprite_prop(1, S_FLIPX); 
-	}
-	else if (xDir > 0 && yDir < 0) {
-		set_sprite_tile(0, 8);
-		set_sprite_tile(1, 10);
-		set_sprite_prop(0, 0); 
-		set_sprite_prop(1, 0); 
-	}
-	else if (xDir > 0 && yDir > 0) {
-		set_sprite_tile(0, 8);
-		set_sprite_tile(1, 10);
-		set_sprite_prop(0, S_FLIPY); 
-		set_sprite_prop(1, S_FLIPY); 
-	}	
-	else if (xDir < 0 && yDir > 0) {
-		set_sprite_tile(0, 8);
-		set_sprite_tile(1, 10);
-		set_sprite_prop(0, S_FLIPY | S_FLIPX); 
-		set_sprite_prop(1, S_FLIPY | S_FLIPX); 
-	}	
-	else if (xDir < 0 && yDir < 0) {
-		set_sprite_tile(0, 8);
-		set_sprite_tile(1, 10);
-		set_sprite_prop(0, S_FLIPX); 
-		set_sprite_prop(1, S_FLIPX); 
-	}
+
+
 }
 
 
@@ -447,28 +451,27 @@ void initEnemies(uint8_t loadSprites) {
 }
 
 void initEnemy(uint8_t i) {
-	struct Enemy *eptr = enemies + i;
+	//struct Enemy *eptr = enemies + i;
 
-  	if (eptr->alive == 0) {
+  	if (enemies[i].alive == 0) {
 
 		uint8_t enemyInd = ((uint8_t)rand()) % (uint8_t) enemyOptionCount;
-		//printf("%d\n", enemyInd);
-		(*eptr) = enemyOptions[enemyInd];
+		enemies[i] = enemyOptions[enemyInd];
 
 		uint8_t posIndex =  ((uint8_t)rand()) % (uint8_t)8;//(rand() & 8);
-		eptr->x = xSpawnPositions[posIndex];
-		eptr->y = ySpawnPositions[posIndex];
+		enemies[i].x = xSpawnPositions[posIndex];
+		enemies[i].y = ySpawnPositions[posIndex];
 
-		if (eptr->spriteCount == 1) {
-			set_sprite_tile(10+ (i<<1), eptr->sprite0);
-			move_sprite(10+ (i<<1), eptr->x, eptr->y);
+		if (enemies[i].spriteCount == 1) {
+			set_sprite_tile(10+ (i<<1), enemies[i].sprite0);
+			//move_sprite(10+ (i<<1), enemies[i].x, enemies[i].y);
 		}
 		else {
-			set_sprite_tile(10+ (i<<1), eptr->sprite0);
-			move_sprite(10+ (i<<1), eptr->x, eptr->y);
+			set_sprite_tile(10+ (i<<1), enemies[i].sprite0);
+			//move_sprite(10+ (i<<1), enemies[i].x, enemies[i].y);
 
-			set_sprite_tile(10+ (i<<1) +1, eptr->sprite1);
-			move_sprite(10+ (i<<1) +1, eptr->x, eptr->y);
+			set_sprite_tile(10+ (i<<1) +1, enemies[i].sprite1);
+			//move_sprite(10+ (i<<1) +1, enemies[i].x, enemies[i].y);
 		}
 
 
@@ -551,32 +554,35 @@ void updateEnemyPositions() {
 
 
 
-		//setting positions
-		if (enemies[i].spriteCount == 1) {
-			move_sprite(10+ (i<<1), enemies[i].x+4, enemies[i].y+12);
-			if (enemies[i].xSpeed >= 0) {
-				set_sprite_prop(10+(i<<1), 0);
+		if (auxTick == 1) {
+			//setting direction of sprites
+			if (enemies[i].spriteCount == 1) {
+				move_sprite(10+ (i<<1), enemies[i].x+4, enemies[i].y+12);
+				if (enemies[i].xSpeed >= 0) {
+					set_sprite_prop(10+(i<<1), 0);
+				}
+				else {
+					set_sprite_prop(10+(i<<1), S_FLIPX);
+				}
 			}
 			else {
-				set_sprite_prop(10+(i<<1), S_FLIPX);
+
+				if (enemies[i].xSpeed >= 0) {
+					set_sprite_prop(10+(i<<1), 0);
+					set_sprite_prop(10+(i<<1)+1, 0);
+					move_sprite(10+ (i<<1), enemies[i].x , enemies[i].y + 8);
+					move_sprite(10+ (i<<1)+1, enemies[i].x +8, enemies[i].y +8);
+				}
+				else {
+					set_sprite_prop(10+(i<<1), S_FLIPX);
+					set_sprite_prop(10+(i<<1)+1, S_FLIPX);
+					move_sprite(10+ (i<<1), enemies[i].x +8, enemies[i].y + 8);
+					move_sprite(10+ (i<<1)+1, enemies[i].x, enemies[i].y +8);
+				}
+
 			}
 		}
-		else {
 
-			if (enemies[i].xSpeed >= 0) {
-				set_sprite_prop(10+(i<<1), 0);
-				set_sprite_prop(10+(i<<1)+1, 0);
-				move_sprite(10+ (i<<1), enemies[i].x , enemies[i].y + 8);
-				move_sprite(10+ (i<<1)+1, enemies[i].x +8, enemies[i].y +8);
-			}
-			else {
-				set_sprite_prop(10+(i<<1), S_FLIPX);
-				set_sprite_prop(10+(i<<1)+1, S_FLIPX);
-				move_sprite(10+ (i<<1), enemies[i].x +8, enemies[i].y + 8);
-				move_sprite(10+ (i<<1)+1, enemies[i].x, enemies[i].y +8);
-			}
-
-		}
 
 	}
 
@@ -817,6 +823,7 @@ void killEnemy(uint8_t i) {
 
 	enemies[i].alive = 0;
 	enemies[i].visible = 0;
+
 	playSound(0);
 	incrementScore();
 	updateScore();
@@ -832,10 +839,11 @@ void killEnemy(uint8_t i) {
 	explosions[oldestEx].frame = 0;
 	explosions[oldestEx].frameCounter = 0;
 
-	set_sprite_tile(20 + 2*oldestEx, explosions[oldestEx].tile + (explosions[oldestEx].frame<<1));
-	set_sprite_tile(21 + 2*oldestEx, explosions[oldestEx].tile+(explosions[oldestEx].frame<<1) +2);
-	move_sprite(20 + 2*oldestEx, explosions[oldestEx].x, explosions[oldestEx].y+8);
-	move_sprite(21 + 2*oldestEx, explosions[oldestEx].x+8, explosions[oldestEx].y+8);
+	set_sprite_tile(20 + oldestEx+oldestEx, explosions[oldestEx].tile + (explosions[oldestEx].frame<<1));
+	set_sprite_tile(21 + oldestEx+oldestEx, explosions[oldestEx].tile+(explosions[oldestEx].frame<<1) +2);
+	//defer these to next frame, to speed things up
+	//move_sprite(20 + 2*oldestEx, explosions[oldestEx].x, explosions[oldestEx].y+8);
+	//move_sprite(21 + 2*oldestEx, explosions[oldestEx].x+8, explosions[oldestEx].y+8);
 
 	oldestEx++;
 	if (oldestEx >= exCount) {
@@ -1135,8 +1143,8 @@ void tickEx() {
 
 			explosions[i].x -= xOverflow;
 			explosions[i].y -= yOverflow;
-			move_sprite(20 + 2*i, explosions[i].x, explosions[i].y+8);
-			move_sprite(21 + 2*i, explosions[i].x+8, explosions[i].y+8);
+			move_sprite(20 +i+i, explosions[i].x, explosions[i].y+8);
+			move_sprite(21 +i+i, explosions[i].x+8, explosions[i].y+8);
 
 			explosions[i].frameCounter++;
 			if (auxTick == 0) {
@@ -1145,12 +1153,12 @@ void tickEx() {
 					explosions[i].frame += 1; 
 					if (explosions[i].frame > 3) {
 						explosions[i].visible = 0;
-						set_sprite_tile(20 + 2*i, 0x7f);
-						set_sprite_tile(21 + 2*i, 0x7f);
+						set_sprite_tile(20 + i+i, 0x7f);
+						set_sprite_tile(21 + i+i, 0x7f);
 					}
 					else {
-						set_sprite_tile(20 + 2*i, explosions[i].tile + (explosions[i].frame *4));
-						set_sprite_tile(21 + 2*i, explosions[i].tile+(explosions[i].frame *4) +2);
+						set_sprite_tile(20 + i+i, explosions[i].tile + (explosions[i].frame *4));
+						set_sprite_tile(21 + i+i, explosions[i].tile+(explosions[i].frame *4) +2);
 					}
 				}
 			}
@@ -1255,13 +1263,11 @@ void initGame() {
 	set_win_tiles(17, 0,1,1,gunMap+2);
 
 
-	//init pickup, not active yet, so settting empty tile
+	//init pickup, not active yet, so setting empty tile
 	pickup = upgrade;//upgrade;
-	//init pickup upgrade/missile, using tile #40, 0x7f is an empty tile
+	//init pickup upgrade/missile, using tile #3, 0x7f is an empty tile
 	set_sprite_data(0x70, 6, Pickups);
 	set_sprite_tile(3, 0x7f); //0x7f
-	//pickup.x = 100;
-	//pickup.y = 80;
 	move_sprite(3, pickup.x + 4, pickup.y + 12);
 
 	for (uint8_t i = 0; i<exCount; ++i) {
@@ -1317,6 +1323,12 @@ void main(){
 			//move player, in future also checks collision damage with background objs
 			//also updates enemy positions, if background moves
 			move(); 
+
+			moveProjectiles();
+			tickPickups();
+			tickEx();
+
+
 			//updates enemy positions to take account changes made by move()
 			updateEnemyPositions();
 
@@ -1346,9 +1358,6 @@ void main(){
 			if (switchDelay != 0) {
 				switchDelay--;
 			}
-			moveProjectiles();
-			tickPickups();
-			tickEx();
 
 			if (auxTick == 0) {
 				auxTick = AUXTICKFREQUENCY;

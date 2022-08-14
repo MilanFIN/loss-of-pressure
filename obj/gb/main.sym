@@ -108,7 +108,7 @@ Symbol Table
   2 _bigblob                                                       000046 GR
   2 _blob                                                          000010 GR
   2 _bomb                                                          000022 GR
-  0 _checkCollision                                                0023B0 GR
+  0 _checkCollision                                                0022FE GR
   0 _cross                                                         000007 GR
   2 _currentGun                                                    0000A7 GR
   2 _doubleGun                                                     000077 GR
@@ -127,7 +127,7 @@ Symbol Table
   0 _exTileCount                                                   000BA7 GR
   2 _exTiles                                                       0000BC GR
   1 _explosions                                                    000103 GR
-  0 _fire                                                          0028A6 GR
+  0 _fire                                                          0027F4 GR
   2 _fireCooldown                                                  000092 GR
     _font_init                                                     ****** GX
     _font_load                                                     ****** GX
@@ -140,30 +140,30 @@ Symbol Table
   1 _hull                                                          0000F6 GR
   2 _hullabel                                                      000000 GR
   0 _incrementScore                                                000D58 GR
-  0 _initEnemies                                                   000FFE GR
-  0 _initEnemy                                                     001169 GR
-  0 _initEnemyOptions                                              0033EE GR
-  0 _initGame                                                      00345B GR
-  0 _initProjectiles                                               003444 GR
+  0 _initEnemies                                                   000FF9 GR
+  0 _initEnemy                                                     001164 GR
+  0 _initEnemyOptions                                              00333E GR
+  0 _initGame                                                      0033AB GR
+  0 _initProjectiles                                               003394 GR
     _initrand                                                      ****** GX
   0 _interruptLCD                                                  000000 GR
   1 _joydata                                                       0000F5 GR
     _joypad                                                        ****** GX
-  0 _killEnemy                                                     0021C3 GR
+  0 _killEnemy                                                     002166 GR
   0 _largeenemies                                                  000568 GR
-  0 _main                                                          003656 GR
+  0 _main                                                          0035A6 GR
   0 _maxHull                                                       000BA1 GR
   0 _maxShield                                                     000BA2 GR
   1 _min_font                                                      0000F8 GR
   2 _miniship                                                      000034 GR
   2 _missile                                                       000084 GR
   2 _missiles                                                      0000A8 GR
-  0 _move                                                          001BC6 GR
-  0 _moveProjectiles                                               002E54 GR
+  0 _move                                                          001B69 GR
+  0 _moveProjectiles                                               002DA2 GR
   2 _oldestEx                                                      0000BB GR
   2 _oldestProjectile                                              000091 GR
   1 _pickup                                                        0000FA GR
-  0 _playSound                                                     000F9B GR
+  0 _playSound                                                     000F96 GR
   2 _playerDrawX                                                   00009B GR
   2 _playerDrawY                                                   00009C GR
   2 _playerX                                                       000097 GR
@@ -172,7 +172,7 @@ Symbol Table
     _rand                                                          ****** GX
   2 _score                                                         0000B1 GR
   2 _scorelabel                                                    00000C GR
-  0 _setGunIcon                                                    002873 GR
+  0 _setGunIcon                                                    0027C1 GR
   0 _setHealthBar                                                  000BA9 GR
     _set_bkg_data                                                  ****** GX
     _set_bkg_tiles                                                 ****** GX
@@ -189,13 +189,13 @@ Symbol Table
   2 _shieldlabel                                                   000004 GR
   2 _shieldship                                                    000058 GR
   2 _singleGun                                                     00006A GR
-  0 _spawnPickup                                                   00214E GR
+  0 _spawnPickup                                                   0020F1 GR
   2 _switchDelay                                                   0000AD GR
-  0 _takeDamage                                                    00210A GR
-  0 _tickEx                                                        00320F GR
-  0 _tickPickups                                                   003037 GR
+  0 _takeDamage                                                    0020AD GR
+  0 _tickEx                                                        00315D GR
+  0 _tickPickups                                                   002F85 GR
   0 _updateDirection                                               000D71 GR
-  0 _updateEnemyPositions                                          0012AC GR
+  0 _updateEnemyPositions                                          001248 GR
   0 _updateMissileCount                                            000CE4 GR
   0 _updateScore                                                   000CBA GR
   0 _upgrade                                                       000708 GR
@@ -216,7 +216,7 @@ Hexadecimal [24-Bits]
 
 Area Table
 
-   0 _CODE                                      size   3775   flags    0
+   0 _CODE                                      size   36C5   flags    0
    1 _DATA                                      size    115   flags    0
    2 _INITIALIZED                               size     C0   flags    0
    3 _DABS                                      size      0   flags    8
