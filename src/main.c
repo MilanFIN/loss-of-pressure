@@ -138,10 +138,10 @@ BCD SCORE = MAKE_BCD(00000);
 BCD INCREMENT = MAKE_BCD(00001);
 
 
-const uint8_t exCount = 3;
+const uint8_t exCount = 4;
 uint8_t oldestEx = 0;
-struct Explosion explosions[3];
-const uint8_t EXPLFRAMETIME = 3;
+struct Explosion explosions[4];
+const uint8_t EXPLFRAMETIME = 4;
 const uint8_t exTileCount = 3;
 uint8_t exTiles[3] = {0x80, 0x90, 0xa0}; //vram hex addresses for first tile in animation
 
@@ -1186,7 +1186,12 @@ void initProjectiles() {
 }
 
 void initGame() {
-
+    STAT_REG = 0x45;
+    LYC_REG = 0x7e; //line 126
+    disable_interrupts();
+    add_LCD(interruptLCD);
+    enable_interrupts();
+    set_interrupts(VBL_IFLAG | LCD_IFLAG);   
 
 	xDir = 0;
 	yDir = -1;
@@ -1276,23 +1281,32 @@ void initGame() {
 	set_sprite_data(exTiles[0], 16, Ex1);
 	set_sprite_data(exTiles[1], 16, Ex2);
 	set_sprite_data(exTiles[2], 16, Ex3);
+}
 
-	
+
+//score screen related actions
+
+void showScoreScreen() {
+	HIDE_WIN;
+
+	//move win to top left and clear window
+	move_win(0,0);
+	for (uint8_t i=0; i < 18; ++i) {
+    	set_win_tiles(1,i,20,1,emptyRow);
+	}
+
+
+	SHOW_WIN;
 
 }
 
 void main(){
 
+	disable_interrupts();
 
 	initEnemyOptions();
 
 	
-    STAT_REG = 0x45;
-    LYC_REG = 0x7e; //line 126
-    disable_interrupts();
-    add_LCD(interruptLCD);
-    enable_interrupts();
-    set_interrupts(VBL_IFLAG | LCD_IFLAG);   
 
 
 
@@ -1314,7 +1328,8 @@ void main(){
 		initEnemies(1);
 		initProjectiles();
 
-		while(1) {
+		while(hull > 0) {
+			//hull = 0; //TODO: debug clause to skip gameplay
 			SHOW_SPRITES;
 
 			joydata = joypad(); // query for button states
@@ -1375,6 +1390,76 @@ void main(){
 	        SHOW_WIN;	
 			wait_vbl_done(); // Idle until next frame
 		}
+
+		//game ending frames showing explosions on top of player
+		//first init empty explosions in different states of animation to offset their spawn times
+		for (uint8_t i=0; i<exCount; ++i) {
+			explosions[i].x = 200;
+			explosions[i].y = 200;
+
+			explosions[i].tile = exTiles[0];
+			explosions[i].frameCounter = 0;
+			explosions[i].frame = 2-i;
+			explosions[i].visible = 1;
+		}
+		xOverflow = 0;
+		yOverflow = 0;
+		uint8_t endExCount = 0;
+		while(endExCount < 12) {
+
+			SHOW_SPRITES;
+			tickEx();
+			if (auxTick == 0) {
+				auxTick = AUXTICKFREQUENCY;
+			}
+			else {
+				auxTick--;
+			}
+			if (!explosions[oldestEx].visible) {
+				explosions[oldestEx].visible = 1;
+
+				
+				uint8_t tileNum = ((uint8_t)rand()) % exTileCount;
+				uint8_t xOff = ((uint8_t)rand()) % 32;
+				uint8_t yOff = ((uint8_t)rand()) % 32;
+
+				explosions[oldestEx].x = playerDrawX -16 + xOff;
+				explosions[oldestEx].y = playerDrawY -16 + yOff;
+				explosions[oldestEx].tile = exTiles[tileNum];
+				explosions[oldestEx].frame = 0;
+				explosions[oldestEx].frameCounter = 0;
+
+				set_sprite_tile(20 + oldestEx+oldestEx, explosions[oldestEx].tile + (explosions[oldestEx].frame<<1));
+				set_sprite_tile(21 + oldestEx+oldestEx, explosions[oldestEx].tile+(explosions[oldestEx].frame<<1) +2);
+
+				oldestEx++;
+				if (oldestEx >= exCount) {
+					oldestEx = 0;
+				}
+				endExCount++;
+
+			}
+			SHOW_WIN;	
+
+			wait_vbl_done();
+		}
+		//moving ex out of view
+		for (uint8_t j=0; j<exCount; ++j) {
+
+			move_sprite(20 +j+j, 200, 200);
+			move_sprite(21 +j+j, 200, 200);
+		}
+		for (uint16_t k=0; k<180; ++k) {
+			SHOW_SPRITES;
+			SHOW_WIN;
+			wait_vbl_done();
+		}
+		disable_interrupts();
+		showScoreScreen();
+		while(1) {
+			wait_vbl_done();
+		}
+
 
 	}
 
