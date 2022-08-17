@@ -1294,6 +1294,23 @@ void showScoreScreen() {
 	for (uint8_t i=0; i < 18; ++i) {
     	set_win_tiles(1,i,20,1,emptyRow);
 	}
+	//set score label
+	set_win_tiles(8, 5, 5, 1, endScoreLabel);
+	unsigned char buf[10];
+	//bcd2text(&SCORE, 0, buf);
+	//set_win_tiles(8, 7, 8, 1, buf);
+	for (uint16_t j=0; j<1234; ++j) {
+		incrementScore();
+	}
+	bcd2text(&SCORE, 0x01, buf);
+	set_win_tiles(7, 8, 7, 1, buf+1);
+
+
+	//anykeylabel
+	set_win_tiles(4, 11, 13, 1, pressAnyKeyLabel);
+
+	set_win_tiles(5, 12, 11, 1, toContinueLabel);
+
 
 
 	SHOW_WIN;
@@ -1329,7 +1346,7 @@ void main(){
 		initProjectiles();
 
 		while(hull > 0) {
-			//hull = 0; //TODO: debug clause to skip gameplay
+			hull = 0; //TODO: debug clause to skip gameplay
 			SHOW_SPRITES;
 
 			joydata = joypad(); // query for button states
@@ -1456,11 +1473,8 @@ void main(){
 		}
 		disable_interrupts();
 		showScoreScreen();
-		while(1) {
-			wait_vbl_done();
-		}
-
-
+		wait_vbl_done();
+		waitpad(J_A);
 	}
 
 }
