@@ -29,11 +29,10 @@
 #include "data/ex/ex2.c"
 #include "data/ex/ex3.c"
 
+#include "data/menupicker.c"
+
 /*
 TODO: 
-- räjähdyssprite viholliselle
-- >100hp = pelaaja kuoli -> aseta hp = 0 ja trikkaa seuraava
-	- animoitu rähändys pelaajalle pelin päättyessä
 - maalle sijoittuvia ratoja, esim pilvenpiirtäjiä
 - aavikkoa?
 
@@ -1186,6 +1185,11 @@ void initProjectiles() {
 }
 
 void initGame() {
+	HIDE_SPRITES;
+	HIDE_WIN;
+	HIDE_BKG;
+
+
     STAT_REG = 0x45;
     LYC_REG = 0x7e; //line 126
     disable_interrupts();
@@ -1219,15 +1223,9 @@ void initGame() {
 	set_sprite_tile(0, 0);
 	set_sprite_tile(1, 2);
 
-	//move_sprite(0, playerX, playerY);
-	SHOW_SPRITES;
 	
 
 
-	font_init();
-	//font_color(0, 0);
-    min_font = font_load(font_min); // 36 tiles of characters
-    font_set(min_font);
 	set_win_tiles(1,0,4,1,hullabel);
 	set_win_tiles(1,1,4,1,shieldlabel);
 
@@ -1257,8 +1255,6 @@ void initGame() {
 	set_win_tiles(10, 1,4,1,scorelabel);
 
 	setGunIcon();
-	SHOW_BKG;
-	SHOW_WIN;;
 
 	SCORE = MAKE_BCD(00000);
 	updateScore();
@@ -1281,6 +1277,12 @@ void initGame() {
 	set_sprite_data(exTiles[0], 16, Ex1);
 	set_sprite_data(exTiles[1], 16, Ex2);
 	set_sprite_data(exTiles[2], 16, Ex3);
+
+
+	SHOW_SPRITES;
+	SHOW_WIN;
+	SHOW_BKG;
+
 }
 
 
@@ -1317,13 +1319,69 @@ void showScoreScreen() {
 
 }
 
+void initFont() {
+	font_init();
+	//font_color(0, 0);
+    min_font = font_load(font_min); // 36 tiles of characters
+    font_set(min_font);
+
+}
+
+void showStartScreen() {
+	HIDE_WIN;
+
+	//move win to top left and clear window
+	move_win(0,0);
+	for (uint8_t i=0; i < 18; ++i) {
+    	set_win_tiles(1,i,20,1,emptyRow);
+	}
+	//set score label
+	set_win_tiles(5, 9, 11, 1, pressStartLabel);
+	
+	SHOW_WIN;
+}
+
+void showMenu() {
+	HIDE_WIN;
+
+	//move win to top left and clear window
+	move_win(0,0);
+	for (uint8_t i=0; i < 18; ++i) {
+    	set_win_tiles(1,i,20,1,emptyRow);
+		set_bkg_tiles(1,i,20,1,emptyRow);
+
+	}
+	//set score label
+	set_win_tiles(9,7, 4, 1, playLabel);
+	set_win_tiles(7, 8, 8, 1, controlsLabel);
+
+	
+	SHOW_WIN;
+	SHOW_SPRITES;
+
+	set_sprite_data(0, 1, MenuPicker);
+	set_sprite_tile(0, 0);
+	set_sprite_tile(1, 0);
+
+}
+
+void updateMenu(int8_t menuitem) {
+	move_sprite(0, 47, 72+ (menuitem<<3));
+	move_sprite(1, 123, 72+ (menuitem<<3));
+
+}
+
 void main(){
 
 	disable_interrupts();
 
 	initEnemyOptions();
 
-	
+	initFont();
+
+	showStartScreen();
+	waitpad(J_START | J_A);
+	waitpadup();
 
 
 
@@ -1332,21 +1390,49 @@ void main(){
     NR51_REG = 0xFF; // all channels
 
 
-	//printf("PRESS A TO START");
-	waitpad(J_A);
 	uint16_t seed = LY_REG;
 	seed |= (uint16_t)DIV_REG << 8;
 	initrand(seed);
 
 
+
+
 	while(1) {
+
+
+		//main menu
+		showMenu();
+		int8_t menuitem = 0;
+
+		while (1) {
+			joydata = joypad(); // query for button states
+
+			if (joydata & J_DOWN) {
+				menuitem++;
+			}
+			else if (joydata & J_UP) {
+				menuitem--;
+			}
+			menuitem = clamp(menuitem, 0, 1);
+			updateMenu(menuitem);
+
+			if ((joydata & J_A) && menuitem == 0) {
+				waitpadup();
+				playSound(0);
+				break;
+			}
+
+			wait_vbl_done();
+
+		}
+
 
 		initGame();
 		initEnemies(1);
 		initProjectiles();
 
+		//main game loop
 		while(hull > 0) {
-			hull = 0; //TODO: debug clause to skip gameplay
 			SHOW_SPRITES;
 
 			joydata = joypad(); // query for button states
@@ -1403,6 +1489,7 @@ void main(){
 			if (hull > 100) {
 				hull = 0;
 			}
+			SHOW_SPRITES;
 
 	        SHOW_WIN;	
 			wait_vbl_done(); // Idle until next frame
@@ -1460,7 +1547,7 @@ void main(){
 
 			wait_vbl_done();
 		}
-		//moving ex out of view
+		//moving explosions out of the screen
 		for (uint8_t j=0; j<exCount; ++j) {
 
 			move_sprite(20 +j+j, 200, 200);
@@ -1472,9 +1559,11 @@ void main(){
 			wait_vbl_done();
 		}
 		disable_interrupts();
+		//displaying game ending screen
 		showScoreScreen();
-		wait_vbl_done();
-		waitpad(J_A);
+		waitpad(J_A | J_B | J_DOWN | J_LEFT | J_RIGHT | J_UP | J_SELECT | J_START);
+		waitpadup();
+
 	}
 
 }
