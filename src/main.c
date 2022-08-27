@@ -4,6 +4,11 @@
 
 #include "data/background1.c"
 #include "data/backgroundtiles.c"
+
+#include "data/background2.c"
+#include "data/backgroundtiles2.c"
+
+
 #include "data/windowmap.c"
 #include "data/healthblock.c"
 #include "data/enemy.c"
@@ -33,6 +38,8 @@
 
 /*
 TODO: 
+- kartan valinta
+	- pitää asettaa tileset, background ja muuttaa collision checkin x&y taulut
 - maalle sijoittuvia ratoja, esim pilvenpiirtäjiä
 - aavikkoa?
 
@@ -51,7 +58,7 @@ TODO:
 
 //global variables
 const uint8_t BLANKSIZE = 3;
-const unsigned char BLANK[3] = {0x26, 0x2b, 0x2c}; 
+const unsigned char BLANK[3] = {0x25, 0x26, 0x27}; 
 const unsigned char EMPTYSPRITE = 0x50;
 
 struct Enemy enemies[5];
@@ -657,7 +664,7 @@ void move() {
 	uint16_t ind = 32*bgindY + bgindX;
 	uint8_t result = 1; // 0 incase of clear path, 1 for blocked
 	for (uint8_t i=0; i<BLANKSIZE; i++) {
-		if (background1[ind] == BLANK[i] ) {
+		if (background2[ind] == BLANK[i] ) {
 			result = 0;
 			break;
 		}
@@ -712,7 +719,7 @@ void move() {
 	ind = 32*bgindY + bgindX;
 	result = 1;
 	for (uint8_t j=0; j<BLANKSIZE; j++) {
-		if (background1[ind] == BLANK[j] ) {
+		if (background2[ind] == BLANK[j] ) {
 			result = 0;
 			break;
 		}
@@ -1242,8 +1249,8 @@ void initGame() {
 
 
 	// TODO: debug 
-	set_bkg_data(0x25, 8, backgroundtiles);		// load background tileset (start in vram, count, tilestruct)
-	set_bkg_tiles(0,0,background1Width, background1Height ,background1); //set tilemap to be a background
+	set_bkg_data(0x25, 9, backgroundtiles2);		// load background tileset (start in vram, count, tilestruct)
+	set_bkg_tiles(0,0,background2Width, background2Height ,background2); //set tilemap to be a background
 	
 	
 	
@@ -1448,10 +1455,8 @@ void main(){
 
 
 			//updates enemy positions to take account changes made by move()
-			updateEnemyPositions();
-
-
-			checkCollision(); 
+			//updateEnemyPositions();
+			//checkCollision(); 
 
 			updateShieldsAndHull();
 
