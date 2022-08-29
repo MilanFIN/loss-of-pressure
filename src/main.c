@@ -5,8 +5,8 @@
 #include "data/background1.c"
 #include "data/backgroundtiles.c"
 
-#include "data/background2.c"
-#include "data/backgroundtiles2.c"
+#include "data/marstiles.c"
+#include "data/marsbackground.c"
 
 
 #include "data/windowmap.c"
@@ -40,8 +40,8 @@
 TODO: 
 - kartan valinta
 	- pitää asettaa tileset, background ja muuttaa collision checkin x&y taulut
-- maalle sijoittuvia ratoja, esim pilvenpiirtäjiä
-- aavikkoa?
+
+
 
 - vihollisten skaalaus scoren myötä
 	- esim 5-10 spawntaulukkoa, joista valitaan sen mukaan mikä score range on
@@ -664,7 +664,7 @@ void move() {
 	uint16_t ind = 32*bgindY + bgindX;
 	uint8_t result = 1; // 0 incase of clear path, 1 for blocked
 	for (uint8_t i=0; i<BLANKSIZE; i++) {
-		if (background2[ind] == BLANK[i] ) {
+		if (marsbackground[ind] == BLANK[i] ) {
 			result = 0;
 			break;
 		}
@@ -719,7 +719,7 @@ void move() {
 	ind = 32*bgindY + bgindX;
 	result = 1;
 	for (uint8_t j=0; j<BLANKSIZE; j++) {
-		if (background2[ind] == BLANK[j] ) {
+		if (marsbackground[ind] == BLANK[j] ) {
 			result = 0;
 			break;
 		}
@@ -1249,8 +1249,8 @@ void initGame() {
 
 
 	// TODO: debug 
-	set_bkg_data(0x25, 9, backgroundtiles2);		// load background tileset (start in vram, count, tilestruct)
-	set_bkg_tiles(0,0,background2Width, background2Height ,background2); //set tilemap to be a background
+	set_bkg_data(0x25, 16, marstiles);		// load background tileset (start in vram, count, tilestruct)
+	set_bkg_tiles(0,0,marsbackgroundWidth, marsbackgroundHeight ,marsbackground); //set tilemap to be a background
 	
 	
 	
@@ -1298,9 +1298,10 @@ void initGame() {
 void showScoreScreen() {
 	HIDE_WIN;
 
-	//move win to top left and clear window
+	//move win to top left and clear window & background
 	move_win(0,0);
 	for (uint8_t i=0; i < 18; ++i) {
+    	set_bkg_tiles(1,i,20,1,emptyRow);
     	set_win_tiles(1,i,20,1,emptyRow);
 	}
 	//set score label
@@ -1335,40 +1336,40 @@ void initFont() {
 }
 
 void showStartScreen() {
+	initFont();
+
 	HIDE_WIN;
 
 	//move win to top left and clear window
 	move_win(0,0);
-	for (uint8_t i=0; i < 18; ++i) {
-    	set_win_tiles(1,i,20,1,emptyRow);
-	}
 	//set score label
-	set_win_tiles(5, 9, 11, 1, pressStartLabel);
+	set_win_tiles(5, 8, 11, 1, pressStartLabel);
 	
 	SHOW_WIN;
 }
 
 void showMenu() {
+	initFont();
+
 	HIDE_WIN;
+	HIDE_SPRITES;
+
+	SPRITES_8x8;
+
+	move_win(0,0);
+
 
 	//move win to top left and clear window
-	move_win(0,0);
-	for (uint8_t i=0; i < 18; ++i) {
-    	set_win_tiles(1,i,20,1,emptyRow);
-		set_bkg_tiles(1,i,20,1,emptyRow);
-
-	}
-	//set score label
 	set_win_tiles(9,7, 4, 1, playLabel);
 	set_win_tiles(7, 8, 8, 1, controlsLabel);
 
 	
-	SHOW_WIN;
-	SHOW_SPRITES;
 
 	set_sprite_data(0, 1, MenuPicker);
 	set_sprite_tile(0, 0);
 	set_sprite_tile(1, 0);
+	SHOW_WIN;
+	SHOW_SPRITES;
 
 }
 
@@ -1378,17 +1379,33 @@ void updateMenu(int8_t menuitem) {
 
 }
 
+void clearScreen() {
+	HIDE_WIN;
+	HIDE_BKG;
+	for (uint8_t i=0; i < 18; ++i) {
+    	set_win_tiles(1,i,20,1,emptyRow);
+		set_bkg_tiles(1,i,20,1,emptyRow);
+	}
+	for (uint8_t j=0; j < 20; ++j) {
+		set_sprite_tile(j, 0x7f);
+	}
+
+	//set score label
+
+	SHOW_WIN;
+	SHOW_BKG;
+
+}
+
 void main(){
 
 	disable_interrupts();
 
-	initEnemyOptions();
-
-	initFont();
 
 	showStartScreen();
 	waitpad(J_START | J_A);
 	waitpadup();
+
 
 
 
@@ -1405,8 +1422,10 @@ void main(){
 
 
 	while(1) {
+		disable_interrupts();
+		set_interrupts(1);   
 
-
+		clearScreen();
 		//main menu
 		showMenu();
 		int8_t menuitem = 0;
@@ -1433,7 +1452,7 @@ void main(){
 
 		}
 
-
+		initEnemyOptions();
 		initGame();
 		initEnemies(1);
 		initProjectiles();
@@ -1455,8 +1474,8 @@ void main(){
 
 
 			//updates enemy positions to take account changes made by move()
-			//updateEnemyPositions();
-			//checkCollision(); 
+			updateEnemyPositions();
+			checkCollision(); 
 
 			updateShieldsAndHull();
 

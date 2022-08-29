@@ -1,6 +1,6 @@
 /*
 
- BACKGROUNDTILES2.H
+ MARSTILES.H
 
  Include File.
 
@@ -10,7 +10,7 @@
   Compression          : None.
   Counter              : None.
   Tile size            : 8 x 8
-  Tiles                : 0 to 9
+  Tiles                : 0 to 15
 
   Palette colors       : None.
   SGB Palette          : None.
@@ -22,14 +22,14 @@
 
 */
 
-#ifndef __backgroundtiles2_h_INCLUDE
-#define __backgroundtiles2_h_INCLUDE
+#ifndef __marstiles_h_INCLUDE
+#define __marstiles_h_INCLUDE
 
 /* Bank of tiles. */
-#define backgroundtiles2Bank 0
+#define marstilesBank 0
 /* Start of tile array. */
-extern const unsigned char backgroundtiles2[];
+extern const unsigned char marstiles[];
 
 #endif
 
-/* End of BACKGROUNDTILES2.H */
+/* End of MARSTILES.H */
