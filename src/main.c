@@ -1297,13 +1297,12 @@ void initGame() {
 
 void showScoreScreen() {
 	HIDE_WIN;
+	HIDE_SPRITES;
 
 	//move win to top left and clear window & background
 	move_win(0,0);
-	for (uint8_t i=0; i < 18; ++i) {
-    	set_bkg_tiles(1,i,20,1,emptyRow);
-    	set_win_tiles(1,i,20,1,emptyRow);
-	}
+	clearScreen();
+	initFont();
 	//set score label
 	set_win_tiles(8, 5, 5, 1, endScoreLabel);
 	unsigned char buf[10];
@@ -1321,6 +1320,22 @@ void showScoreScreen() {
 
 	set_win_tiles(5, 12, 11, 1, toContinueLabel);
 
+
+
+	SHOW_WIN;
+
+}
+
+void showControls() {
+	HIDE_WIN;
+	HIDE_SPRITES;
+
+	//move win to top left and clear window & background
+	move_win(0,0);
+	clearScreen();
+	initFont();
+
+	set_win_tiles(8, 5, 5, 1, endScoreLabel);
 
 
 	SHOW_WIN;
@@ -1348,7 +1363,15 @@ void showStartScreen() {
 	SHOW_WIN;
 }
 
-void showMenu() {
+
+void updateMenu(int8_t menuitem) {
+	move_sprite(0, 47, 72+ (menuitem<<3));
+	move_sprite(1, 123, 72+ (menuitem<<3));
+
+}
+
+//returns 0 for play, 1 for controls
+uint8_t showMenu() {
 	initFont();
 
 	HIDE_WIN;
@@ -1371,12 +1394,38 @@ void showMenu() {
 	SHOW_WIN;
 	SHOW_SPRITES;
 
+
+	int8_t menuitem = 0;
+
+	while (1) {
+		joydata = joypad(); // query for button states
+
+		if (joydata & J_DOWN) {
+			menuitem++;
+		}
+		else if (joydata & J_UP) {
+			menuitem--;
+		}
+		menuitem = clamp(menuitem, 0, 1);
+		updateMenu(menuitem);
+
+		if ((joydata & J_A) && menuitem == 0) {
+			waitpadup();
+			playSound(0);
+			return 0;
+		}
+		else if (joydata & J_A) {
+			return 1;
+		}
+
+		wait_vbl_done();
+
+	}
 }
 
-void updateMenu(int8_t menuitem) {
-	move_sprite(0, 47, 72+ (menuitem<<3));
-	move_sprite(1, 123, 72+ (menuitem<<3));
-
+//returns 1 if a map was selected, 0 for back
+uint8_t showMapSelection() {
+	return 1;
 }
 
 void clearScreen() {
@@ -1423,171 +1472,169 @@ void main(){
 
 	while(1) {
 		disable_interrupts();
+
+		//STAT_REG = 0x45;
+		//LYC_REG = 0x90; //line 144
 		set_interrupts(1);   
 
 		clearScreen();
 		//main menu
-		showMenu();
-		int8_t menuitem = 0;
+		uint8_t result = showMenu();
 
-		while (1) {
-			joydata = joypad(); // query for button states
+		//started game
+		if (result == 0) {
 
-			if (joydata & J_DOWN) {
-				menuitem++;
+			uint8_t map = showMapSelection();
+			if (map == 0) {
+				continue;
 			}
-			else if (joydata & J_UP) {
-				menuitem--;
-			}
-			menuitem = clamp(menuitem, 0, 1);
-			updateMenu(menuitem);
+			else {
 
-			if ((joydata & J_A) && menuitem == 0) {
+				initEnemyOptions();
+				initGame();
+				initEnemies(1);
+				initProjectiles();
+
+				//main game loop
+				while(hull > 0) {
+					SHOW_SPRITES;
+
+					joydata = joypad(); // query for button states
+
+					updateDirection(); // set player direction
+					//move player, in future also checks collision damage with background objs
+					//also updates enemy positions, if background moves
+					move(); 
+
+					moveProjectiles();
+					tickPickups();
+					tickEx();
+
+
+					//updates enemy positions to take account changes made by move()
+					updateEnemyPositions();
+					checkCollision(); 
+
+					updateShieldsAndHull();
+
+
+					if (joydata & J_B && fireCooldown == 0) {
+						fire();
+					}
+					if (fireCooldown > 0) {
+						--fireCooldown;
+					}
+
+					if (joydata & J_SELECT && switchDelay == 0) {
+						if (currentGun == 0) {
+							currentGun = 1;
+						}
+						else if (currentGun == 1) {
+							currentGun = 0;
+						}
+						setGunIcon();
+						switchDelay = 30;
+					}
+					if (switchDelay != 0) {
+						switchDelay--;
+					}
+
+					if (auxTick == 0) {
+						auxTick = AUXTICKFREQUENCY;
+					}
+					else {
+						auxTick--;
+					}
+
+
+
+					if (hull > 100) {
+						hull = 0;
+					}
+					SHOW_SPRITES;
+
+					SHOW_WIN;	
+					wait_vbl_done(); // Idle until next frame
+				}
+
+				//game ending frames showing explosions on top of player
+				//first init empty explosions in different states of animation to offset their spawn times
+				for (uint8_t i=0; i<exCount; ++i) {
+					explosions[i].x = 200;
+					explosions[i].y = 200;
+
+					explosions[i].tile = exTiles[0];
+					explosions[i].frameCounter = 0;
+					explosions[i].frame = 2-i;
+					explosions[i].visible = 1;
+				}
+				xOverflow = 0;
+				yOverflow = 0;
+				uint8_t endExCount = 0;
+				while(endExCount < 12) {
+
+					SHOW_SPRITES;
+					tickEx();
+					if (auxTick == 0) {
+						auxTick = AUXTICKFREQUENCY;
+					}
+					else {
+						auxTick--;
+					}
+					if (!explosions[oldestEx].visible) {
+						explosions[oldestEx].visible = 1;
+
+						
+						uint8_t tileNum = ((uint8_t)rand()) % exTileCount;
+						uint8_t xOff = ((uint8_t)rand()) % 32;
+						uint8_t yOff = ((uint8_t)rand()) % 32;
+
+						explosions[oldestEx].x = playerDrawX -16 + xOff;
+						explosions[oldestEx].y = playerDrawY -16 + yOff;
+						explosions[oldestEx].tile = exTiles[tileNum];
+						explosions[oldestEx].frame = 0;
+						explosions[oldestEx].frameCounter = 0;
+
+						set_sprite_tile(20 + oldestEx+oldestEx, explosions[oldestEx].tile + (explosions[oldestEx].frame<<1));
+						set_sprite_tile(21 + oldestEx+oldestEx, explosions[oldestEx].tile+(explosions[oldestEx].frame<<1) +2);
+
+						oldestEx++;
+						if (oldestEx >= exCount) {
+							oldestEx = 0;
+						}
+						endExCount++;
+
+					}
+					SHOW_WIN;	
+
+					wait_vbl_done();
+				}
+				//moving explosions out of the screen
+				for (uint8_t j=0; j<exCount; ++j) {
+
+					move_sprite(20 +j+j, 200, 200);
+					move_sprite(21 +j+j, 200, 200);
+				}
+				for (uint16_t k=0; k<180; ++k) {
+					SHOW_SPRITES;
+					SHOW_WIN;
+					wait_vbl_done();
+				}
+				disable_interrupts();
+				//displaying game ending screen
+				showScoreScreen();
+				waitpad(J_A | J_B | J_DOWN | J_LEFT | J_RIGHT | J_UP | J_SELECT | J_START);
 				waitpadup();
-				playSound(0);
-				break;
 			}
 
-			wait_vbl_done();
 
 		}
-
-		initEnemyOptions();
-		initGame();
-		initEnemies(1);
-		initProjectiles();
-
-		//main game loop
-		while(hull > 0) {
-			SHOW_SPRITES;
-
-			joydata = joypad(); // query for button states
-
-			updateDirection(); // set player direction
-			//move player, in future also checks collision damage with background objs
-			//also updates enemy positions, if background moves
-			move(); 
-
-			moveProjectiles();
-			tickPickups();
-			tickEx();
-
-
-			//updates enemy positions to take account changes made by move()
-			updateEnemyPositions();
-			checkCollision(); 
-
-			updateShieldsAndHull();
-
-
-			if (joydata & J_B && fireCooldown == 0) {
-				fire();
-			}
-			if (fireCooldown > 0) {
-				--fireCooldown;
-			}
-
-			if (joydata & J_SELECT && switchDelay == 0) {
-				if (currentGun == 0) {
-					currentGun = 1;
-				}
-				else if (currentGun == 1) {
-					currentGun = 0;
-				}
-				setGunIcon();
-				switchDelay = 30;
-			}
-			if (switchDelay != 0) {
-				switchDelay--;
-			}
-
-			if (auxTick == 0) {
-				auxTick = AUXTICKFREQUENCY;
-			}
-			else {
-				auxTick--;
-			}
-
-
-
-			if (hull > 100) {
-				hull = 0;
-			}
-			SHOW_SPRITES;
-
-	        SHOW_WIN;	
-			wait_vbl_done(); // Idle until next frame
+		else if (result == 1) {
+			showControls();
+			waitpad(J_B);
+			waitpadup();
 		}
-
-		//game ending frames showing explosions on top of player
-		//first init empty explosions in different states of animation to offset their spawn times
-		for (uint8_t i=0; i<exCount; ++i) {
-			explosions[i].x = 200;
-			explosions[i].y = 200;
-
-			explosions[i].tile = exTiles[0];
-			explosions[i].frameCounter = 0;
-			explosions[i].frame = 2-i;
-			explosions[i].visible = 1;
-		}
-		xOverflow = 0;
-		yOverflow = 0;
-		uint8_t endExCount = 0;
-		while(endExCount < 12) {
-
-			SHOW_SPRITES;
-			tickEx();
-			if (auxTick == 0) {
-				auxTick = AUXTICKFREQUENCY;
-			}
-			else {
-				auxTick--;
-			}
-			if (!explosions[oldestEx].visible) {
-				explosions[oldestEx].visible = 1;
-
-				
-				uint8_t tileNum = ((uint8_t)rand()) % exTileCount;
-				uint8_t xOff = ((uint8_t)rand()) % 32;
-				uint8_t yOff = ((uint8_t)rand()) % 32;
-
-				explosions[oldestEx].x = playerDrawX -16 + xOff;
-				explosions[oldestEx].y = playerDrawY -16 + yOff;
-				explosions[oldestEx].tile = exTiles[tileNum];
-				explosions[oldestEx].frame = 0;
-				explosions[oldestEx].frameCounter = 0;
-
-				set_sprite_tile(20 + oldestEx+oldestEx, explosions[oldestEx].tile + (explosions[oldestEx].frame<<1));
-				set_sprite_tile(21 + oldestEx+oldestEx, explosions[oldestEx].tile+(explosions[oldestEx].frame<<1) +2);
-
-				oldestEx++;
-				if (oldestEx >= exCount) {
-					oldestEx = 0;
-				}
-				endExCount++;
-
-			}
-			SHOW_WIN;	
-
-			wait_vbl_done();
-		}
-		//moving explosions out of the screen
-		for (uint8_t j=0; j<exCount; ++j) {
-
-			move_sprite(20 +j+j, 200, 200);
-			move_sprite(21 +j+j, 200, 200);
-		}
-		for (uint16_t k=0; k<180; ++k) {
-			SHOW_SPRITES;
-			SHOW_WIN;
-			wait_vbl_done();
-		}
-		disable_interrupts();
-		//displaying game ending screen
-		showScoreScreen();
-		waitpad(J_A | J_B | J_DOWN | J_LEFT | J_RIGHT | J_UP | J_SELECT | J_START);
-		waitpadup();
-
+		
 	}
 
 }

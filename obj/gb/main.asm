@@ -10,10 +10,12 @@
 ;--------------------------------------------------------
 	.globl _main
 	.globl _clearScreen
-	.globl _updateMenu
+	.globl _showMapSelection
 	.globl _showMenu
+	.globl _updateMenu
 	.globl _showStartScreen
 	.globl _initFont
+	.globl _showControls
 	.globl _showScoreScreen
 	.globl _initGame
 	.globl _initProjectiles
@@ -13332,46 +13334,20 @@ _showScoreScreen::
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xdf
 	ldh	(_LCDC_REG + 0), a
+;src/main.c:1300: HIDE_SPRITES;
+	ldh	a, (_LCDC_REG + 0)
+	and	a, #0xfd
+	ldh	(_LCDC_REG + 0), a
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1316: WX_REG=x, WY_REG=y;
 	xor	a, a
 	ldh	(_WX_REG + 0), a
 	xor	a, a
 	ldh	(_WY_REG + 0), a
-;src/main.c:1303: for (uint8_t i=0; i < 18; ++i) {
-	ld	b, #0x00
-00105$:
-	ld	a, b
-	sub	a, #0x12
-	jr	NC, 00101$
-;src/main.c:1304: set_bkg_tiles(1,i,20,1,emptyRow);
-	ld	de, #_emptyRow
-	push	de
-	ld	hl, #0x114
-	push	hl
-	push	bc
-	inc	sp
-	ld	a, #0x01
-	push	af
-	inc	sp
-	call	_set_bkg_tiles
-	add	sp, #6
-;src/main.c:1305: set_win_tiles(1,i,20,1,emptyRow);
-	ld	de, #_emptyRow
-	push	de
-	ld	hl, #0x114
-	push	hl
-	push	bc
-	inc	sp
-	ld	a, #0x01
-	push	af
-	inc	sp
-	call	_set_win_tiles
-	add	sp, #6
-;src/main.c:1303: for (uint8_t i=0; i < 18; ++i) {
-	inc	b
-	jr	00105$
-00101$:
-;src/main.c:1308: set_win_tiles(8, 5, 5, 1, endScoreLabel);
+;src/main.c:1304: clearScreen();
+	call	_clearScreen
+;src/main.c:1305: initFont();
+	call	_initFont
+;src/main.c:1307: set_win_tiles(8, 5, 5, 1, endScoreLabel);
 	ld	de, #_endScoreLabel
 	push	de
 	ld	hl, #0x105
@@ -13380,25 +13356,25 @@ _showScoreScreen::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1312: for (uint16_t j=0; j<1234; ++j) {
+;src/main.c:1311: for (uint16_t j=0; j<1234; ++j) {
 	ld	bc, #0x0000
-00108$:
+00104$:
 	ld	e, c
 	ld	d, b
 	ld	a, e
 	sub	a, #0xd2
 	ld	a, d
 	sbc	a, #0x04
-	jr	NC, 00102$
-;src/main.c:1313: incrementScore();
+	jr	NC, 00101$
+;src/main.c:1312: incrementScore();
 	push	bc
 	call	_incrementScore
 	pop	bc
-;src/main.c:1312: for (uint16_t j=0; j<1234; ++j) {
+;src/main.c:1311: for (uint16_t j=0; j<1234; ++j) {
 	inc	bc
-	jr	00108$
-00102$:
-;src/main.c:1315: bcd2text(&SCORE, 0x01, buf);
+	jr	00104$
+00101$:
+;src/main.c:1314: bcd2text(&SCORE, 0x01, buf);
 	ldhl	sp,	#0
 	ld	c, l
 	ld	b, h
@@ -13414,7 +13390,7 @@ _showScoreScreen::
 	call	_bcd2text
 	add	sp, #5
 	pop	bc
-;src/main.c:1316: set_win_tiles(7, 8, 7, 1, buf+1);
+;src/main.c:1315: set_win_tiles(7, 8, 7, 1, buf+1);
 	inc	bc
 	push	bc
 	ld	hl, #0x107
@@ -13423,7 +13399,7 @@ _showScoreScreen::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1320: set_win_tiles(4, 11, 13, 1, pressAnyKeyLabel);
+;src/main.c:1319: set_win_tiles(4, 11, 13, 1, pressAnyKeyLabel);
 	ld	de, #_pressAnyKeyLabel
 	push	de
 	ld	hl, #0x10d
@@ -13432,7 +13408,7 @@ _showScoreScreen::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1322: set_win_tiles(5, 12, 11, 1, toContinueLabel);
+;src/main.c:1321: set_win_tiles(5, 12, 11, 1, toContinueLabel);
 	ld	de, #_toContinueLabel
 	push	de
 	ld	hl, #0x10b
@@ -13441,21 +13417,58 @@ _showScoreScreen::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1326: SHOW_WIN;
+;src/main.c:1325: SHOW_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1328: }
+;src/main.c:1327: }
 	add	sp, #10
 	ret
-;src/main.c:1330: void initFont() {
+;src/main.c:1329: void showControls() {
+;	---------------------------------
+; Function showControls
+; ---------------------------------
+_showControls::
+;src/main.c:1330: HIDE_WIN;
+	ldh	a, (_LCDC_REG + 0)
+	and	a, #0xdf
+	ldh	(_LCDC_REG + 0), a
+;src/main.c:1331: HIDE_SPRITES;
+	ldh	a, (_LCDC_REG + 0)
+	and	a, #0xfd
+	ldh	(_LCDC_REG + 0), a
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1316: WX_REG=x, WY_REG=y;
+	xor	a, a
+	ldh	(_WX_REG + 0), a
+	xor	a, a
+	ldh	(_WY_REG + 0), a
+;src/main.c:1335: clearScreen();
+	call	_clearScreen
+;src/main.c:1336: initFont();
+	call	_initFont
+;src/main.c:1338: set_win_tiles(8, 5, 5, 1, endScoreLabel);
+	ld	de, #_endScoreLabel
+	push	de
+	ld	hl, #0x105
+	push	hl
+	ld	hl, #0x508
+	push	hl
+	call	_set_win_tiles
+	add	sp, #6
+;src/main.c:1341: SHOW_WIN;
+	ldh	a, (_LCDC_REG + 0)
+	or	a, #0x20
+	ldh	(_LCDC_REG + 0), a
+;src/main.c:1343: }
+	ret
+;src/main.c:1345: void initFont() {
 ;	---------------------------------
 ; Function initFont
 ; ---------------------------------
 _initFont::
-;src/main.c:1331: font_init();
+;src/main.c:1346: font_init();
 	call	_font_init
-;src/main.c:1333: min_font = font_load(font_min); // 36 tiles of characters
+;src/main.c:1348: min_font = font_load(font_min); // 36 tiles of characters
 	ld	de, #_font_min
 	push	de
 	call	_font_load
@@ -13463,7 +13476,7 @@ _initFont::
 	ld	hl, #_min_font
 	ld	a, e
 	ld	(hl+), a
-;src/main.c:1334: font_set(min_font);
+;src/main.c:1349: font_set(min_font);
 	ld	a, d
 	ld	(hl-), a
 	ld	a, (hl+)
@@ -13472,16 +13485,16 @@ _initFont::
 	push	de
 	call	_font_set
 	pop	hl
-;src/main.c:1336: }
+;src/main.c:1351: }
 	ret
-;src/main.c:1338: void showStartScreen() {
+;src/main.c:1353: void showStartScreen() {
 ;	---------------------------------
 ; Function showStartScreen
 ; ---------------------------------
 _showStartScreen::
-;src/main.c:1339: initFont();
+;src/main.c:1354: initFont();
 	call	_initFont
-;src/main.c:1341: HIDE_WIN;
+;src/main.c:1356: HIDE_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xdf
 	ldh	(_LCDC_REG + 0), a
@@ -13490,7 +13503,7 @@ _showStartScreen::
 	ldh	(_WX_REG + 0), a
 	xor	a, a
 	ldh	(_WY_REG + 0), a
-;src/main.c:1346: set_win_tiles(5, 8, 11, 1, pressStartLabel);
+;src/main.c:1361: set_win_tiles(5, 8, 11, 1, pressStartLabel);
 	ld	de, #_pressStartLabel
 	push	de
 	ld	hl, #0x10b
@@ -13499,83 +13512,18 @@ _showStartScreen::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1348: SHOW_WIN;
+;src/main.c:1363: SHOW_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1349: }
+;src/main.c:1364: }
 	ret
-;src/main.c:1351: void showMenu() {
-;	---------------------------------
-; Function showMenu
-; ---------------------------------
-_showMenu::
-;src/main.c:1352: initFont();
-	call	_initFont
-;src/main.c:1354: HIDE_WIN;
-	ldh	a, (_LCDC_REG + 0)
-	and	a, #0xdf
-	ldh	(_LCDC_REG + 0), a
-;src/main.c:1355: HIDE_SPRITES;
-	ldh	a, (_LCDC_REG + 0)
-	and	a, #0xfd
-	ldh	(_LCDC_REG + 0), a
-;src/main.c:1357: SPRITES_8x8;
-	ldh	a, (_LCDC_REG + 0)
-	and	a, #0xfb
-	ldh	(_LCDC_REG + 0), a
-;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1316: WX_REG=x, WY_REG=y;
-	xor	a, a
-	ldh	(_WX_REG + 0), a
-	xor	a, a
-	ldh	(_WY_REG + 0), a
-;src/main.c:1363: set_win_tiles(9,7, 4, 1, playLabel);
-	ld	de, #_playLabel
-	push	de
-	ld	hl, #0x104
-	push	hl
-	ld	hl, #0x709
-	push	hl
-	call	_set_win_tiles
-	add	sp, #6
-;src/main.c:1364: set_win_tiles(7, 8, 8, 1, controlsLabel);
-	ld	de, #_controlsLabel
-	push	de
-	ld	hl, #0x108
-	push	hl
-	ld	hl, #0x807
-	push	hl
-	call	_set_win_tiles
-	add	sp, #6
-;src/main.c:1368: set_sprite_data(0, 1, MenuPicker);
-	ld	de, #_MenuPicker
-	push	de
-	xor	a, a
-	inc	a
-	push	af
-	call	_set_sprite_data
-	add	sp, #4
-;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
-	ld	hl, #(_shadow_OAM + 2)
-	ld	(hl), #0x00
-	ld	hl, #(_shadow_OAM + 6)
-	ld	(hl), #0x00
-;src/main.c:1371: SHOW_WIN;
-	ldh	a, (_LCDC_REG + 0)
-	or	a, #0x20
-	ldh	(_LCDC_REG + 0), a
-;src/main.c:1372: SHOW_SPRITES;
-	ldh	a, (_LCDC_REG + 0)
-	or	a, #0x02
-	ldh	(_LCDC_REG + 0), a
-;src/main.c:1374: }
-	ret
-;src/main.c:1376: void updateMenu(int8_t menuitem) {
+;src/main.c:1367: void updateMenu(int8_t menuitem) {
 ;	---------------------------------
 ; Function updateMenu
 ; ---------------------------------
 _updateMenu::
-;src/main.c:1377: move_sprite(0, 47, 72+ (menuitem<<3));
+;src/main.c:1368: move_sprite(0, 47, 72+ (menuitem<<3));
 	ldhl	sp,	#2
 	ld	a, (hl)
 	add	a, a
@@ -13596,29 +13544,193 @@ _updateMenu::
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), #0x7b
-;src/main.c:1378: move_sprite(1, 123, 72+ (menuitem<<3));
-;src/main.c:1380: }
+;src/main.c:1369: move_sprite(1, 123, 72+ (menuitem<<3));
+;src/main.c:1371: }
 	ret
-;src/main.c:1382: void clearScreen() {
+;src/main.c:1374: uint8_t showMenu() {
+;	---------------------------------
+; Function showMenu
+; ---------------------------------
+_showMenu::
+;src/main.c:1375: initFont();
+	call	_initFont
+;src/main.c:1377: HIDE_WIN;
+	ldh	a, (_LCDC_REG + 0)
+	and	a, #0xdf
+	ldh	(_LCDC_REG + 0), a
+;src/main.c:1378: HIDE_SPRITES;
+	ldh	a, (_LCDC_REG + 0)
+	and	a, #0xfd
+	ldh	(_LCDC_REG + 0), a
+;src/main.c:1380: SPRITES_8x8;
+	ldh	a, (_LCDC_REG + 0)
+	and	a, #0xfb
+	ldh	(_LCDC_REG + 0), a
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1316: WX_REG=x, WY_REG=y;
+	xor	a, a
+	ldh	(_WX_REG + 0), a
+	xor	a, a
+	ldh	(_WY_REG + 0), a
+;src/main.c:1386: set_win_tiles(9,7, 4, 1, playLabel);
+	ld	de, #_playLabel
+	push	de
+	ld	hl, #0x104
+	push	hl
+	ld	hl, #0x709
+	push	hl
+	call	_set_win_tiles
+	add	sp, #6
+;src/main.c:1387: set_win_tiles(7, 8, 8, 1, controlsLabel);
+	ld	de, #_controlsLabel
+	push	de
+	ld	hl, #0x108
+	push	hl
+	ld	hl, #0x807
+	push	hl
+	call	_set_win_tiles
+	add	sp, #6
+;src/main.c:1391: set_sprite_data(0, 1, MenuPicker);
+	ld	de, #_MenuPicker
+	push	de
+	xor	a, a
+	inc	a
+	push	af
+	call	_set_sprite_data
+	add	sp, #4
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
+	ld	hl, #(_shadow_OAM + 2)
+	ld	(hl), #0x00
+	ld	hl, #(_shadow_OAM + 6)
+	ld	(hl), #0x00
+;src/main.c:1394: SHOW_WIN;
+	ldh	a, (_LCDC_REG + 0)
+	or	a, #0x20
+	ldh	(_LCDC_REG + 0), a
+;src/main.c:1395: SHOW_SPRITES;
+	ldh	a, (_LCDC_REG + 0)
+	or	a, #0x02
+	ldh	(_LCDC_REG + 0), a
+;src/main.c:1398: int8_t menuitem = 0;
+	ld	c, #0x00
+;src/main.c:1400: while (1) {
+00113$:
+;src/main.c:1401: joydata = joypad(); // query for button states
+	call	_joypad
+	ld	hl, #_joydata
+	ld	(hl), e
+;src/main.c:1403: if (joydata & J_DOWN) {
+	ld	a, (hl)
+	bit	3, a
+	jr	Z, 00104$
+;src/main.c:1404: menuitem++;
+	inc	c
+	jr	00105$
+00104$:
+;src/main.c:1406: else if (joydata & J_UP) {
+	bit	2, a
+	jr	Z, 00105$
+;src/main.c:1407: menuitem--;
+	dec	c
+00105$:
+;src/main.c:355: return (value < min) ? min : (value > max) ? max : value;
+	bit	7, c
+	jr	Z, 00121$
+	ld	c, #0x00
+	jr	00122$
+00121$:
+	ld	e, c
+	ld	a,#0x01
+	ld	d,a
+	sub	a, c
+	bit	7, e
+	jr	Z, 00167$
+	bit	7, d
+	jr	NZ, 00168$
+	cp	a, a
+	jr	00168$
+00167$:
+	bit	7, d
+	jr	Z, 00168$
+	scf
+00168$:
+	jr	NC, 00123$
+	ld	c, #0x01
+00123$:
+00122$:
+;src/main.c:1409: menuitem = clamp(menuitem, 0, 1);
+	ld	b,c
+;src/main.c:1410: updateMenu(menuitem);
+	push	bc
+	push	bc
+	inc	sp
+	call	_updateMenu
+	inc	sp
+	pop	bc
+;src/main.c:1403: if (joydata & J_DOWN) {
+	ld	a, (#_joydata)
+;src/main.c:1412: if ((joydata & J_A) && menuitem == 0) {
+	and	a, #0x10
+	ld	e, a
+	ld	d, #0x00
+	ld	a, d
+	or	a, e
+	jr	Z, 00109$
+	ld	a, b
+	or	a, a
+	jr	NZ, 00109$
+;src/main.c:1413: waitpadup();
+	call	_waitpadup
+;src/main.c:1414: playSound(0);
+	xor	a, a
+	push	af
+	inc	sp
+	call	_playSound
+	inc	sp
+;src/main.c:1415: return 0;
+	ld	e, #0x00
+	ret
+00109$:
+;src/main.c:1417: else if (joydata & J_A) {
+	ld	a, d
+	or	a, e
+	jr	Z, 00110$
+;src/main.c:1418: return 1;
+	ld	e, #0x01
+	ret
+00110$:
+;src/main.c:1421: wait_vbl_done();
+	call	_wait_vbl_done
+;src/main.c:1424: }
+	jr	00113$
+;src/main.c:1427: uint8_t showMapSelection() {
+;	---------------------------------
+; Function showMapSelection
+; ---------------------------------
+_showMapSelection::
+;src/main.c:1428: return 1;
+	ld	e, #0x01
+;src/main.c:1429: }
+	ret
+;src/main.c:1431: void clearScreen() {
 ;	---------------------------------
 ; Function clearScreen
 ; ---------------------------------
 _clearScreen::
-;src/main.c:1383: HIDE_WIN;
+;src/main.c:1432: HIDE_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xdf
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1384: HIDE_BKG;
+;src/main.c:1433: HIDE_BKG;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xfe
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1385: for (uint8_t i=0; i < 18; ++i) {
+;src/main.c:1434: for (uint8_t i=0; i < 18; ++i) {
 	ld	b, #0x00
 00105$:
 	ld	a, b
 	sub	a, #0x12
 	jr	NC, 00101$
-;src/main.c:1386: set_win_tiles(1,i,20,1,emptyRow);
+;src/main.c:1435: set_win_tiles(1,i,20,1,emptyRow);
 	ld	de, #_emptyRow
 	push	de
 	ld	hl, #0x114
@@ -13630,7 +13742,7 @@ _clearScreen::
 	inc	sp
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1387: set_bkg_tiles(1,i,20,1,emptyRow);
+;src/main.c:1436: set_bkg_tiles(1,i,20,1,emptyRow);
 	ld	de, #_emptyRow
 	push	de
 	ld	hl, #0x114
@@ -13642,11 +13754,11 @@ _clearScreen::
 	inc	sp
 	call	_set_bkg_tiles
 	add	sp, #6
-;src/main.c:1385: for (uint8_t i=0; i < 18; ++i) {
+;src/main.c:1434: for (uint8_t i=0; i < 18; ++i) {
 	inc	b
 	jr	00105$
 00101$:
-;src/main.c:1389: for (uint8_t j=0; j < 20; ++j) {
+;src/main.c:1438: for (uint8_t j=0; j < 20; ++j) {
 	ld	c, #0x00
 00108$:
 	ld	a, c
@@ -13666,21 +13778,21 @@ _clearScreen::
 	inc	hl
 	inc	hl
 	ld	(hl), #0x7f
-;src/main.c:1389: for (uint8_t j=0; j < 20; ++j) {
+;src/main.c:1438: for (uint8_t j=0; j < 20; ++j) {
 	inc	c
 	jr	00108$
 00102$:
-;src/main.c:1395: SHOW_WIN;
+;src/main.c:1444: SHOW_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1396: SHOW_BKG;
+;src/main.c:1445: SHOW_BKG;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x01
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1398: }
+;src/main.c:1447: }
 	ret
-;src/main.c:1400: void main(){
+;src/main.c:1449: void main(){
 ;	---------------------------------
 ; Function main
 ; ---------------------------------
@@ -13688,30 +13800,30 @@ _main::
 	add	sp, #-4
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:671: __asm__("di");
 	di
-;src/main.c:1405: showStartScreen();
+;src/main.c:1454: showStartScreen();
 	call	_showStartScreen
-;src/main.c:1406: waitpad(J_START | J_A);
+;src/main.c:1455: waitpad(J_START | J_A);
 	ld	a, #0x90
 	push	af
 	inc	sp
 	call	_waitpad
 	inc	sp
-;src/main.c:1407: waitpadup();
+;src/main.c:1456: waitpadup();
 	call	_waitpadup
-;src/main.c:1412: NR52_REG = 0x80; // sound on 
+;src/main.c:1461: NR52_REG = 0x80; // sound on 
 	ld	a, #0x80
 	ldh	(_NR52_REG + 0), a
-;src/main.c:1413: NR50_REG = 0x77; // volume
+;src/main.c:1462: NR50_REG = 0x77; // volume
 	ld	a, #0x77
 	ldh	(_NR50_REG + 0), a
-;src/main.c:1414: NR51_REG = 0xFF; // all channels
+;src/main.c:1463: NR51_REG = 0xFF; // all channels
 	ld	a, #0xff
 	ldh	(_NR51_REG + 0), a
-;src/main.c:1417: uint16_t seed = LY_REG;
+;src/main.c:1466: uint16_t seed = LY_REG;
 	ldh	a, (_LY_REG + 0)
 	ld	c, a
 	ld	b, #0x00
-;src/main.c:1418: seed |= (uint16_t)DIV_REG << 8;
+;src/main.c:1467: seed |= (uint16_t)DIV_REG << 8;
 	ldh	a, (_DIV_REG + 0)
 	ld	e, a
 	xor	a, a
@@ -13720,135 +13832,74 @@ _main::
 	ld	a, e
 	or	a, b
 	ld	b, a
-;src/main.c:1419: initrand(seed);
+;src/main.c:1468: initrand(seed);
 	push	bc
 	call	_initrand
 	inc	sp
 	inc	sp
-;src/main.c:1424: while(1) {
-00149$:
+;src/main.c:1473: while(1) {
+00146$:
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:671: __asm__("di");
 	di
-;src/main.c:1432: clearScreen();
-	call	_clearScreen
-;src/main.c:1434: showMenu();
-	call	_showMenu
-;src/main.c:1435: int8_t menuitem = 0;
-	ld	c, #0x00
-;src/main.c:1437: while (1) {
-00110$:
-;src/main.c:1438: joydata = joypad(); // query for button states
-	call	_joypad
-	ld	hl, #_joydata
-	ld	(hl), e
-;src/main.c:1440: if (joydata & J_DOWN) {
-	ld	a, (hl)
-	bit	3, a
-	jr	Z, 00104$
-;src/main.c:1441: menuitem++;
-	inc	c
-	jr	00105$
-00104$:
-;src/main.c:1443: else if (joydata & J_UP) {
-	bit	2, a
-	jr	Z, 00105$
-;src/main.c:1444: menuitem--;
-	dec	c
-00105$:
-;src/main.c:355: return (value < min) ? min : (value > max) ? max : value;
-	bit	7, c
-	jr	Z, 00173$
-	ld	c, #0x00
-	jr	00174$
-00173$:
-	ld	e, c
-	ld	a,#0x01
-	ld	d,a
-	sub	a, c
-	bit	7, e
-	jr	Z, 00375$
-	bit	7, d
-	jr	NZ, 00376$
-	cp	a, a
-	jr	00376$
-00375$:
-	bit	7, d
-	jr	Z, 00376$
-	scf
-00376$:
-	jr	NC, 00175$
-	ld	c, #0x01
-00175$:
-00174$:
-;src/main.c:1446: menuitem = clamp(menuitem, 0, 1);
-	ld	b,c
-;src/main.c:1447: updateMenu(menuitem);
-	push	bc
-	push	bc
-	inc	sp
-	call	_updateMenu
-	inc	sp
-	pop	bc
-;src/main.c:1449: if ((joydata & J_A) && menuitem == 0) {
-	ld	a, (#_joydata)
-	bit	4, a
-	jr	Z, 00107$
-	ld	a, b
-	or	a, a
-	jr	NZ, 00107$
-;src/main.c:1450: waitpadup();
-	call	_waitpadup
-;src/main.c:1451: playSound(0);
-	xor	a, a
+;src/main.c:1478: set_interrupts(1);   
+	ld	a, #0x01
 	push	af
 	inc	sp
-	call	_playSound
+	call	_set_interrupts
 	inc	sp
-;src/main.c:1452: break;
-	jr	00111$
-00107$:
-;src/main.c:1455: wait_vbl_done();
-	call	_wait_vbl_done
-	jr	00110$
-00111$:
-;src/main.c:1459: initEnemyOptions();
+;src/main.c:1480: clearScreen();
+	call	_clearScreen
+;src/main.c:1482: uint8_t result = showMenu();
+	call	_showMenu
+	ld	a, e
+	ld	b, a
+;src/main.c:1485: if (result == 0) {
+	or	a, a
+	jp	NZ, 00143$
+;src/main.c:1487: uint8_t map = showMapSelection();
+	call	_showMapSelection
+	ld	a, e
+;src/main.c:1488: if (map == 0) {
+	or	a, a
+	jr	Z, 00146$
+;src/main.c:1493: initEnemyOptions();
 	call	_initEnemyOptions
-;src/main.c:1460: initGame();
+;src/main.c:1494: initGame();
 	call	_initGame
-;src/main.c:1461: initEnemies(1);
+;src/main.c:1495: initEnemies(1);
 	ld	a, #0x01
 	push	af
 	inc	sp
 	call	_initEnemies
 	inc	sp
-;src/main.c:1462: initProjectiles();
+;src/main.c:1496: initProjectiles();
 	call	_initProjectiles
-;src/main.c:1465: while(hull > 0) {
-00132$:
+;src/main.c:1499: while(hull > 0) {
+00121$:
 	ld	a, (#_hull)
 	or	a, a
-	jp	Z, 00198$
-;src/main.c:1466: SHOW_SPRITES;
+	jp	Z, 00186$
+;src/main.c:1500: SHOW_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x02
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1468: joydata = joypad(); // query for button states
+;src/main.c:1502: joydata = joypad(); // query for button states
 	call	_joypad
 	ld	hl, #_joydata
 	ld	(hl), e
-;src/main.c:1470: updateDirection(); // set player direction
+;src/main.c:1504: updateDirection(); // set player direction
 	call	_updateDirection
-;src/main.c:1473: move(); 
+;src/main.c:1507: move(); 
 	call	_move
-;src/main.c:1475: moveProjectiles();
+;src/main.c:1509: moveProjectiles();
 	call	_moveProjectiles
-;src/main.c:1476: tickPickups();
+;src/main.c:1510: tickPickups();
 	call	_tickPickups
-;src/main.c:1477: tickEx();
+;src/main.c:1511: tickEx();
 	call	_tickEx
-;src/main.c:1481: updateEnemyPositions();
+;src/main.c:1515: updateEnemyPositions();
 	call	_updateEnemyPositions
-;src/main.c:1482: checkCollision(); 
+;src/main.c:1516: checkCollision(); 
 	call	_checkCollision
 ;src/main.c:977: if (shield < maxShield) {
 	ld	hl, #_maxShield
@@ -13859,21 +13910,21 @@ _main::
 	ld	a, (hl)
 	sub	a, c
 	bit	7, e
-	jr	Z, 00378$
+	jr	Z, 00341$
 	bit	7, d
-	jr	NZ, 00379$
+	jr	NZ, 00342$
 	cp	a, a
-	jr	00379$
-00378$:
+	jr	00342$
+00341$:
 	bit	7, d
-	jr	Z, 00379$
+	jr	Z, 00342$
 	scf
-00379$:
-	jr	NC, 00155$
+00342$:
+	jr	NC, 00151$
 ;src/main.c:978: shield += 1;
 	ld	hl, #_shield
 	inc	(hl)
-00155$:
+00151$:
 ;src/main.c:980: setHealthBar(0, hull);
 	ld	a, (#_hull)
 	ld	h, a
@@ -13888,106 +13939,106 @@ _main::
 	push	hl
 	call	_setHealthBar
 	pop	hl
-;src/main.c:1487: if (joydata & J_B && fireCooldown == 0) {
+;src/main.c:1521: if (joydata & J_B && fireCooldown == 0) {
 	ld	a, (#_joydata)
 	bit	5, a
-	jr	Z, 00113$
+	jr	Z, 00102$
 	ld	a, (#_fireCooldown)
 	or	a, a
-	jr	NZ, 00113$
-;src/main.c:1488: fire();
+	jr	NZ, 00102$
+;src/main.c:1522: fire();
 	call	_fire
-00113$:
-;src/main.c:1490: if (fireCooldown > 0) {
+00102$:
+;src/main.c:1524: if (fireCooldown > 0) {
 	ld	hl, #_fireCooldown
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00116$
-;src/main.c:1491: --fireCooldown;
+	jr	Z, 00105$
+;src/main.c:1525: --fireCooldown;
 	dec	(hl)
-00116$:
-;src/main.c:1494: if (joydata & J_SELECT && switchDelay == 0) {
+00105$:
+;src/main.c:1528: if (joydata & J_SELECT && switchDelay == 0) {
 	ld	a, (#_joydata)
 	bit	6, a
-	jr	Z, 00123$
+	jr	Z, 00112$
 	ld	a, (#_switchDelay)
 	or	a, a
-	jr	NZ, 00123$
-;src/main.c:1495: if (currentGun == 0) {
+	jr	NZ, 00112$
+;src/main.c:1529: if (currentGun == 0) {
 	ld	hl, #_currentGun
 	ld	a, (hl)
 	or	a, a
-	jr	NZ, 00120$
-;src/main.c:1496: currentGun = 1;
+	jr	NZ, 00109$
+;src/main.c:1530: currentGun = 1;
 	ld	(hl), #0x01
-	jr	00121$
-00120$:
-;src/main.c:1498: else if (currentGun == 1) {
+	jr	00110$
+00109$:
+;src/main.c:1532: else if (currentGun == 1) {
 	ld	a, (#_currentGun)
 	dec	a
-	jr	NZ, 00121$
-;src/main.c:1499: currentGun = 0;
+	jr	NZ, 00110$
+;src/main.c:1533: currentGun = 0;
 	ld	hl, #_currentGun
 	ld	(hl), #0x00
-00121$:
-;src/main.c:1501: setGunIcon();
+00110$:
+;src/main.c:1535: setGunIcon();
 	call	_setGunIcon
-;src/main.c:1502: switchDelay = 30;
+;src/main.c:1536: switchDelay = 30;
 	ld	hl, #_switchDelay
 	ld	(hl), #0x1e
-00123$:
-;src/main.c:1504: if (switchDelay != 0) {
+00112$:
+;src/main.c:1538: if (switchDelay != 0) {
 	ld	hl, #_switchDelay
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00126$
-;src/main.c:1505: switchDelay--;
+	jr	Z, 00115$
+;src/main.c:1539: switchDelay--;
 	dec	(hl)
-00126$:
-;src/main.c:1508: if (auxTick == 0) {
+00115$:
+;src/main.c:1542: if (auxTick == 0) {
 	ld	a, (#_auxTick)
 	or	a, a
-	jr	NZ, 00128$
-;src/main.c:1509: auxTick = AUXTICKFREQUENCY;
+	jr	NZ, 00117$
+;src/main.c:1543: auxTick = AUXTICKFREQUENCY;
 	ld	a, (#_AUXTICKFREQUENCY)
 	ld	(#_auxTick),a
-	jr	00129$
-00128$:
-;src/main.c:1512: auxTick--;
+	jr	00118$
+00117$:
+;src/main.c:1546: auxTick--;
 	ld	hl, #_auxTick
 	dec	(hl)
-00129$:
-;src/main.c:1517: if (hull > 100) {
+00118$:
+;src/main.c:1551: if (hull > 100) {
 	ld	a, #0x64
 	ld	hl, #_hull
 	sub	a, (hl)
-	jr	NC, 00131$
-;src/main.c:1518: hull = 0;
+	jr	NC, 00120$
+;src/main.c:1552: hull = 0;
 	ld	(hl), #0x00
-00131$:
-;src/main.c:1520: SHOW_SPRITES;
+00120$:
+;src/main.c:1554: SHOW_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x02
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1522: SHOW_WIN;	
+;src/main.c:1556: SHOW_WIN;	
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1523: wait_vbl_done(); // Idle until next frame
+;src/main.c:1557: wait_vbl_done(); // Idle until next frame
 	call	_wait_vbl_done
-	jp	00132$
-;src/main.c:1528: for (uint8_t i=0; i<exCount; ++i) {
-00198$:
+	jp	00121$
+;src/main.c:1562: for (uint8_t i=0; i<exCount; ++i) {
+00186$:
 	ldhl	sp,	#3
 	ld	(hl), #0x00
-00163$:
+00159$:
 	ld	hl, #_exCount
 	ld	c, (hl)
 	ldhl	sp,	#3
 	ld	a, (hl)
 	sub	a, c
-	jr	NC, 00135$
-;src/main.c:1529: explosions[i].x = 200;
+	jr	NC, 00124$
+;src/main.c:1563: explosions[i].x = 200;
 	ld	c, (hl)
 	ld	b, #0x00
 	ld	l, c
@@ -14005,7 +14056,7 @@ _main::
 ;	spillPairReg hl
 	inc	hl
 	ld	(hl), #0xc8
-;src/main.c:1530: explosions[i].y = 200;
+;src/main.c:1564: explosions[i].y = 200;
 	ld	l, c
 ;	spillPairReg hl
 ;	spillPairReg hl
@@ -14015,7 +14066,7 @@ _main::
 	inc	hl
 	inc	hl
 	ld	(hl), #0xc8
-;src/main.c:1532: explosions[i].tile = exTiles[0];
+;src/main.c:1566: explosions[i].tile = exTiles[0];
 	ld	hl, #0x0005
 	add	hl, bc
 	push	hl
@@ -14033,11 +14084,11 @@ _main::
 	ld	l, a
 	pop	af
 	ld	(hl), a
-;src/main.c:1533: explosions[i].frameCounter = 0;
+;src/main.c:1567: explosions[i].frameCounter = 0;
 	ld	hl, #0x0004
 	add	hl, bc
 	ld	(hl), #0x00
-;src/main.c:1534: explosions[i].frame = 2-i;
+;src/main.c:1568: explosions[i].frame = 2-i;
 	ld	e, c
 	ld	d, b
 	inc	de
@@ -14050,52 +14101,52 @@ _main::
 	ld	a, #0x02
 	sub	a, l
 	ld	(de), a
-;src/main.c:1535: explosions[i].visible = 1;
+;src/main.c:1569: explosions[i].visible = 1;
 	ld	a, #0x01
 	ld	(bc), a
-;src/main.c:1528: for (uint8_t i=0; i<exCount; ++i) {
+;src/main.c:1562: for (uint8_t i=0; i<exCount; ++i) {
 	ldhl	sp,	#3
 	inc	(hl)
-	jr	00163$
-00135$:
-;src/main.c:1537: xOverflow = 0;
+	jr	00159$
+00124$:
+;src/main.c:1571: xOverflow = 0;
 	xor	a, a
 	ld	hl, #_xOverflow
 	ld	(hl+), a
 	ld	(hl), a
-;src/main.c:1538: yOverflow = 0;
+;src/main.c:1572: yOverflow = 0;
 	xor	a, a
 	ld	hl, #_yOverflow
 	ld	(hl+), a
 	ld	(hl), a
-;src/main.c:1540: while(endExCount < 12) {
+;src/main.c:1574: while(endExCount < 12) {
 	ldhl	sp,	#3
 	ld	(hl), #0x00
-00143$:
+00132$:
 	ldhl	sp,	#3
 	ld	a, (hl)
 	sub	a, #0x0c
-	jp	NC, 00145$
-;src/main.c:1542: SHOW_SPRITES;
+	jp	NC, 00134$
+;src/main.c:1576: SHOW_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x02
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1543: tickEx();
+;src/main.c:1577: tickEx();
 	call	_tickEx
-;src/main.c:1544: if (auxTick == 0) {
+;src/main.c:1578: if (auxTick == 0) {
 	ld	a, (#_auxTick)
 	or	a, a
-	jr	NZ, 00137$
-;src/main.c:1545: auxTick = AUXTICKFREQUENCY;
+	jr	NZ, 00126$
+;src/main.c:1579: auxTick = AUXTICKFREQUENCY;
 	ld	a, (#_AUXTICKFREQUENCY)
 	ld	(#_auxTick),a
-	jr	00138$
-00137$:
-;src/main.c:1548: auxTick--;
+	jr	00127$
+00126$:
+;src/main.c:1582: auxTick--;
 	ld	hl, #_auxTick
 	dec	(hl)
-00138$:
-;src/main.c:1550: if (!explosions[oldestEx].visible) {
+00127$:
+;src/main.c:1584: if (!explosions[oldestEx].visible) {
 	ld	hl, #_oldestEx
 	ld	c, (hl)
 	ld	b, #0x00
@@ -14119,13 +14170,13 @@ _main::
 	ld	d, (hl)
 	ld	a, (de)
 	or	a, a
-	jp	NZ, 00142$
-;src/main.c:1551: explosions[oldestEx].visible = 1;
+	jp	NZ, 00131$
+;src/main.c:1585: explosions[oldestEx].visible = 1;
 	ld	a, (hl-)
 	ld	l, (hl)
 	ld	h, a
 	ld	(hl), #0x01
-;src/main.c:1554: uint8_t tileNum = ((uint8_t)rand()) % exTileCount;
+;src/main.c:1588: uint8_t tileNum = ((uint8_t)rand()) % exTileCount;
 	call	_rand
 	ld	a, e
 	ld	hl, #_exTileCount
@@ -14138,19 +14189,19 @@ _main::
 	pop	hl
 	ldhl	sp,	#0
 	ld	(hl), e
-;src/main.c:1555: uint8_t xOff = ((uint8_t)rand()) % 32;
+;src/main.c:1589: uint8_t xOff = ((uint8_t)rand()) % 32;
 	call	_rand
 	ld	a, e
 	and	a, #0x1f
 	ldhl	sp,	#1
 	ld	(hl), a
-;src/main.c:1556: uint8_t yOff = ((uint8_t)rand()) % 32;
+;src/main.c:1590: uint8_t yOff = ((uint8_t)rand()) % 32;
 	call	_rand
 	ld	a, e
 	and	a, #0x1f
 	ldhl	sp,	#2
 	ld	(hl), a
-;src/main.c:1558: explosions[oldestEx].x = playerDrawX -16 + xOff;
+;src/main.c:1592: explosions[oldestEx].x = playerDrawX -16 + xOff;
 	ld	hl, #_oldestEx
 	ld	c, (hl)
 	ld	b, #0x00
@@ -14170,7 +14221,7 @@ _main::
 	ld	e, (hl)
 	add	a, e
 	ld	(bc), a
-;src/main.c:1559: explosions[oldestEx].y = playerDrawY -16 + yOff;
+;src/main.c:1593: explosions[oldestEx].y = playerDrawY -16 + yOff;
 	ld	hl, #_oldestEx
 	ld	c, (hl)
 	ld	b, #0x00
@@ -14191,7 +14242,7 @@ _main::
 	ld	e, (hl)
 	add	a, e
 	ld	(bc), a
-;src/main.c:1560: explosions[oldestEx].tile = exTiles[tileNum];
+;src/main.c:1594: explosions[oldestEx].tile = exTiles[tileNum];
 	ld	hl, #_oldestEx
 	ld	c, (hl)
 	ld	b, #0x00
@@ -14218,7 +14269,7 @@ _main::
 	ld	d, h
 	ld	a, (de)
 	ld	(bc), a
-;src/main.c:1561: explosions[oldestEx].frame = 0;
+;src/main.c:1595: explosions[oldestEx].frame = 0;
 	ld	hl, #_oldestEx
 	ld	c, (hl)
 	ld	b, #0x00
@@ -14233,7 +14284,7 @@ _main::
 	inc	hl
 	inc	hl
 	ld	(hl), #0x00
-;src/main.c:1562: explosions[oldestEx].frameCounter = 0;
+;src/main.c:1596: explosions[oldestEx].frameCounter = 0;
 	ld	hl, #_oldestEx
 	ld	c, (hl)
 	ld	b, #0x00
@@ -14247,7 +14298,7 @@ _main::
 	ld	bc, #0x0004
 	add	hl, bc
 	ld	(hl), #0x00
-;src/main.c:1564: set_sprite_tile(20 + oldestEx+oldestEx, explosions[oldestEx].tile + (explosions[oldestEx].frame<<1));
+;src/main.c:1598: set_sprite_tile(20 + oldestEx+oldestEx, explosions[oldestEx].tile + (explosions[oldestEx].frame<<1));
 	ld	hl, #_oldestEx
 	ld	c, (hl)
 	ld	b, #0x00
@@ -14289,7 +14340,7 @@ _main::
 	inc	hl
 	inc	hl
 	ld	(hl), c
-;src/main.c:1565: set_sprite_tile(21 + oldestEx+oldestEx, explosions[oldestEx].tile+(explosions[oldestEx].frame<<1) +2);
+;src/main.c:1599: set_sprite_tile(21 + oldestEx+oldestEx, explosions[oldestEx].tile+(explosions[oldestEx].frame<<1) +2);
 	ld	hl, #_oldestEx
 	ld	c, (hl)
 	ld	b, #0x00
@@ -14332,40 +14383,40 @@ _main::
 	inc	hl
 	inc	hl
 	ld	(hl), c
-;src/main.c:1567: oldestEx++;
+;src/main.c:1601: oldestEx++;
 	ld	hl, #_oldestEx
 	inc	(hl)
-;src/main.c:1568: if (oldestEx >= exCount) {
+;src/main.c:1602: if (oldestEx >= exCount) {
 	ld	hl, #_exCount
 	ld	c, (hl)
 	ld	hl, #_oldestEx
 	ld	a, (hl)
 	sub	a, c
-	jr	C, 00140$
-;src/main.c:1569: oldestEx = 0;
+	jr	C, 00129$
+;src/main.c:1603: oldestEx = 0;
 	ld	(hl), #0x00
-00140$:
-;src/main.c:1571: endExCount++;
+00129$:
+;src/main.c:1605: endExCount++;
 	ldhl	sp,	#3
 	inc	(hl)
-00142$:
-;src/main.c:1574: SHOW_WIN;	
+00131$:
+;src/main.c:1608: SHOW_WIN;	
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1576: wait_vbl_done();
+;src/main.c:1610: wait_vbl_done();
 	call	_wait_vbl_done
-	jp	00143$
-00145$:
-;src/main.c:1579: for (uint8_t j=0; j<exCount; ++j) {
+	jp	00132$
+00134$:
+;src/main.c:1613: for (uint8_t j=0; j<exCount; ++j) {
 	ld	c, #0x00
-00166$:
+00162$:
 	ld	hl, #_exCount
 	ld	b, (hl)
 	ld	a, c
 	sub	a, b
-	jr	NC, 00146$
-;src/main.c:1581: move_sprite(20 +j+j, 200, 200);
+	jr	NC, 00135$
+;src/main.c:1615: move_sprite(20 +j+j, 200, 200);
 	ld	b, c
 	ld	a, b
 	add	a, #0x14
@@ -14385,7 +14436,7 @@ _main::
 	ld	a, #0xc8
 	ld	(hl+), a
 	ld	(hl), #0xc8
-;src/main.c:1582: move_sprite(21 +j+j, 200, 200);
+;src/main.c:1616: move_sprite(21 +j+j, 200, 200);
 	ld	a, b
 	add	a, #0x15
 	add	a, b
@@ -14404,48 +14455,63 @@ _main::
 	ld	a, #0xc8
 	ld	(hl+), a
 	ld	(hl), #0xc8
-;src/main.c:1579: for (uint8_t j=0; j<exCount; ++j) {
+;src/main.c:1613: for (uint8_t j=0; j<exCount; ++j) {
 	inc	c
-	jr	00166$
-00146$:
-;src/main.c:1584: for (uint16_t k=0; k<180; ++k) {
+	jr	00162$
+00135$:
+;src/main.c:1618: for (uint16_t k=0; k<180; ++k) {
 	ld	bc, #0x0000
-00169$:
+00165$:
 	ld	e, c
 	ld	d, b
 	ld	a, e
 	sub	a, #0xb4
 	ld	a, d
 	sbc	a, #0x00
-	jr	NC, 00147$
-;src/main.c:1585: SHOW_SPRITES;
+	jr	NC, 00136$
+;src/main.c:1619: SHOW_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x02
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1586: SHOW_WIN;
+;src/main.c:1620: SHOW_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1587: wait_vbl_done();
+;src/main.c:1621: wait_vbl_done();
 	call	_wait_vbl_done
-;src/main.c:1584: for (uint16_t k=0; k<180; ++k) {
+;src/main.c:1618: for (uint16_t k=0; k<180; ++k) {
 	inc	bc
-	jr	00169$
-00147$:
+	jr	00165$
+00136$:
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:671: __asm__("di");
 	di
-;src/main.c:1591: showScoreScreen();
+;src/main.c:1625: showScoreScreen();
 	call	_showScoreScreen
-;src/main.c:1592: waitpad(J_A | J_B | J_DOWN | J_LEFT | J_RIGHT | J_UP | J_SELECT | J_START);
+;src/main.c:1626: waitpad(J_A | J_B | J_DOWN | J_LEFT | J_RIGHT | J_UP | J_SELECT | J_START);
 	ld	a, #0xff
 	push	af
 	inc	sp
 	call	_waitpad
 	inc	sp
-;src/main.c:1593: waitpadup();
+;src/main.c:1627: waitpadup();
 	call	_waitpadup
-	jp	00149$
-;src/main.c:1597: }
+	jp	00146$
+00143$:
+;src/main.c:1632: else if (result == 1) {
+	dec	b
+	jp	NZ,00146$
+;src/main.c:1633: showControls();
+	call	_showControls
+;src/main.c:1634: waitpad(J_B);
+	ld	a, #0x20
+	push	af
+	inc	sp
+	call	_waitpad
+	inc	sp
+;src/main.c:1635: waitpadup();
+	call	_waitpadup
+	jp	00146$
+;src/main.c:1640: }
 	add	sp, #4
 	ret
 	.area _CODE

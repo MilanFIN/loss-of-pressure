@@ -117,7 +117,7 @@ Symbol Table
   2 _blob                                                          000058 GR
   2 _bomb                                                          00006A GR
   0 _checkCollision                                                00281E GR
-  0 _clearScreen                                                   003C48 GR
+  0 _clearScreen                                                   003CBF GR
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy Z80-like CPU), page 3.
 Hexadecimal [24-Bits]
 
@@ -155,7 +155,7 @@ Symbol Table
   0 _initEnemies                                                   001519 GR
   0 _initEnemy                                                     001684 GR
   0 _initEnemyOptions                                              00385E GR
-  0 _initFont                                                      003B8D GR
+  0 _initFont                                                      003B99 GR
   0 _initGame                                                      0038CB GR
   0 _initProjectiles                                               0038B4 GR
     _initrand                                                      ****** GX
@@ -164,7 +164,7 @@ Symbol Table
     _joypad                                                        ****** GX
   0 _killEnemy                                                     002686 GR
   0 _largeenemies                                                  000A68 GR
-  0 _main                                                          003CA8 GR
+  0 _main                                                          003D1F GR
   0 _marsbackground                                                000607 GR
   0 _marstiles                                                     000507 GR
   0 _maxHull                                                       0010C1 GR
@@ -206,9 +206,11 @@ Symbol Table
   1 _shield                                                        0000F7 GR
   2 _shieldlabel                                                   000004 GR
   2 _shieldship                                                    0000A0 GR
-  0 _showMenu                                                      003BCF GR
+  0 _showControls                                                  003B69 GR
+  0 _showMapSelection                                              003CBC GR
+  0 _showMenu                                                      003BF4 GR
   0 _showScoreScreen                                               003AD9 GR
-  0 _showStartScreen                                               003BA8 GR
+  0 _showStartScreen                                               003BB4 GR
   2 _singleGun                                                     0000B2 GR
   0 _spawnPickup                                                   002611 GR
   2 _switchDelay                                                   0000F5 GR
@@ -218,7 +220,7 @@ Symbol Table
   2 _toContinueLabel                                               000022 GR
   0 _updateDirection                                               001291 GR
   0 _updateEnemyPositions                                          001768 GR
-  0 _updateMenu                                                    003C2F GR
+  0 _updateMenu                                                    003BDB GR
   0 _updateMissileCount                                            001204 GR
   0 _updateScore                                                   0011DA GR
   0 _upgrade                                                       000C08 GR
@@ -235,12 +237,13 @@ Symbol Table
   0 _ySpawnPositions                                               0010B7 GR
   2 _ySpeed                                                        0000DE GR
 
+
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy Z80-like CPU), page 5.
 Hexadecimal [24-Bits]
 
 Area Table
 
-   0 _CODE                                      size   4069   flags    0
+   0 _CODE                                      size   40AE   flags    0
    1 _DATA                                      size    11B   flags    0
    2 _INITIALIZED                               size    108   flags    0
    3 _DABS                                      size      0   flags    8
