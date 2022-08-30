@@ -104,7 +104,9 @@ uint8_t playerDrawY = 80;
 int16_t bgX = 0;
 int16_t bgY = 0;
 
-uint8_t joydata;
+uint8_t joydata = 0;
+uint8_t prevJoyData = 0;
+
 
 uint8_t hull;
 const int8_t maxHull = 100;
@@ -1415,17 +1417,13 @@ uint8_t showMenu() {
 			return 0;
 		}
 		else if (joydata & J_A) {
+			waitpadup();
 			return 1;
 		}
 
 		wait_vbl_done();
 
 	}
-}
-
-//returns 1 if a map was selected, 0 for back
-uint8_t showMapSelection() {
-	return 1;
 }
 
 void clearScreen() {
@@ -1445,6 +1443,55 @@ void clearScreen() {
 	SHOW_BKG;
 
 }
+//returns 1 if a map was selected, 0 for back
+uint8_t showLevelSelection() {
+	HIDE_WIN;
+	HIDE_SPRITES;
+	clearScreen();
+	initFont();
+	set_win_tiles(5,3, 12, 1, selectLevelLabel);
+
+	set_win_tiles(5,6, 4, 1, voidLabel);
+	set_win_tiles(5,7, 11, 1, asteroids1Label);
+	set_win_tiles(5,8, 11, 1, asteroids2Label);
+	set_win_tiles(5,9, 8, 1, marshabLabel);
+	set_win_tiles(5,10, 5, 1, bonusLabel);
+
+	set_sprite_data(0, 1, MenuPicker);
+	set_sprite_tile(0, 0);
+
+	SHOW_WIN;
+	SHOW_SPRITES;
+
+
+	int8_t menuitem = 0;
+	while(1) {
+		prevJoyData = joydata;
+		joydata = joypad();
+
+		if (joydata & J_A) {
+			waitpadup();
+			return 1;
+		}
+		if (joydata & J_B) {
+			waitpadup();
+			return 0;
+		}
+
+		if (!(prevJoyData & J_DOWN) && (joydata & J_DOWN)) {
+			++menuitem;
+		}
+		if (!(prevJoyData & J_UP) && (joydata & J_UP)) {
+			--menuitem;
+		}
+		menuitem = clamp(menuitem, 0, 4);
+		move_sprite(0, 31, 64 + (menuitem<<3));
+
+		wait_vbl_done();
+	}
+
+}
+
 
 void main(){
 
@@ -1484,7 +1531,7 @@ void main(){
 		//started game
 		if (result == 0) {
 
-			uint8_t map = showMapSelection();
+			uint8_t map = showLevelSelection();
 			if (map == 0) {
 				continue;
 			}
