@@ -8,7 +8,11 @@
 #include "data/marstiles.c"
 #include "data/marsbackground.c"
 
+#include "data/background2.c"
+#include "data/backgroundtiles2.c"
+
 #include "data/background3.c"
+#include "data/background4.c"
 
 
 #include "data/windowmap.c"
@@ -41,7 +45,8 @@
 /*
 TODO: 
 - kartan valinta
-	- pitää asettaa tileset, background ja muuttaa collision checkin x&y taulut
+	- collision detectionin x&y taulut pitää asettaa!
+	- jokaisen menun window +7, muuten buginen?
 
 
 
@@ -157,6 +162,9 @@ uint8_t exTiles[3] = {0x80, 0x90, 0xa0}; //vram hex addresses for first tile in 
 
 const uint8_t AUXTICKFREQUENCY = 1; //init value for below...
 uint8_t auxTick = 1; //used to stagger different actions to different frames to save resources
+
+
+unsigned char* collisionTiles;
 
 
 
@@ -668,7 +676,7 @@ void move() {
 	uint16_t ind = 32*bgindY + bgindX;
 	uint8_t result = 1; // 0 incase of clear path, 1 for blocked
 	for (uint8_t i=0; i<BLANKSIZE; i++) {
-		if (marsbackground[ind] == BLANK[i] ) {
+		if ((*(collisionTiles+ind)) == BLANK[i] ) {
 			result = 0;
 			break;
 		}
@@ -723,7 +731,7 @@ void move() {
 	ind = 32*bgindY + bgindX;
 	result = 1;
 	for (uint8_t j=0; j<BLANKSIZE; j++) {
-		if (marsbackground[ind] == BLANK[j] ) {
+		if ((*(collisionTiles+ind)) == BLANK[j] ) {
 			result = 0;
 			break;
 		}
@@ -1471,15 +1479,36 @@ uint8_t showLevelSelection() {
 			if (menuitem == 0) {
 				set_bkg_data(0x25, 8, backgroundtiles);		// load background tileset (start in vram, count, tilestruct)
 				set_bkg_tiles(0,0,background3Width, background3Height ,background3); //set tilemap to be a background
+				collisionTiles = background3; // set background to be the collision map
+				return 1;
+			}
+			if (menuitem == 1) {
+				set_bkg_data(0x25, 16, backgroundtiles);		
+				set_bkg_tiles(0,0,background1Width, background1Height ,background1); 
+				collisionTiles = background1;
+				return 1;
+			}
+			if (menuitem == 2) {
+				set_bkg_data(0x25, 16, backgroundtiles);		
+				set_bkg_tiles(0,0,background4Width, background4Height ,background4); 
+				collisionTiles = background4;
+				return 1;
+			}
+			if (menuitem == 3) {
+				set_bkg_data(0x25, 16, marstiles);		
+				set_bkg_tiles(0,0,marsbackgroundWidth, marsbackgroundHeight ,marsbackground); 
+				collisionTiles = marsbackground;
+				return 1;
 			}
 			else {
-				set_bkg_data(0x25, 16, marstiles);		// load background tileset (start in vram, count, tilestruct)
-				set_bkg_tiles(0,0,marsbackgroundWidth, marsbackgroundHeight ,marsbackground); //set tilemap to be a background
+				set_bkg_data(0x25, 16, backgroundtiles2);	
+				set_bkg_tiles(0,0,background2Width, background2Height ,background2); 
+				collisionTiles = background2;
+				return 1;
 			}
 			
 
 
-			return 1;
 		}
 		if (joydata & J_B) {
 			waitpadup();
@@ -1502,6 +1531,7 @@ uint8_t showLevelSelection() {
 
 
 void main(){
+
 
 	disable_interrupts();
 
