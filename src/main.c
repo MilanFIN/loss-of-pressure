@@ -8,6 +8,8 @@
 #include "data/marstiles.c"
 #include "data/marsbackground.c"
 
+#include "data/background3.c"
+
 
 #include "data/windowmap.c"
 #include "data/healthblock.c"
@@ -1250,10 +1252,6 @@ void initGame() {
 
 
 
-	// TODO: debug 
-	set_bkg_data(0x25, 16, marstiles);		// load background tileset (start in vram, count, tilestruct)
-	set_bkg_tiles(0,0,marsbackgroundWidth, marsbackgroundHeight ,marsbackground); //set tilemap to be a background
-	
 	
 	
 	move_bkg(0,0);
@@ -1310,9 +1308,7 @@ void showScoreScreen() {
 	unsigned char buf[10];
 	//bcd2text(&SCORE, 0, buf);
 	//set_win_tiles(8, 7, 8, 1, buf);
-	for (uint16_t j=0; j<1234; ++j) {
-		incrementScore();
-	}
+
 	bcd2text(&SCORE, 0x01, buf);
 	set_win_tiles(7, 8, 7, 1, buf+1);
 
@@ -1471,6 +1467,18 @@ uint8_t showLevelSelection() {
 
 		if (joydata & J_A) {
 			waitpadup();
+
+			if (menuitem == 0) {
+				set_bkg_data(0x25, 8, backgroundtiles);		// load background tileset (start in vram, count, tilestruct)
+				set_bkg_tiles(0,0,background3Width, background3Height ,background3); //set tilemap to be a background
+			}
+			else {
+				set_bkg_data(0x25, 16, marstiles);		// load background tileset (start in vram, count, tilestruct)
+				set_bkg_tiles(0,0,marsbackgroundWidth, marsbackgroundHeight ,marsbackground); //set tilemap to be a background
+			}
+			
+
+
 			return 1;
 		}
 		if (joydata & J_B) {
