@@ -45,7 +45,6 @@
 /*
 TODO: 
 - kartan valinta
-	- collision detectionin x&y taulut pitää asettaa!
 	- jokaisen menun window +7, muuten buginen?
 
 
@@ -67,6 +66,12 @@ TODO:
 const uint8_t BLANKSIZE = 3;
 const unsigned char BLANK[3] = {0x25, 0x26, 0x27}; 
 const unsigned char EMPTYSPRITE = 0x50;
+
+
+//bigger number for slower hp gain on enemies during gameplay
+// hp addition is calculated by difficulty % scale, difficulty increases by one every skill
+uint16_t HPSCALESPEED = 10; 
+uint16_t ATTACKSCALESPEED = 20; //same as above
 
 struct Enemy enemies[5];
 const uint8_t ENEMYCOUNT = 5;
@@ -165,6 +170,10 @@ uint8_t auxTick = 1; //used to stagger different actions to different frames to 
 
 
 unsigned char* collisionTiles;
+
+
+//spawn tables go here
+uint16_t difficulty = 0;
 
 
 
@@ -428,12 +437,38 @@ void playSound(uint8_t type) {
 	
 }
 
+void initFont() {
+	font_init();
+	//font_color(0, 0);
+    min_font = font_load(font_min); // 36 tiles of characters
+    font_set(min_font);
+}
+
+
+void clearScreen() {
+	HIDE_WIN;
+	HIDE_BKG;
+	for (uint8_t i=0; i < 18; ++i) {
+    	set_win_tiles(1,i,20,1,emptyRow);
+		set_bkg_tiles(1,i,20,1,emptyRow);
+	}
+	for (uint8_t j=0; j < 40; ++j) {
+		set_sprite_tile(j, 0x7f);
+	}
+
+	//set score label
+
+	SHOW_WIN;
+	SHOW_BKG;
+
+}
+
 void initEnemies(uint8_t loadSprites) {
 
 	if (loadSprites) {
 		//loading enemy sprites to vram
-		set_sprite_data(0x40, 5, enemy1);
-		set_sprite_data(0x50, 8, largeenemies);
+		set_sprite_data(0x40, 13, enemy1);
+		set_sprite_data(0x50, 32, largeenemies);
 	}
 
 	struct Enemy *eptr = enemies;
@@ -479,6 +514,9 @@ void initEnemy(uint8_t i) {
 		uint8_t posIndex =  ((uint8_t)rand()) % (uint8_t)8;//(rand() & 8);
 		enemies[i].x = xSpawnPositions[posIndex];
 		enemies[i].y = ySpawnPositions[posIndex];
+		enemies[i].hp += difficulty % HPSCALESPEED;
+		enemies[i].damage += difficulty & ATTACKSCALESPEED;
+		difficulty += 1;
 
 		if (enemies[i].spriteCount == 1) {
 			set_sprite_tile(10+ (i<<1), enemies[i].sprite0);
@@ -1185,12 +1223,19 @@ void tickEx() {
 }
 
 void initEnemyOptions() {
-	enemyOptions[0] = blob;
-	enemyOptions[1] = bomb;
+	enemyOptions[0] = minispike;
+	enemyOptions[1] = minibomb;
 	enemyOptions[2] = miniship;
-	enemyOptions[3] = shieldship;
+	enemyOptions[3] = minibubble;
 
-	enemyOptions[4] = bigblob;
+	enemyOptions[4] = minifighter;
+	enemyOptions[5] = shieldship;
+	enemyOptions[6] = owl;
+	enemyOptions[7] = calvine;
+	enemyOptions[8] = xwing;
+	enemyOptions[9] = destroyer;
+	enemyOptions[10] = doublefuse;
+
 }
 
 
@@ -1258,9 +1303,6 @@ void initGame() {
 
 	move_win(7,126);
 
-
-
-	
 	
 	move_bkg(0,0);
 
@@ -1308,23 +1350,23 @@ void showScoreScreen() {
 	HIDE_SPRITES;
 
 	//move win to top left and clear window & background
-	move_win(0,0);
+	move_win(8,0);
 	clearScreen();
 	initFont();
 	//set score label
-	set_win_tiles(8, 5, 5, 1, endScoreLabel);
+	set_win_tiles(7, 5, 5, 1, endScoreLabel);
 	unsigned char buf[10];
 	//bcd2text(&SCORE, 0, buf);
 	//set_win_tiles(8, 7, 8, 1, buf);
 
 	bcd2text(&SCORE, 0x01, buf);
-	set_win_tiles(7, 8, 7, 1, buf+1);
+	set_win_tiles(6, 8, 7, 1, buf+1);
 
 
 	//anykeylabel
-	set_win_tiles(4, 11, 13, 1, pressAnyKeyLabel);
+	set_win_tiles(3, 11, 13, 1, pressAnyKeyLabel);
 
-	set_win_tiles(5, 12, 11, 1, toContinueLabel);
+	set_win_tiles(4, 12, 11, 1, toContinueLabel);
 
 
 
@@ -1337,7 +1379,7 @@ void showControls() {
 	HIDE_SPRITES;
 
 	//move win to top left and clear window & background
-	move_win(0,0);
+	move_win(7,0);
 	clearScreen();
 	initFont();
 
@@ -1348,13 +1390,6 @@ void showControls() {
 
 }
 
-void initFont() {
-	font_init();
-	//font_color(0, 0);
-    min_font = font_load(font_min); // 36 tiles of characters
-    font_set(min_font);
-
-}
 
 void showStartScreen() {
 	initFont();
@@ -1362,17 +1397,17 @@ void showStartScreen() {
 	HIDE_WIN;
 
 	//move win to top left and clear window
-	move_win(0,0);
+	move_win(12,0);
 	//set score label
-	set_win_tiles(5, 8, 11, 1, pressStartLabel);
+	set_win_tiles(4, 8, 11, 1, pressStartLabel);
 	
 	SHOW_WIN;
 }
 
 
 void updateMenu(int8_t menuitem) {
-	move_sprite(0, 47, 72+ (menuitem<<3));
-	move_sprite(1, 123, 72+ (menuitem<<3));
+	move_sprite(0, 48, 71+ (menuitem<<3));
+	move_sprite(1, 122, 71+ (menuitem<<3));
 
 }
 
@@ -1385,18 +1420,20 @@ uint8_t showMenu() {
 
 	SPRITES_8x8;
 
-	move_win(0,0);
+	move_win(16,0);
 
 
 	//move win to top left and clear window
-	set_win_tiles(9,7, 4, 1, playLabel);
-	set_win_tiles(7, 8, 8, 1, controlsLabel);
+	set_win_tiles(7,7, 4, 1, playLabel);
+	set_win_tiles(5, 8, 8, 1, controlsLabel);
 
 	
 
 	set_sprite_data(0, 1, MenuPicker);
 	set_sprite_tile(0, 0);
 	set_sprite_tile(1, 0);
+	set_sprite_prop(0, 0);
+	set_sprite_prop(1, S_FLIPX);
 	SHOW_WIN;
 	SHOW_SPRITES;
 
@@ -1430,36 +1467,21 @@ uint8_t showMenu() {
 	}
 }
 
-void clearScreen() {
-	HIDE_WIN;
-	HIDE_BKG;
-	for (uint8_t i=0; i < 18; ++i) {
-    	set_win_tiles(1,i,20,1,emptyRow);
-		set_bkg_tiles(1,i,20,1,emptyRow);
-	}
-	for (uint8_t j=0; j < 20; ++j) {
-		set_sprite_tile(j, 0x7f);
-	}
 
-	//set score label
-
-	SHOW_WIN;
-	SHOW_BKG;
-
-}
 //returns 1 if a map was selected, 0 for back
 uint8_t showLevelSelection() {
 	HIDE_WIN;
 	HIDE_SPRITES;
 	clearScreen();
 	initFont();
-	set_win_tiles(5,3, 12, 1, selectLevelLabel);
+	move_win(8, 0);
+	set_win_tiles(3,3, 12, 1, selectLevelLabel);
 
-	set_win_tiles(5,6, 4, 1, voidLabel);
-	set_win_tiles(5,7, 11, 1, asteroids1Label);
-	set_win_tiles(5,8, 11, 1, asteroids2Label);
-	set_win_tiles(5,9, 8, 1, marshabLabel);
-	set_win_tiles(5,10, 5, 1, bonusLabel);
+	set_win_tiles(3,6, 4, 1, voidLabel);
+	set_win_tiles(3,7, 11, 1, asteroids1Label);
+	set_win_tiles(3,8, 11, 1, asteroids2Label);
+	set_win_tiles(3,9, 8, 1, marshabLabel);
+	set_win_tiles(3,10, 5, 1, bonusLabel);
 
 	set_sprite_data(0, 1, MenuPicker);
 	set_sprite_tile(0, 0);
@@ -1480,30 +1502,35 @@ uint8_t showLevelSelection() {
 				set_bkg_data(0x25, 8, backgroundtiles);		// load background tileset (start in vram, count, tilestruct)
 				set_bkg_tiles(0,0,background3Width, background3Height ,background3); //set tilemap to be a background
 				collisionTiles = background3; // set background to be the collision map
+				difficulty = 0;
 				return 1;
 			}
 			if (menuitem == 1) {
 				set_bkg_data(0x25, 16, backgroundtiles);		
 				set_bkg_tiles(0,0,background1Width, background1Height ,background1); 
 				collisionTiles = background1;
+				difficulty = 100;
 				return 1;
 			}
 			if (menuitem == 2) {
 				set_bkg_data(0x25, 16, backgroundtiles);		
 				set_bkg_tiles(0,0,background4Width, background4Height ,background4); 
 				collisionTiles = background4;
+				difficulty = 200;
 				return 1;
 			}
 			if (menuitem == 3) {
 				set_bkg_data(0x25, 16, marstiles);		
 				set_bkg_tiles(0,0,marsbackgroundWidth, marsbackgroundHeight ,marsbackground); 
 				collisionTiles = marsbackground;
+				difficulty = 300;
 				return 1;
 			}
 			else {
 				set_bkg_data(0x25, 16, backgroundtiles2);	
 				set_bkg_tiles(0,0,background2Width, background2Height ,background2); 
 				collisionTiles = background2;
+				difficulty = 400;
 				return 1;
 			}
 			
@@ -1522,7 +1549,7 @@ uint8_t showLevelSelection() {
 			--menuitem;
 		}
 		menuitem = clamp(menuitem, 0, 4);
-		move_sprite(0, 31, 64 + (menuitem<<3));
+		move_sprite(0, 24, 63 + (menuitem<<3));
 
 		wait_vbl_done();
 	}
