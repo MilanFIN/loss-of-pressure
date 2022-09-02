@@ -44,13 +44,12 @@
 
 /*
 TODO: 
-- kartan valinta
-	- jokaisen menun window +7, muuten buginen?
 
-
-
-- vihollisten skaalaus scoren myötä
-	- esim 5-10 spawntaulukkoa, joista valitaan sen mukaan mikä score range on
+- start ja select pelatessa
+- vertaa joydata & prevjoydata, ja tunnista milloin on painettu pohjaan
+- start korvaa window sisällön
+	- paused press 
+	- start to continue
 
 - äänet
 	- ampumiseen, pitää korjata 
@@ -186,12 +185,12 @@ void interruptLCD()
 void setHealthBar(uint8_t row, uint8_t hp) {
 
 	if (hp >= 80) {
-		unsigned char blockmap[] = {0x50,0x50,0x50,0x50,0x50};
+		unsigned char blockmap[] = {0x50,0x50,0x50, 0x50, 0x50};
 		set_win_tiles(5,row,5,1,blockmap);
 		return;
 	}
 	if (hp >= 60) {
-		unsigned char blockmap[] = {0x50,0x50,0x50,0x50,0x00};
+		unsigned char blockmap[] = {0x50,0x50,0x50, 0x50, 0x00};
 		set_win_tiles(5,row,5,1,blockmap);
 		return;
 	}
@@ -205,7 +204,12 @@ void setHealthBar(uint8_t row, uint8_t hp) {
 		set_win_tiles(5,row,5,1,blockmap);
 		return;
 	}
-	unsigned char blockmap[] = {0x50,0x00,0x00,0x00,0x00};
+	if (hp >= 1) {
+		unsigned char blockmap[] = {0x50,0x00,0x00,0x00,0x00};
+		set_win_tiles(5,row,5,1,blockmap);
+		return;
+	}
+	unsigned char blockmap[] = {0x00,0x00,0x00,0x00,0x00};
 	set_win_tiles(5,row,5,1,blockmap);
 	return;
 
@@ -846,9 +850,9 @@ void takeDamage(int16_t amount) {
 }
 
 void spawnPickup(int16_t x, int16_t y) {
-	uint8_t spawn = ((uint8_t)rand()) % (uint8_t) 16;
+	uint8_t spawn = ((uint8_t)rand()) % (uint8_t) 8;
 	if (spawn == 0) {
-		uint8_t type = ((uint8_t)rand()) % (uint8_t) 4;
+		uint8_t type = ((uint8_t)rand()) % (uint8_t) 3;
 		if (type == 0) {
 			pickup = health;
 		}
@@ -1027,8 +1031,8 @@ inline void updateShieldsAndHull() {
 	if (shield < maxShield) {
 		shield += 1;
 	}
-	setHealthBar(0, hull);
-	setHealthBar(1, shield);
+	setHealthBar(1, hull);
+	setHealthBar(0, shield);
 }
 
 void fire() {
@@ -1289,17 +1293,17 @@ void initGame() {
 
 	
 
+	set_win_tiles(1,0,4,1,shieldlabel);
 
-	set_win_tiles(1,0,4,1,hullabel);
-	set_win_tiles(1,1,4,1,shieldlabel);
+	set_win_tiles(1,1,4,1,hullabel);
 
 
 
 	//load healthbar block to bkg 
 	set_bkg_data(0x50,1,healthblock);
 	//unsigned char healthmap[] = {0x50,0x50,0x50,0x50,0x50};
-	setHealthBar(0, hull);
-	setHealthBar(1, shield);
+	setHealthBar(1, hull);
+	setHealthBar(0, shield);
 
 	move_win(7,126);
 
@@ -1662,6 +1666,10 @@ void main(){
 
 					if (hull > 100) {
 						hull = 0;
+						shield = 0;
+						setHealthBar(1, hull);
+						setHealthBar(0, shield);
+
 					}
 					SHOW_SPRITES;
 

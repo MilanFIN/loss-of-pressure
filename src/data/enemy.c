@@ -253,7 +253,7 @@ struct Enemy xwing =  {
 	0, // yReserve;
 
 	0x64,// sprite0;
-	0x68,//uint8_t sprite1;
+	0x66,//uint8_t sprite1;
 
 	2,// spriteCount;
 
