@@ -14,6 +14,11 @@
 #include "data/background3.c"
 #include "data/background4.c"
 
+#include "data/logo0_data.c"
+#include "data/logo0_map.c"
+
+#include "data/underscore.c"
+
 
 #include "data/windowmap.c"
 #include "data/healthblock.c"
@@ -135,17 +140,16 @@ int16_t yOverflow = 0;
 //loops through every enemy ~11x per second
 uint8_t enemyCollisionCount = 0;
 
+//constant for scaling splash damage dropoff, (bit shifting value left) 0 for linear (-1dmg/px), 1 for multiplied by 2 (-2dmg/px), 2 for -4dmg/px
+const uint8_t SPLASHDROPOFF = 1;
 
 const uint8_t MAXGUNLEVEL = 1; //0&1
 uint8_t gunLevel = 0;
 uint8_t currentGun = 0;
+
 uint8_t missiles = 0;
-//constant for scaling splash damage dropoff, (bit shifting value left) 0 for linear (-1dmg/px), 1 for multiplied by 2 (-2dmg/px), 2 for -4dmg/px
-const uint8_t SPLASHDROPOFF = 1;
-
-
 BCD MISSILES = MAKE_BCD(0);
-uint8_t switchDelay = 0;
+
 //ugly references directly to vram locations, where gun icons are loaded to
 unsigned char gunMap[] = {0x53, 0x5b, 0x61};
 
@@ -448,6 +452,31 @@ void initFont() {
     font_set(min_font);
 }
 
+void clearWindow() {
+	HIDE_WIN;
+	move_win(8,126);
+	for (uint8_t i=0; i < 18; ++i) {
+		set_win_tiles(1,i,20,1,emptyRow);
+	}
+	SHOW_WIN;
+}
+
+//used after a pause has ended
+void recoverHud() {
+	HIDE_WIN;
+	move_win(7,126);
+	set_win_tiles(1,0,4,1,shieldlabel);
+	set_win_tiles(1,1,4,1,hullabel);
+	set_win_tiles(10, 0,4,1,weaponlabel);
+	set_win_tiles(10, 1,4,1,scorelabel);
+	setGunIcon();
+	updateScore();
+	updateMissileCount(missiles);
+	set_win_tiles(17, 0,1,1,gunMap+2);
+
+	SHOW_WIN;
+}
+
 
 void clearScreen() {
 	HIDE_WIN;
@@ -480,7 +509,7 @@ void initEnemies(uint8_t loadSprites) {
   	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
 	  	if (eptr->alive == 0) {
 
-			uint8_t enemyInd = ((uint8_t)rand()) % (uint8_t) enemyOptionCount;
+			uint8_t enemyInd = ((uint8_t)rand()) % (uint8_t) ENEMYOPTIONCOUNT;
 			//printf("%d\n", enemyInd);
 			(*eptr) = enemyOptions[enemyInd];
 
@@ -512,7 +541,7 @@ void initEnemy(uint8_t i) {
 
   	if (enemies[i].alive == 0) {
 
-		uint8_t enemyInd = ((uint8_t)rand()) % (uint8_t) enemyOptionCount;
+		uint8_t enemyInd = ((uint8_t)rand()) % (uint8_t) ENEMYOPTIONCOUNT;
 		enemies[i] = enemyOptions[enemyInd];
 
 		uint8_t posIndex =  ((uint8_t)rand()) % (uint8_t)8;//(rand() & 8);
@@ -1291,38 +1320,35 @@ void initGame() {
 	set_sprite_tile(0, 0);
 	set_sprite_tile(1, 2);
 
-	
-
-	set_win_tiles(1,0,4,1,shieldlabel);
-
-	set_win_tiles(1,1,4,1,hullabel);
-
-
-
 	//load healthbar block to bkg 
 	set_bkg_data(0x50,1,healthblock);
-	//unsigned char healthmap[] = {0x50,0x50,0x50,0x50,0x50};
+
+
+
 	setHealthBar(1, hull);
 	setHealthBar(0, shield);
 
-	move_win(7,126);
 
 	
 	move_bkg(0,0);
 
 	set_bkg_data(0x51, 18, ProjectileTiles);
 
-	set_win_tiles(10, 0,4,1,weaponlabel);
-	set_win_tiles(10, 1,4,1,scorelabel);
 
-	setGunIcon();
+
+
+
 
 	SCORE = MAKE_BCD(00000);
-	updateScore();
+
+
+
+
 	missiles = 0;
 	MISSILES = MAKE_BCD(0);
-	updateMissileCount(0);
-	set_win_tiles(17, 0,1,1,gunMap+2);
+
+
+	recoverHud();
 
 
 	//init pickup, not active yet, so setting empty tile
@@ -1383,11 +1409,23 @@ void showControls() {
 	HIDE_SPRITES;
 
 	//move win to top left and clear window & background
-	move_win(7,0);
+	move_win(12,0);
 	clearScreen();
 	initFont();
 
-	set_win_tiles(8, 5, 5, 1, endScoreLabel);
+	set_bkg_data(0x70, 1, underscore); 
+	unsigned char underscoreTiles[] = {0x70, 0x70, 0x70, 0x70, 0x70, 0x70,0x70, 0x70};
+	set_win_tiles(5, 4, 8, 1, underscoreTiles);
+
+	set_win_tiles(5, 3, 8, 1, controlsLabel);
+	set_win_tiles(3, 6, 11, 1, dpadlabel);
+	set_win_tiles(3, 8, 13, 1, alabel);
+	set_win_tiles(3, 10, 11, 1, blabel);
+	set_win_tiles(3, 12, 13, 1, selectlabel);
+	set_win_tiles(10, 13, 6, 1, fullweaponlabel);
+
+
+	
 
 
 	SHOW_WIN;
@@ -1410,8 +1448,8 @@ void showStartScreen() {
 
 
 void updateMenu(int8_t menuitem) {
-	move_sprite(0, 48, 71+ (menuitem<<3));
-	move_sprite(1, 122, 71+ (menuitem<<3));
+	move_sprite(0, 48, 95+ (menuitem<<3));
+	move_sprite(1, 122, 95+ (menuitem<<3));
 
 }
 
@@ -1428,10 +1466,22 @@ uint8_t showMenu() {
 
 
 	//move win to top left and clear window
-	set_win_tiles(7,7, 4, 1, playLabel);
-	set_win_tiles(5, 8, 8, 1, controlsLabel);
+	set_win_tiles(7, 10, 4, 1, playLabel);
+	set_win_tiles(5, 11, 8, 1, controlsLabel);
 
-	
+
+	unsigned char logo0_offsetMap[128];
+	for (uint8_t i = 0; i < 128; ++i) {
+		logo0_offsetMap[i] = logo0_map[i] + 0x25;
+	} 
+
+	unsigned char logo0_offsetData[76];
+	for (uint8_t j = 0; j < 76; ++j) {
+		logo0_offsetData[j] = logo0_data[j] + 0x25;
+	} 
+
+	set_bkg_data(0x25, 76, logo0_data); //0x25
+	set_win_tiles(1,1, 16, 8, logo0_offsetMap);
 
 	set_sprite_data(0, 1, MenuPicker);
 	set_sprite_tile(0, 0);
@@ -1479,6 +1529,13 @@ uint8_t showLevelSelection() {
 	clearScreen();
 	initFont();
 	move_win(8, 0);
+
+	set_bkg_data(0x70, 1, underscore); 
+	unsigned char underscoreTiles[] = {0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70};
+	set_win_tiles(3, 4, 12, 1, underscoreTiles);
+
+
+
 	set_win_tiles(3,3, 12, 1, selectLevelLabel);
 
 	set_win_tiles(3,6, 4, 1, voidLabel);
@@ -1561,7 +1618,11 @@ uint8_t showLevelSelection() {
 }
 
 
+
 void main(){
+
+	
+
 
 
 	disable_interrupts();
@@ -1615,6 +1676,7 @@ void main(){
 				while(hull > 0) {
 					SHOW_SPRITES;
 
+					prevJoyData = joydata;
 					joydata = joypad(); // query for button states
 
 					updateDirection(); // set player direction
@@ -1641,7 +1703,7 @@ void main(){
 						--fireCooldown;
 					}
 
-					if (joydata & J_SELECT && switchDelay == 0) {
+					if ((joydata & J_SELECT) && !(prevJoyData & J_SELECT)) {
 						if (currentGun == 0) {
 							currentGun = 1;
 						}
@@ -1649,10 +1711,16 @@ void main(){
 							currentGun = 0;
 						}
 						setGunIcon();
-						switchDelay = 30;
 					}
-					if (switchDelay != 0) {
-						switchDelay--;
+
+					if (!(joydata & J_START) && (prevJoyData & J_START)) {
+						disable_interrupts();
+						SHOW_SPRITES;
+						clearWindow();
+						waitpad(J_START);
+						waitpadup();
+						recoverHud();
+						enable_interrupts();
 					}
 
 					if (auxTick == 0) {

@@ -311,5 +311,5 @@ struct Enemy doublefuse =  {
 	0,// ySpeed; 
 	100 //hp
 };
-const uint8_t enemyOptionCount = 10;
-struct Enemy enemyOptions[10];
+const uint8_t ENEMYOPTIONCOUNT = 11;
+struct Enemy enemyOptions[11];
