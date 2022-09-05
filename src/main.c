@@ -1372,9 +1372,23 @@ void initGame() {
 
 }
 
+void doPause() {
+	disable_interrupts();
+	SHOW_SPRITES;
+	clearWindow();
+
+	set_win_tiles(7, 0, 6, 1, pauselabel);
+
+	waitpad(J_START);
+	waitpadup();
+	recoverHud();
+	enable_interrupts();
+}
+
+
+
 
 //score screen related actions
-
 void showScoreScreen() {
 	HIDE_WIN;
 	HIDE_SPRITES;
@@ -1415,18 +1429,16 @@ void showControls() {
 
 	set_bkg_data(0x70, 1, underscore); 
 	unsigned char underscoreTiles[] = {0x70, 0x70, 0x70, 0x70, 0x70, 0x70,0x70, 0x70};
-	set_win_tiles(5, 4, 8, 1, underscoreTiles);
+	set_win_tiles(5, 3, 8, 1, underscoreTiles);
 
-	set_win_tiles(5, 3, 8, 1, controlsLabel);
-	set_win_tiles(3, 6, 11, 1, dpadlabel);
-	set_win_tiles(3, 8, 13, 1, alabel);
-	set_win_tiles(3, 10, 11, 1, blabel);
-	set_win_tiles(3, 12, 13, 1, selectlabel);
-	set_win_tiles(10, 13, 6, 1, fullweaponlabel);
+	set_win_tiles(5, 2, 8, 1, controlsLabel);
+	set_win_tiles(3, 5, 11, 1, dpadlabel);
+	set_win_tiles(3, 7, 13, 1, alabel);
+	set_win_tiles(3, 9, 11, 1, blabel);
+	set_win_tiles(3, 11, 12, 1, startlabel);
 
-
-	
-
+	set_win_tiles(3, 13, 13, 1, selectlabel);
+	set_win_tiles(10, 14, 6, 1, fullweaponlabel);
 
 	SHOW_WIN;
 
@@ -1714,13 +1726,7 @@ void main(){
 					}
 
 					if (!(joydata & J_START) && (prevJoyData & J_START)) {
-						disable_interrupts();
-						SHOW_SPRITES;
-						clearWindow();
-						waitpad(J_START);
-						waitpadup();
-						recoverHud();
-						enable_interrupts();
+						doPause();
 					}
 
 					if (auxTick == 0) {

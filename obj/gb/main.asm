@@ -15,6 +15,7 @@
 	.globl _showStartScreen
 	.globl _showControls
 	.globl _showScoreScreen
+	.globl _doPause
 	.globl _initGame
 	.globl _initProjectiles
 	.globl _initEnemyOptions
@@ -107,28 +108,6 @@
 	.globl _miniship
 	.globl _minibomb
 	.globl _minispike
-	.globl _fullweaponlabel
-	.globl _selectlabel
-	.globl _blabel
-	.globl _alabel
-	.globl _dpadlabel
-	.globl _controlsLabel
-	.globl _bonusLabel
-	.globl _marshabLabel
-	.globl _asteroids2Label
-	.globl _asteroids1Label
-	.globl _voidLabel
-	.globl _selectLevelLabel
-	.globl _playLabel
-	.globl _pressStartLabel
-	.globl _emptyRow
-	.globl _toContinueLabel
-	.globl _pressAnyKeyLabel
-	.globl _endScoreLabel
-	.globl _scorelabel
-	.globl _weaponlabel
-	.globl _shieldlabel
-	.globl _hullabel
 	.globl _collisionTiles
 	.globl _explosions
 	.globl _pickup
@@ -169,6 +148,30 @@
 	.globl _enemy1
 	.globl _ENEMYOPTIONCOUNT
 	.globl _healthblock
+	.globl _pauselabel
+	.globl _startlabel
+	.globl _fullweaponlabel
+	.globl _selectlabel
+	.globl _blabel
+	.globl _alabel
+	.globl _dpadlabel
+	.globl _controlsLabel
+	.globl _bonusLabel
+	.globl _marshabLabel
+	.globl _asteroids2Label
+	.globl _asteroids1Label
+	.globl _voidLabel
+	.globl _selectLevelLabel
+	.globl _playLabel
+	.globl _pressStartLabel
+	.globl _emptyRow
+	.globl _toContinueLabel
+	.globl _pressAnyKeyLabel
+	.globl _endScoreLabel
+	.globl _scorelabel
+	.globl _weaponlabel
+	.globl _shieldlabel
+	.globl _hullabel
 	.globl _underscore
 	.globl _logo0_map
 	.globl _logo0_data
@@ -210,50 +213,6 @@ _collisionTiles::
 ; ram data
 ;--------------------------------------------------------
 	.area _INITIALIZED
-_hullabel::
-	.ds 4
-_shieldlabel::
-	.ds 4
-_weaponlabel::
-	.ds 4
-_scorelabel::
-	.ds 4
-_endScoreLabel::
-	.ds 5
-_pressAnyKeyLabel::
-	.ds 13
-_toContinueLabel::
-	.ds 11
-_emptyRow::
-	.ds 20
-_pressStartLabel::
-	.ds 11
-_playLabel::
-	.ds 4
-_selectLevelLabel::
-	.ds 12
-_voidLabel::
-	.ds 4
-_asteroids1Label::
-	.ds 11
-_asteroids2Label::
-	.ds 11
-_marshabLabel::
-	.ds 8
-_bonusLabel::
-	.ds 5
-_controlsLabel::
-	.ds 8
-_dpadlabel::
-	.ds 11
-_alabel::
-	.ds 13
-_blabel::
-	.ds 11
-_selectlabel::
-	.ds 13
-_fullweaponlabel::
-	.ds 6
 _minispike::
 	.ds 18
 _minibomb::
@@ -7319,6 +7278,241 @@ _underscore:
 	.db #0x00	; 0
 	.db #0x00	; 0
 	.db #0x00	; 0
+_hullabel:
+	.db #0x12	; 18
+	.db #0x1f	; 31
+	.db #0x16	; 22
+	.db #0x16	; 22
+_shieldlabel:
+	.db #0x1d	; 29
+	.db #0x12	; 18
+	.db #0x16	; 22
+	.db #0x0e	; 14
+_weaponlabel:
+	.db #0x21	; 33
+	.db #0x0f	; 15
+	.db #0x1a	; 26
+	.db #0x18	; 24
+_scorelabel:
+	.db #0x1d	; 29
+	.db #0x0d	; 13
+	.db #0x1c	; 28
+	.db #0x0f	; 15
+_endScoreLabel:
+	.db #0x1d	; 29
+	.db #0x0d	; 13
+	.db #0x19	; 25
+	.db #0x1c	; 28
+	.db #0x0f	; 15
+_pressAnyKeyLabel:
+	.db #0x1a	; 26
+	.db #0x1c	; 28
+	.db #0x0f	; 15
+	.db #0x1d	; 29
+	.db #0x1d	; 29
+	.db #0x00	; 0
+	.db #0x0b	; 11
+	.db #0x18	; 24
+	.db #0x23	; 35
+	.db #0x00	; 0
+	.db #0x15	; 21
+	.db #0x0f	; 15
+	.db #0x23	; 35
+_toContinueLabel:
+	.db #0x1e	; 30
+	.db #0x19	; 25
+	.db #0x00	; 0
+	.db #0x0d	; 13
+	.db #0x19	; 25
+	.db #0x18	; 24
+	.db #0x1e	; 30
+	.db #0x13	; 19
+	.db #0x18	; 24
+	.db #0x1f	; 31
+	.db #0x0f	; 15
+_emptyRow:
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+_pressStartLabel:
+	.db #0x1a	; 26
+	.db #0x1c	; 28
+	.db #0x0f	; 15
+	.db #0x1d	; 29
+	.db #0x1d	; 29
+	.db #0x00	; 0
+	.db #0x1d	; 29
+	.db #0x1e	; 30
+	.db #0x0b	; 11
+	.db #0x1c	; 28
+	.db #0x1e	; 30
+_playLabel:
+	.db #0x1a	; 26
+	.db #0x16	; 22
+	.db #0x0b	; 11
+	.db #0x23	; 35
+_selectLevelLabel:
+	.db #0x1d	; 29
+	.db #0x0f	; 15
+	.db #0x16	; 22
+	.db #0x0f	; 15
+	.db #0x0d	; 13
+	.db #0x1e	; 30
+	.db #0x00	; 0
+	.db #0x16	; 22
+	.db #0x0f	; 15
+	.db #0x20	; 32
+	.db #0x0f	; 15
+	.db #0x16	; 22
+_voidLabel:
+	.db #0x20	; 32
+	.db #0x19	; 25
+	.db #0x13	; 19
+	.db #0x0e	; 14
+_asteroids1Label:
+	.db #0x0b	; 11
+	.db #0x1d	; 29
+	.db #0x1e	; 30
+	.db #0x0f	; 15
+	.db #0x1c	; 28
+	.db #0x19	; 25
+	.db #0x13	; 19
+	.db #0x0e	; 14
+	.db #0x1d	; 29
+	.db #0x00	; 0
+	.db #0x02	; 2
+_asteroids2Label:
+	.db #0x0b	; 11
+	.db #0x1d	; 29
+	.db #0x1e	; 30
+	.db #0x0f	; 15
+	.db #0x1c	; 28
+	.db #0x19	; 25
+	.db #0x13	; 19
+	.db #0x0e	; 14
+	.db #0x1d	; 29
+	.db #0x00	; 0
+	.db #0x03	; 3
+_marshabLabel:
+	.db #0x17	; 23
+	.db #0x0b	; 11
+	.db #0x1c	; 28
+	.db #0x1d	; 29
+	.db #0x00	; 0
+	.db #0x12	; 18
+	.db #0x0b	; 11
+	.db #0x0c	; 12
+_bonusLabel:
+	.db #0x0c	; 12
+	.db #0x19	; 25
+	.db #0x18	; 24
+	.db #0x1f	; 31
+	.db #0x1d	; 29
+_controlsLabel:
+	.db #0x0d	; 13
+	.db #0x19	; 25
+	.db #0x18	; 24
+	.db #0x1e	; 30
+	.db #0x1c	; 28
+	.db #0x19	; 25
+	.db #0x16	; 22
+	.db #0x1d	; 29
+_dpadlabel:
+	.db #0x0e	; 14
+	.db #0x1a	; 26
+	.db #0x0b	; 11
+	.db #0x0e	; 14
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x1e	; 30
+	.db #0x1f	; 31
+	.db #0x1c	; 28
+	.db #0x18	; 24
+_alabel:
+	.db #0x0b	; 11
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x1e	; 30
+	.db #0x12	; 18
+	.db #0x1c	; 28
+	.db #0x1f	; 31
+	.db #0x1d	; 29
+	.db #0x1e	; 30
+_blabel:
+	.db #0x0c	; 12
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x10	; 16
+	.db #0x13	; 19
+	.db #0x1c	; 28
+	.db #0x0f	; 15
+_selectlabel:
+	.db #0x1d	; 29
+	.db #0x0f	; 15
+	.db #0x16	; 22
+	.db #0x0f	; 15
+	.db #0x0d	; 13
+	.db #0x1e	; 30
+	.db #0x00	; 0
+	.db #0x1d	; 29
+	.db #0x21	; 33
+	.db #0x13	; 19
+	.db #0x1e	; 30
+	.db #0x0d	; 13
+	.db #0x12	; 18
+_fullweaponlabel:
+	.db #0x21	; 33
+	.db #0x0f	; 15
+	.db #0x0b	; 11
+	.db #0x1a	; 26
+	.db #0x19	; 25
+	.db #0x18	; 24
+_startlabel:
+	.db #0x1d	; 29
+	.db #0x1e	; 30
+	.db #0x0b	; 11
+	.db #0x1c	; 28
+	.db #0x1e	; 30
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x1a	; 26
+	.db #0x0b	; 11
+	.db #0x1f	; 31
+	.db #0x1d	; 29
+	.db #0x0f	; 15
+_pauselabel:
+	.db #0x1a	; 26
+	.db #0x0b	; 11
+	.db #0x1f	; 31
+	.db #0x1d	; 29
+	.db #0x0f	; 15
+	.db #0x0e	; 14
 _healthblock:
 	.db #0xfe	; 254
 	.db #0xfe	; 254
@@ -18567,17 +18761,54 @@ _initGame::
 	ldh	(_LCDC_REG + 0), a
 ;src/main.c:1373: }
 	ret
-;src/main.c:1378: void showScoreScreen() {
+;src/main.c:1375: void doPause() {
+;	---------------------------------
+; Function doPause
+; ---------------------------------
+_doPause::
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:671: __asm__("di");
+	di
+;src/main.c:1377: SHOW_SPRITES;
+	ldh	a, (_LCDC_REG + 0)
+	or	a, #0x02
+	ldh	(_LCDC_REG + 0), a
+;src/main.c:1378: clearWindow();
+	call	_clearWindow
+;src/main.c:1380: set_win_tiles(7, 0, 6, 1, pauselabel);
+	ld	de, #_pauselabel
+	push	de
+	ld	hl, #0x106
+	push	hl
+	ld	hl, #0x07
+	push	hl
+	call	_set_win_tiles
+	add	sp, #6
+;src/main.c:1382: waitpad(J_START);
+	ld	a, #0x80
+	push	af
+	inc	sp
+	call	_waitpad
+	inc	sp
+;src/main.c:1383: waitpadup();
+	call	_waitpadup
+;src/main.c:1384: recoverHud();
+	call	_recoverHud
+;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:655: __asm__("ei");
+	ei
+;src/main.c:1385: enable_interrupts();
+;src/main.c:1386: }
+	ret
+;src/main.c:1392: void showScoreScreen() {
 ;	---------------------------------
 ; Function showScoreScreen
 ; ---------------------------------
 _showScoreScreen::
 	add	sp, #-10
-;src/main.c:1379: HIDE_WIN;
+;src/main.c:1393: HIDE_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xdf
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1380: HIDE_SPRITES;
+;src/main.c:1394: HIDE_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xfd
 	ldh	(_LCDC_REG + 0), a
@@ -18586,11 +18817,11 @@ _showScoreScreen::
 	ldh	(_WX_REG + 0), a
 	xor	a, a
 	ldh	(_WY_REG + 0), a
-;src/main.c:1384: clearScreen();
+;src/main.c:1398: clearScreen();
 	call	_clearScreen
-;src/main.c:1385: initFont();
+;src/main.c:1399: initFont();
 	call	_initFont
-;src/main.c:1387: set_win_tiles(7, 5, 5, 1, endScoreLabel);
+;src/main.c:1401: set_win_tiles(7, 5, 5, 1, endScoreLabel);
 	ld	de, #_endScoreLabel
 	push	de
 	ld	hl, #0x105
@@ -18599,7 +18830,7 @@ _showScoreScreen::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1392: bcd2text(&SCORE, 0x01, buf);
+;src/main.c:1406: bcd2text(&SCORE, 0x01, buf);
 	ldhl	sp,	#0
 	ld	c, l
 	ld	b, h
@@ -18615,7 +18846,7 @@ _showScoreScreen::
 	call	_bcd2text
 	add	sp, #5
 	pop	bc
-;src/main.c:1393: set_win_tiles(6, 8, 7, 1, buf+1);
+;src/main.c:1407: set_win_tiles(6, 8, 7, 1, buf+1);
 	inc	bc
 	push	bc
 	ld	hl, #0x107
@@ -18624,7 +18855,7 @@ _showScoreScreen::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1397: set_win_tiles(3, 11, 13, 1, pressAnyKeyLabel);
+;src/main.c:1411: set_win_tiles(3, 11, 13, 1, pressAnyKeyLabel);
 	ld	de, #_pressAnyKeyLabel
 	push	de
 	ld	hl, #0x10d
@@ -18633,7 +18864,7 @@ _showScoreScreen::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1399: set_win_tiles(4, 12, 11, 1, toContinueLabel);
+;src/main.c:1413: set_win_tiles(4, 12, 11, 1, toContinueLabel);
 	ld	de, #_toContinueLabel
 	push	de
 	ld	hl, #0x10b
@@ -18642,24 +18873,24 @@ _showScoreScreen::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1403: SHOW_WIN;
+;src/main.c:1417: SHOW_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1405: }
+;src/main.c:1419: }
 	add	sp, #10
 	ret
-;src/main.c:1407: void showControls() {
+;src/main.c:1421: void showControls() {
 ;	---------------------------------
 ; Function showControls
 ; ---------------------------------
 _showControls::
 	add	sp, #-8
-;src/main.c:1408: HIDE_WIN;
+;src/main.c:1422: HIDE_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xdf
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1409: HIDE_SPRITES;
+;src/main.c:1423: HIDE_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xfd
 	ldh	(_LCDC_REG + 0), a
@@ -18668,18 +18899,18 @@ _showControls::
 	ldh	(_WX_REG + 0), a
 	xor	a, a
 	ldh	(_WY_REG + 0), a
-;src/main.c:1413: clearScreen();
+;src/main.c:1427: clearScreen();
 	call	_clearScreen
-;src/main.c:1414: initFont();
+;src/main.c:1428: initFont();
 	call	_initFont
-;src/main.c:1416: set_bkg_data(0x70, 1, underscore); 
+;src/main.c:1430: set_bkg_data(0x70, 1, underscore); 
 	ld	de, #_underscore
 	push	de
 	ld	hl, #0x170
 	push	hl
 	call	_set_bkg_data
 	add	sp, #4
-;src/main.c:1417: unsigned char underscoreTiles[] = {0x70, 0x70, 0x70, 0x70, 0x70, 0x70,0x70, 0x70};
+;src/main.c:1431: unsigned char underscoreTiles[] = {0x70, 0x70, 0x70, 0x70, 0x70, 0x70,0x70, 0x70};
 	ldhl	sp,	#0
 	ld	c, l
 	ld	b, h
@@ -18723,83 +18954,92 @@ _showControls::
 	ld	hl, #0x0007
 	add	hl, bc
 	ld	(hl), #0x70
-;src/main.c:1418: set_win_tiles(5, 4, 8, 1, underscoreTiles);
+;src/main.c:1432: set_win_tiles(5, 3, 8, 1, underscoreTiles);
 	push	bc
-	ld	hl, #0x108
-	push	hl
-	ld	hl, #0x405
-	push	hl
-	call	_set_win_tiles
-	add	sp, #6
-;src/main.c:1420: set_win_tiles(5, 3, 8, 1, controlsLabel);
-	ld	de, #_controlsLabel
-	push	de
 	ld	hl, #0x108
 	push	hl
 	ld	hl, #0x305
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1421: set_win_tiles(3, 6, 11, 1, dpadlabel);
+;src/main.c:1434: set_win_tiles(5, 2, 8, 1, controlsLabel);
+	ld	de, #_controlsLabel
+	push	de
+	ld	hl, #0x108
+	push	hl
+	ld	hl, #0x205
+	push	hl
+	call	_set_win_tiles
+	add	sp, #6
+;src/main.c:1435: set_win_tiles(3, 5, 11, 1, dpadlabel);
 	ld	de, #_dpadlabel
 	push	de
 	ld	hl, #0x10b
 	push	hl
-	ld	hl, #0x603
+	ld	hl, #0x503
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1422: set_win_tiles(3, 8, 13, 1, alabel);
+;src/main.c:1436: set_win_tiles(3, 7, 13, 1, alabel);
 	ld	de, #_alabel
 	push	de
 	ld	hl, #0x10d
 	push	hl
-	ld	hl, #0x803
+	ld	hl, #0x703
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1423: set_win_tiles(3, 10, 11, 1, blabel);
+;src/main.c:1437: set_win_tiles(3, 9, 11, 1, blabel);
 	ld	de, #_blabel
 	push	de
 	ld	hl, #0x10b
 	push	hl
-	ld	hl, #0xa03
+	ld	hl, #0x903
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1424: set_win_tiles(3, 12, 13, 1, selectlabel);
+;src/main.c:1438: set_win_tiles(3, 11, 12, 1, startlabel);
+	ld	de, #_startlabel
+	push	de
+	ld	hl, #0x10c
+	push	hl
+	ld	hl, #0xb03
+	push	hl
+	call	_set_win_tiles
+	add	sp, #6
+;src/main.c:1440: set_win_tiles(3, 13, 13, 1, selectlabel);
 	ld	de, #_selectlabel
 	push	de
 	ld	hl, #0x10d
 	push	hl
-	ld	hl, #0xc03
+	ld	hl, #0xd03
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1425: set_win_tiles(10, 13, 6, 1, fullweaponlabel);
+;src/main.c:1441: set_win_tiles(10, 14, 6, 1, fullweaponlabel);
 	ld	de, #_fullweaponlabel
 	push	de
 	ld	hl, #0x106
 	push	hl
-	ld	hl, #0xd0a
+	ld	hl, #0xe0a
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1431: SHOW_WIN;
+;src/main.c:1447: SHOW_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1433: }
+;src/main.c:1449: }
 	add	sp, #8
 	ret
-;src/main.c:1436: void showStartScreen() {
+;src/main.c:1452: void showStartScreen() {
 ;	---------------------------------
 ; Function showStartScreen
 ; ---------------------------------
 _showStartScreen::
-;src/main.c:1437: initFont();
+;src/main.c:1453: initFont();
 	call	_initFont
-;src/main.c:1439: HIDE_WIN;
+;src/main.c:1455: HIDE_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xdf
 	ldh	(_LCDC_REG + 0), a
@@ -18808,7 +19048,7 @@ _showStartScreen::
 	ldh	(_WX_REG + 0), a
 	xor	a, a
 	ldh	(_WY_REG + 0), a
-;src/main.c:1444: set_win_tiles(4, 8, 11, 1, pressStartLabel);
+;src/main.c:1460: set_win_tiles(4, 8, 11, 1, pressStartLabel);
 	ld	de, #_pressStartLabel
 	push	de
 	ld	hl, #0x10b
@@ -18817,18 +19057,18 @@ _showStartScreen::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1446: SHOW_WIN;
+;src/main.c:1462: SHOW_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1447: }
+;src/main.c:1463: }
 	ret
-;src/main.c:1450: void updateMenu(int8_t menuitem) {
+;src/main.c:1466: void updateMenu(int8_t menuitem) {
 ;	---------------------------------
 ; Function updateMenu
 ; ---------------------------------
 _updateMenu::
-;src/main.c:1451: move_sprite(0, 48, 95+ (menuitem<<3));
+;src/main.c:1467: move_sprite(0, 48, 95+ (menuitem<<3));
 	ldhl	sp,	#2
 	ld	a, (hl)
 	add	a, a
@@ -18849,27 +19089,27 @@ _updateMenu::
 	ld	(hl), c
 	inc	hl
 	ld	(hl), #0x7a
-;src/main.c:1452: move_sprite(1, 122, 95+ (menuitem<<3));
-;src/main.c:1454: }
+;src/main.c:1468: move_sprite(1, 122, 95+ (menuitem<<3));
+;src/main.c:1470: }
 	ret
-;src/main.c:1457: uint8_t showMenu() {
+;src/main.c:1473: uint8_t showMenu() {
 ;	---------------------------------
 ; Function showMenu
 ; ---------------------------------
 _showMenu::
 	add	sp, #-128
 	add	sp, #-81
-;src/main.c:1458: initFont();
+;src/main.c:1474: initFont();
 	call	_initFont
-;src/main.c:1460: HIDE_WIN;
+;src/main.c:1476: HIDE_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xdf
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1461: HIDE_SPRITES;
+;src/main.c:1477: HIDE_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xfd
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1463: SPRITES_8x8;
+;src/main.c:1479: SPRITES_8x8;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xfb
 	ldh	(_LCDC_REG + 0), a
@@ -18878,7 +19118,7 @@ _showMenu::
 	ldh	(_WX_REG + 0), a
 	xor	a, a
 	ldh	(_WY_REG + 0), a
-;src/main.c:1469: set_win_tiles(7, 10, 4, 1, playLabel);
+;src/main.c:1485: set_win_tiles(7, 10, 4, 1, playLabel);
 	ld	de, #_playLabel
 	push	de
 	ld	hl, #0x104
@@ -18887,7 +19127,7 @@ _showMenu::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1470: set_win_tiles(5, 11, 8, 1, controlsLabel);
+;src/main.c:1486: set_win_tiles(5, 11, 8, 1, controlsLabel);
 	ld	de, #_controlsLabel
 	push	de
 	ld	hl, #0x108
@@ -18896,7 +19136,7 @@ _showMenu::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1474: for (uint8_t i = 0; i < 128; ++i) {
+;src/main.c:1490: for (uint8_t i = 0; i < 128; ++i) {
 	ldhl	sp,	#0
 	ld	c, l
 	ld	b, h
@@ -18909,7 +19149,7 @@ _showMenu::
 	ld	a, (hl)
 	sub	a, #0x80
 	jr	NC, 00101$
-;src/main.c:1475: logo0_offsetMap[i] = logo0_map[i] + 0x25;
+;src/main.c:1491: logo0_offsetMap[i] = logo0_map[i] + 0x25;
 	ld	l, (hl)
 	ld	h, #0x00
 	add	hl, bc
@@ -18939,13 +19179,13 @@ _showMenu::
 	ld	l, a
 	pop	af
 	ld	(hl), a
-;src/main.c:1474: for (uint8_t i = 0; i < 128; ++i) {
+;src/main.c:1490: for (uint8_t i = 0; i < 128; ++i) {
 	ld	hl, #208
 	add	hl, sp
 	inc	(hl)
 	jr	00124$
 00101$:
-;src/main.c:1479: for (uint8_t j = 0; j < 76; ++j) {
+;src/main.c:1495: for (uint8_t j = 0; j < 76; ++j) {
 	ld	hl, #128
 	add	hl, sp
 	ld	a, l
@@ -18963,7 +19203,7 @@ _showMenu::
 	ld	a, (hl)
 	sub	a, #0x4c
 	jr	NC, 00102$
-;src/main.c:1480: logo0_offsetData[j] = logo0_data[j] + 0x25;
+;src/main.c:1496: logo0_offsetData[j] = logo0_data[j] + 0x25;
 	ld	hl,#0xcc
 	add	hl,sp
 	ld	a, (hl+)
@@ -19000,20 +19240,20 @@ _showMenu::
 	ld	l, a
 	pop	af
 	ld	(hl), a
-;src/main.c:1479: for (uint8_t j = 0; j < 76; ++j) {
+;src/main.c:1495: for (uint8_t j = 0; j < 76; ++j) {
 	ld	hl, #208
 	add	hl, sp
 	inc	(hl)
 	jr	00127$
 00102$:
-;src/main.c:1483: set_bkg_data(0x25, 76, logo0_data); //0x25
+;src/main.c:1499: set_bkg_data(0x25, 76, logo0_data); //0x25
 	ld	de, #_logo0_data
 	push	de
 	ld	hl, #0x4c25
 	push	hl
 	call	_set_bkg_data
 	add	sp, #4
-;src/main.c:1484: set_win_tiles(1,1, 16, 8, logo0_offsetMap);
+;src/main.c:1500: set_win_tiles(1,1, 16, 8, logo0_offsetMap);
 	push	bc
 	ld	hl, #0x810
 	push	hl
@@ -19021,7 +19261,7 @@ _showMenu::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1486: set_sprite_data(0, 1, MenuPicker);
+;src/main.c:1502: set_sprite_data(0, 1, MenuPicker);
 	ld	de, #_MenuPicker
 	push	de
 	xor	a, a
@@ -19039,34 +19279,34 @@ _showMenu::
 	ld	(hl), #0x00
 	ld	hl, #(_shadow_OAM + 7)
 	ld	(hl), #0x20
-;src/main.c:1491: SHOW_WIN;
+;src/main.c:1507: SHOW_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1492: SHOW_SPRITES;
+;src/main.c:1508: SHOW_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x02
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1495: int8_t menuitem = 0;
+;src/main.c:1511: int8_t menuitem = 0;
 	ld	c, #0x00
-;src/main.c:1497: while (1) {
+;src/main.c:1513: while (1) {
 00115$:
-;src/main.c:1498: joydata = joypad(); // query for button states
+;src/main.c:1514: joydata = joypad(); // query for button states
 	call	_joypad
 	ld	hl, #_joydata
 	ld	(hl), e
-;src/main.c:1500: if (joydata & J_DOWN) {
+;src/main.c:1516: if (joydata & J_DOWN) {
 	ld	a, (hl)
 	bit	3, a
 	jr	Z, 00106$
-;src/main.c:1501: menuitem++;
+;src/main.c:1517: menuitem++;
 	inc	c
 	jr	00107$
 00106$:
-;src/main.c:1503: else if (joydata & J_UP) {
+;src/main.c:1519: else if (joydata & J_UP) {
 	bit	2, a
 	jr	Z, 00107$
-;src/main.c:1504: menuitem--;
+;src/main.c:1520: menuitem--;
 	dec	c
 00107$:
 ;src/main.c:384: return (value < min) ? min : (value > max) ? max : value;
@@ -19094,18 +19334,18 @@ _showMenu::
 	ld	c, #0x01
 00133$:
 00132$:
-;src/main.c:1506: menuitem = clamp(menuitem, 0, 1);
+;src/main.c:1522: menuitem = clamp(menuitem, 0, 1);
 	ld	b,c
-;src/main.c:1507: updateMenu(menuitem);
+;src/main.c:1523: updateMenu(menuitem);
 	push	bc
 	push	bc
 	inc	sp
 	call	_updateMenu
 	inc	sp
 	pop	bc
-;src/main.c:1500: if (joydata & J_DOWN) {
+;src/main.c:1516: if (joydata & J_DOWN) {
 	ld	a, (#_joydata)
-;src/main.c:1509: if ((joydata & J_A) && menuitem == 0) {
+;src/main.c:1525: if ((joydata & J_A) && menuitem == 0) {
 	and	a, #0x10
 	ld	e, a
 	ld	d, #0x00
@@ -19115,67 +19355,67 @@ _showMenu::
 	ld	a, b
 	or	a, a
 	jr	NZ, 00111$
-;src/main.c:1510: waitpadup();
+;src/main.c:1526: waitpadup();
 	call	_waitpadup
-;src/main.c:1511: playSound(0);
+;src/main.c:1527: playSound(0);
 	xor	a, a
 	push	af
 	inc	sp
 	call	_playSound
 	inc	sp
-;src/main.c:1512: return 0;
+;src/main.c:1528: return 0;
 	ld	e, #0x00
 	jr	00129$
 00111$:
-;src/main.c:1514: else if (joydata & J_A) {
+;src/main.c:1530: else if (joydata & J_A) {
 	ld	a, d
 	or	a, e
 	jr	Z, 00112$
-;src/main.c:1515: waitpadup();
+;src/main.c:1531: waitpadup();
 	call	_waitpadup
-;src/main.c:1516: return 1;
+;src/main.c:1532: return 1;
 	ld	e, #0x01
 	jr	00129$
 00112$:
-;src/main.c:1519: wait_vbl_done();
+;src/main.c:1535: wait_vbl_done();
 	call	_wait_vbl_done
 	jr	00115$
 00129$:
-;src/main.c:1522: }
+;src/main.c:1538: }
 	add	sp, #127
 	add	sp, #82
 	ret
-;src/main.c:1526: uint8_t showLevelSelection() {
+;src/main.c:1542: uint8_t showLevelSelection() {
 ;	---------------------------------
 ; Function showLevelSelection
 ; ---------------------------------
 _showLevelSelection::
 	add	sp, #-12
-;src/main.c:1527: HIDE_WIN;
+;src/main.c:1543: HIDE_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xdf
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1528: HIDE_SPRITES;
+;src/main.c:1544: HIDE_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xfd
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1529: clearScreen();
+;src/main.c:1545: clearScreen();
 	call	_clearScreen
-;src/main.c:1530: initFont();
+;src/main.c:1546: initFont();
 	call	_initFont
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1316: WX_REG=x, WY_REG=y;
 	ld	a, #0x08
 	ldh	(_WX_REG + 0), a
 	xor	a, a
 	ldh	(_WY_REG + 0), a
-;src/main.c:1533: set_bkg_data(0x70, 1, underscore); 
+;src/main.c:1549: set_bkg_data(0x70, 1, underscore); 
 	ld	de, #_underscore
 	push	de
 	ld	hl, #0x170
 	push	hl
 	call	_set_bkg_data
 	add	sp, #4
-;src/main.c:1534: unsigned char underscoreTiles[] = {0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70};
+;src/main.c:1550: unsigned char underscoreTiles[] = {0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70};
 	ldhl	sp,	#0
 	ld	c, l
 	ld	b, h
@@ -19231,7 +19471,7 @@ _showLevelSelection::
 	ld	hl, #0x000b
 	add	hl, bc
 	ld	(hl), #0x70
-;src/main.c:1535: set_win_tiles(3, 4, 12, 1, underscoreTiles);
+;src/main.c:1551: set_win_tiles(3, 4, 12, 1, underscoreTiles);
 	push	bc
 	ld	hl, #0x10c
 	push	hl
@@ -19239,7 +19479,7 @@ _showLevelSelection::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1539: set_win_tiles(3,3, 12, 1, selectLevelLabel);
+;src/main.c:1555: set_win_tiles(3,3, 12, 1, selectLevelLabel);
 	ld	de, #_selectLevelLabel
 	push	de
 	ld	hl, #0x10c
@@ -19248,7 +19488,7 @@ _showLevelSelection::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1541: set_win_tiles(3,6, 4, 1, voidLabel);
+;src/main.c:1557: set_win_tiles(3,6, 4, 1, voidLabel);
 	ld	de, #_voidLabel
 	push	de
 	ld	hl, #0x104
@@ -19257,7 +19497,7 @@ _showLevelSelection::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1542: set_win_tiles(3,7, 11, 1, asteroids1Label);
+;src/main.c:1558: set_win_tiles(3,7, 11, 1, asteroids1Label);
 	ld	de, #_asteroids1Label
 	push	de
 	ld	hl, #0x10b
@@ -19266,7 +19506,7 @@ _showLevelSelection::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1543: set_win_tiles(3,8, 11, 1, asteroids2Label);
+;src/main.c:1559: set_win_tiles(3,8, 11, 1, asteroids2Label);
 	ld	de, #_asteroids2Label
 	push	de
 	ld	hl, #0x10b
@@ -19275,7 +19515,7 @@ _showLevelSelection::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1544: set_win_tiles(3,9, 8, 1, marshabLabel);
+;src/main.c:1560: set_win_tiles(3,9, 8, 1, marshabLabel);
 	ld	de, #_marshabLabel
 	push	de
 	ld	hl, #0x108
@@ -19284,7 +19524,7 @@ _showLevelSelection::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1545: set_win_tiles(3,10, 5, 1, bonusLabel);
+;src/main.c:1561: set_win_tiles(3,10, 5, 1, bonusLabel);
 	ld	de, #_bonusLabel
 	push	de
 	ld	hl, #0x105
@@ -19293,7 +19533,7 @@ _showLevelSelection::
 	push	hl
 	call	_set_win_tiles
 	add	sp, #6
-;src/main.c:1547: set_sprite_data(0, 1, MenuPicker);
+;src/main.c:1563: set_sprite_data(0, 1, MenuPicker);
 	ld	de, #_MenuPicker
 	push	de
 	xor	a, a
@@ -19304,44 +19544,44 @@ _showLevelSelection::
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:1447: shadow_OAM[nb].tile=tile;
 	ld	hl, #(_shadow_OAM + 2)
 	ld	(hl), #0x00
-;src/main.c:1550: SHOW_WIN;
+;src/main.c:1566: SHOW_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1551: SHOW_SPRITES;
+;src/main.c:1567: SHOW_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x02
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1554: int8_t menuitem = 0;
+;src/main.c:1570: int8_t menuitem = 0;
 	ld	c, #0x00
-;src/main.c:1555: while(1) {
+;src/main.c:1571: while(1) {
 00121$:
-;src/main.c:1556: prevJoyData = joydata;
+;src/main.c:1572: prevJoyData = joydata;
 	ld	a, (#_joydata)
 	ld	(#_prevJoyData),a
-;src/main.c:1557: joydata = joypad();
+;src/main.c:1573: joydata = joypad();
 	call	_joypad
 	ld	hl, #_joydata
 	ld	(hl), e
-;src/main.c:1556: prevJoyData = joydata;
+;src/main.c:1572: prevJoyData = joydata;
 	ld	a, (hl)
-;src/main.c:1559: if (joydata & J_A) {
+;src/main.c:1575: if (joydata & J_A) {
 	bit	4, a
 	jp	Z,00111$
-;src/main.c:1560: waitpadup();
+;src/main.c:1576: waitpadup();
 	call	_waitpadup
-;src/main.c:1562: if (menuitem == 0) {
+;src/main.c:1578: if (menuitem == 0) {
 	ld	a, c
 	or	a, a
 	jr	NZ, 00102$
-;src/main.c:1563: set_bkg_data(0x25, 8, backgroundtiles);		// load background tileset (start in vram, count, tilestruct)
+;src/main.c:1579: set_bkg_data(0x25, 8, backgroundtiles);		// load background tileset (start in vram, count, tilestruct)
 	ld	de, #_backgroundtiles
 	push	de
 	ld	hl, #0x825
 	push	hl
 	call	_set_bkg_data
 	add	sp, #4
-;src/main.c:1564: set_bkg_tiles(0,0,background3Width, background3Height ,background3); //set tilemap to be a background
+;src/main.c:1580: set_bkg_tiles(0,0,background3Width, background3Height ,background3); //set tilemap to be a background
 	ld	de, #_background3
 	push	de
 	ld	hl, #0x2020
@@ -19352,32 +19592,32 @@ _showLevelSelection::
 	xor	a, a
 	call	_set_bkg_tiles
 	add	sp, #6
-;src/main.c:1565: collisionTiles = background3; // set background to be the collision map
+;src/main.c:1581: collisionTiles = background3; // set background to be the collision map
 	ld	hl, #_collisionTiles
 	ld	(hl), #<(_background3)
 	inc	hl
 	ld	(hl), #>(_background3)
-;src/main.c:1566: difficulty = 0;
+;src/main.c:1582: difficulty = 0;
 	xor	a, a
 	ld	hl, #_difficulty
 	ld	(hl+), a
 	ld	(hl), a
-;src/main.c:1567: return 1;
+;src/main.c:1583: return 1;
 	ld	e, #0x01
 	jp	00127$
 00102$:
-;src/main.c:1569: if (menuitem == 1) {
+;src/main.c:1585: if (menuitem == 1) {
 	ld	a, c
 	dec	a
 	jr	NZ, 00104$
-;src/main.c:1570: set_bkg_data(0x25, 16, backgroundtiles);		
+;src/main.c:1586: set_bkg_data(0x25, 16, backgroundtiles);		
 	ld	de, #_backgroundtiles
 	push	de
 	ld	hl, #0x1025
 	push	hl
 	call	_set_bkg_data
 	add	sp, #4
-;src/main.c:1571: set_bkg_tiles(0,0,background1Width, background1Height ,background1); 
+;src/main.c:1587: set_bkg_tiles(0,0,background1Width, background1Height ,background1); 
 	ld	de, #_background1
 	push	de
 	ld	hl, #0x2020
@@ -19388,33 +19628,33 @@ _showLevelSelection::
 	xor	a, a
 	call	_set_bkg_tiles
 	add	sp, #6
-;src/main.c:1572: collisionTiles = background1;
+;src/main.c:1588: collisionTiles = background1;
 	ld	hl, #_collisionTiles
 	ld	(hl), #<(_background1)
 	inc	hl
 	ld	(hl), #>(_background1)
-;src/main.c:1573: difficulty = 100;
+;src/main.c:1589: difficulty = 100;
 	ld	hl, #_difficulty
 	ld	a, #0x64
 	ld	(hl+), a
 	xor	a, a
 	ld	(hl), a
-;src/main.c:1574: return 1;
+;src/main.c:1590: return 1;
 	ld	e, #0x01
 	jp	00127$
 00104$:
-;src/main.c:1576: if (menuitem == 2) {
+;src/main.c:1592: if (menuitem == 2) {
 	ld	a, c
 	sub	a, #0x02
 	jr	NZ, 00106$
-;src/main.c:1577: set_bkg_data(0x25, 16, backgroundtiles);		
+;src/main.c:1593: set_bkg_data(0x25, 16, backgroundtiles);		
 	ld	de, #_backgroundtiles
 	push	de
 	ld	hl, #0x1025
 	push	hl
 	call	_set_bkg_data
 	add	sp, #4
-;src/main.c:1578: set_bkg_tiles(0,0,background4Width, background4Height ,background4); 
+;src/main.c:1594: set_bkg_tiles(0,0,background4Width, background4Height ,background4); 
 	ld	de, #_background4
 	push	de
 	ld	hl, #0x2020
@@ -19425,33 +19665,33 @@ _showLevelSelection::
 	xor	a, a
 	call	_set_bkg_tiles
 	add	sp, #6
-;src/main.c:1579: collisionTiles = background4;
+;src/main.c:1595: collisionTiles = background4;
 	ld	hl, #_collisionTiles
 	ld	(hl), #<(_background4)
 	inc	hl
 	ld	(hl), #>(_background4)
-;src/main.c:1580: difficulty = 200;
+;src/main.c:1596: difficulty = 200;
 	ld	hl, #_difficulty
 	ld	a, #0xc8
 	ld	(hl+), a
 	xor	a, a
 	ld	(hl), a
-;src/main.c:1581: return 1;
+;src/main.c:1597: return 1;
 	ld	e, #0x01
 	jp	00127$
 00106$:
-;src/main.c:1583: if (menuitem == 3) {
+;src/main.c:1599: if (menuitem == 3) {
 	ld	a, c
 	sub	a, #0x03
 	jr	NZ, 00108$
-;src/main.c:1584: set_bkg_data(0x25, 16, marstiles);		
+;src/main.c:1600: set_bkg_data(0x25, 16, marstiles);		
 	ld	de, #_marstiles
 	push	de
 	ld	hl, #0x1025
 	push	hl
 	call	_set_bkg_data
 	add	sp, #4
-;src/main.c:1585: set_bkg_tiles(0,0,marsbackgroundWidth, marsbackgroundHeight ,marsbackground); 
+;src/main.c:1601: set_bkg_tiles(0,0,marsbackgroundWidth, marsbackgroundHeight ,marsbackground); 
 	ld	de, #_marsbackground
 	push	de
 	ld	hl, #0x2020
@@ -19462,28 +19702,28 @@ _showLevelSelection::
 	xor	a, a
 	call	_set_bkg_tiles
 	add	sp, #6
-;src/main.c:1586: collisionTiles = marsbackground;
+;src/main.c:1602: collisionTiles = marsbackground;
 	ld	hl, #_collisionTiles
 	ld	(hl), #<(_marsbackground)
 	inc	hl
 	ld	(hl), #>(_marsbackground)
-;src/main.c:1587: difficulty = 300;
+;src/main.c:1603: difficulty = 300;
 	ld	hl, #_difficulty
 	ld	a, #0x2c
 	ld	(hl+), a
 	ld	(hl), #0x01
-;src/main.c:1588: return 1;
+;src/main.c:1604: return 1;
 	ld	e, #0x01
 	jp	00127$
 00108$:
-;src/main.c:1591: set_bkg_data(0x25, 16, backgroundtiles2);	
+;src/main.c:1607: set_bkg_data(0x25, 16, backgroundtiles2);	
 	ld	de, #_backgroundtiles2
 	push	de
 	ld	hl, #0x1025
 	push	hl
 	call	_set_bkg_data
 	add	sp, #4
-;src/main.c:1592: set_bkg_tiles(0,0,background2Width, background2Height ,background2); 
+;src/main.c:1608: set_bkg_tiles(0,0,background2Width, background2Height ,background2); 
 	ld	de, #_background2
 	push	de
 	ld	hl, #0x2020
@@ -19494,45 +19734,45 @@ _showLevelSelection::
 	xor	a, a
 	call	_set_bkg_tiles
 	add	sp, #6
-;src/main.c:1593: collisionTiles = background2;
+;src/main.c:1609: collisionTiles = background2;
 	ld	hl, #_collisionTiles
 	ld	(hl), #<(_background2)
 	inc	hl
 	ld	(hl), #>(_background2)
-;src/main.c:1594: difficulty = 400;
+;src/main.c:1610: difficulty = 400;
 	ld	hl, #_difficulty
 	ld	a, #0x90
 	ld	(hl+), a
 	ld	(hl), #0x01
-;src/main.c:1595: return 1;
+;src/main.c:1611: return 1;
 	ld	e, #0x01
 	jr	00127$
 00111$:
-;src/main.c:1601: if (joydata & J_B) {
+;src/main.c:1617: if (joydata & J_B) {
 	bit	5, a
 	jr	Z, 00113$
-;src/main.c:1602: waitpadup();
+;src/main.c:1618: waitpadup();
 	call	_waitpadup
-;src/main.c:1603: return 0;
+;src/main.c:1619: return 0;
 	ld	e, #0x00
 	jr	00127$
 00113$:
-;src/main.c:1606: if (!(prevJoyData & J_DOWN) && (joydata & J_DOWN)) {
+;src/main.c:1622: if (!(prevJoyData & J_DOWN) && (joydata & J_DOWN)) {
 	ld	hl, #_prevJoyData
 	ld	b, (hl)
 	bit	3, b
 	jr	NZ, 00115$
 	bit	3, a
 	jr	Z, 00115$
-;src/main.c:1607: ++menuitem;
+;src/main.c:1623: ++menuitem;
 	inc	c
 00115$:
-;src/main.c:1609: if (!(prevJoyData & J_UP) && (joydata & J_UP)) {
+;src/main.c:1625: if (!(prevJoyData & J_UP) && (joydata & J_UP)) {
 	bit	2, b
 	jr	NZ, 00118$
 	bit	2, a
 	jr	Z, 00118$
-;src/main.c:1610: --menuitem;
+;src/main.c:1626: --menuitem;
 	dec	c
 00118$:
 ;src/main.c:384: return (value < min) ? min : (value > max) ? max : value;
@@ -19563,9 +19803,9 @@ _showLevelSelection::
 	ld	a, c
 00132$:
 00130$:
-;src/main.c:1612: menuitem = clamp(menuitem, 0, 4);
+;src/main.c:1628: menuitem = clamp(menuitem, 0, 4);
 	ld	c, a
-;src/main.c:1613: move_sprite(0, 24, 63 + (menuitem<<3));
+;src/main.c:1629: move_sprite(0, 24, 63 + (menuitem<<3));
 	add	a, a
 	add	a, a
 	add	a, a
@@ -19577,14 +19817,14 @@ _showLevelSelection::
 	ld	a, b
 	ld	(hl+), a
 	ld	(hl), #0x18
-;src/main.c:1615: wait_vbl_done();
+;src/main.c:1631: wait_vbl_done();
 	call	_wait_vbl_done
 	jp	00121$
 00127$:
-;src/main.c:1618: }
+;src/main.c:1634: }
 	add	sp, #12
 	ret
-;src/main.c:1622: void main(){
+;src/main.c:1638: void main(){
 ;	---------------------------------
 ; Function main
 ; ---------------------------------
@@ -19592,30 +19832,30 @@ _main::
 	add	sp, #-4
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:671: __asm__("di");
 	di
-;src/main.c:1631: showStartScreen();
+;src/main.c:1647: showStartScreen();
 	call	_showStartScreen
-;src/main.c:1632: waitpad(J_START | J_A);
+;src/main.c:1648: waitpad(J_START | J_A);
 	ld	a, #0x90
 	push	af
 	inc	sp
 	call	_waitpad
 	inc	sp
-;src/main.c:1633: waitpadup();
+;src/main.c:1649: waitpadup();
 	call	_waitpadup
-;src/main.c:1638: NR52_REG = 0x80; // sound on 
+;src/main.c:1654: NR52_REG = 0x80; // sound on 
 	ld	a, #0x80
 	ldh	(_NR52_REG + 0), a
-;src/main.c:1639: NR50_REG = 0x77; // volume
+;src/main.c:1655: NR50_REG = 0x77; // volume
 	ld	a, #0x77
 	ldh	(_NR50_REG + 0), a
-;src/main.c:1640: NR51_REG = 0xFF; // all channels
+;src/main.c:1656: NR51_REG = 0xFF; // all channels
 	ld	a, #0xff
 	ldh	(_NR51_REG + 0), a
-;src/main.c:1643: uint16_t seed = LY_REG;
+;src/main.c:1659: uint16_t seed = LY_REG;
 	ldh	a, (_LY_REG + 0)
 	ld	c, a
 	ld	b, #0x00
-;src/main.c:1644: seed |= (uint16_t)DIV_REG << 8;
+;src/main.c:1660: seed |= (uint16_t)DIV_REG << 8;
 	ldh	a, (_DIV_REG + 0)
 	ld	e, a
 	xor	a, a
@@ -19624,77 +19864,77 @@ _main::
 	ld	a, e
 	or	a, b
 	ld	b, a
-;src/main.c:1645: initrand(seed);
+;src/main.c:1661: initrand(seed);
 	push	bc
 	call	_initrand
 	inc	sp
 	inc	sp
-;src/main.c:1650: while(1) {
+;src/main.c:1666: while(1) {
 00147$:
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:671: __asm__("di");
 	di
-;src/main.c:1655: set_interrupts(1);   
+;src/main.c:1671: set_interrupts(1);   
 	ld	a, #0x01
 	push	af
 	inc	sp
 	call	_set_interrupts
 	inc	sp
-;src/main.c:1657: clearScreen();
+;src/main.c:1673: clearScreen();
 	call	_clearScreen
-;src/main.c:1659: uint8_t result = showMenu();
+;src/main.c:1675: uint8_t result = showMenu();
 	call	_showMenu
 	ld	a, e
 	ld	b, a
-;src/main.c:1662: if (result == 0) {
+;src/main.c:1678: if (result == 0) {
 	or	a, a
 	jp	NZ, 00144$
-;src/main.c:1664: uint8_t map = showLevelSelection();
+;src/main.c:1680: uint8_t map = showLevelSelection();
 	call	_showLevelSelection
 	ld	a, e
-;src/main.c:1665: if (map == 0) {
+;src/main.c:1681: if (map == 0) {
 	or	a, a
 	jr	Z, 00147$
-;src/main.c:1670: initEnemyOptions();
+;src/main.c:1686: initEnemyOptions();
 	call	_initEnemyOptions
-;src/main.c:1671: initGame();
+;src/main.c:1687: initGame();
 	call	_initGame
-;src/main.c:1672: initEnemies(1);
+;src/main.c:1688: initEnemies(1);
 	ld	a, #0x01
 	push	af
 	inc	sp
 	call	_initEnemies
 	inc	sp
-;src/main.c:1673: initProjectiles();
+;src/main.c:1689: initProjectiles();
 	call	_initProjectiles
-;src/main.c:1676: while(hull > 0) {
+;src/main.c:1692: while(hull > 0) {
 00122$:
 	ld	a, (#_hull)
 	or	a, a
-	jp	Z, 00190$
-;src/main.c:1677: SHOW_SPRITES;
+	jp	Z, 00188$
+;src/main.c:1693: SHOW_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x02
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1679: prevJoyData = joydata;
+;src/main.c:1695: prevJoyData = joydata;
 	ld	a, (#_joydata)
 	ld	(#_prevJoyData),a
-;src/main.c:1680: joydata = joypad(); // query for button states
+;src/main.c:1696: joydata = joypad(); // query for button states
 	call	_joypad
 	ld	hl, #_joydata
 	ld	(hl), e
-;src/main.c:1682: updateDirection(); // set player direction
+;src/main.c:1698: updateDirection(); // set player direction
 	call	_updateDirection
-;src/main.c:1685: move(); 
+;src/main.c:1701: move(); 
 	call	_move
-;src/main.c:1687: moveProjectiles();
+;src/main.c:1703: moveProjectiles();
 	call	_moveProjectiles
-;src/main.c:1688: tickPickups();
+;src/main.c:1704: tickPickups();
 	call	_tickPickups
-;src/main.c:1689: tickEx();
+;src/main.c:1705: tickEx();
 	call	_tickEx
-;src/main.c:1693: updateEnemyPositions();
+;src/main.c:1709: updateEnemyPositions();
 	call	_updateEnemyPositions
-;src/main.c:1694: checkCollision(); 
+;src/main.c:1710: checkCollision(); 
 	call	_checkCollision
 ;src/main.c:1060: if (shield < maxShield) {
 	ld	hl, #_maxShield
@@ -19705,16 +19945,16 @@ _main::
 	ld	a, (hl)
 	sub	a, c
 	bit	7, e
-	jr	Z, 00350$
+	jr	Z, 00348$
 	bit	7, d
-	jr	NZ, 00351$
+	jr	NZ, 00349$
 	cp	a, a
-	jr	00351$
-00350$:
+	jr	00349$
+00348$:
 	bit	7, d
-	jr	Z, 00351$
+	jr	Z, 00349$
 	scf
-00351$:
+00349$:
 	jr	NC, 00152$
 ;src/main.c:1061: shield += 1;
 	ld	hl, #_shield
@@ -19734,110 +19974,90 @@ _main::
 	push	hl
 	call	_setHealthBar
 	pop	hl
-;src/main.c:1699: if (joydata & J_B && fireCooldown == 0) {
+;src/main.c:1715: if (joydata & J_B && fireCooldown == 0) {
 	ld	a, (#_joydata)
 	bit	5, a
 	jr	Z, 00102$
 	ld	a, (#_fireCooldown)
 	or	a, a
 	jr	NZ, 00102$
-;src/main.c:1700: fire();
+;src/main.c:1716: fire();
 	call	_fire
 00102$:
-;src/main.c:1702: if (fireCooldown > 0) {
+;src/main.c:1718: if (fireCooldown > 0) {
 	ld	hl, #_fireCooldown
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00105$
-;src/main.c:1703: --fireCooldown;
+;src/main.c:1719: --fireCooldown;
 	dec	(hl)
 00105$:
-;src/main.c:1706: if ((joydata & J_SELECT) && !(prevJoyData & J_SELECT)) {
+;src/main.c:1722: if ((joydata & J_SELECT) && !(prevJoyData & J_SELECT)) {
 	ld	a, (#_joydata)
 	bit	6, a
 	jr	Z, 00112$
 	ld	a, (#_prevJoyData)
 	bit	6, a
 	jr	NZ, 00112$
-;src/main.c:1707: if (currentGun == 0) {
+;src/main.c:1723: if (currentGun == 0) {
 	ld	hl, #_currentGun
 	ld	a, (hl)
 	or	a, a
 	jr	NZ, 00109$
-;src/main.c:1708: currentGun = 1;
+;src/main.c:1724: currentGun = 1;
 	ld	(hl), #0x01
 	jr	00110$
 00109$:
-;src/main.c:1710: else if (currentGun == 1) {
+;src/main.c:1726: else if (currentGun == 1) {
 	ld	a, (#_currentGun)
 	dec	a
 	jr	NZ, 00110$
-;src/main.c:1711: currentGun = 0;
+;src/main.c:1727: currentGun = 0;
 	ld	hl, #_currentGun
 	ld	(hl), #0x00
 00110$:
-;src/main.c:1713: setGunIcon();
+;src/main.c:1729: setGunIcon();
 	call	_setGunIcon
 00112$:
-;src/main.c:1716: if (!(joydata & J_START) && (prevJoyData & J_START)) {
+;src/main.c:1732: if (!(joydata & J_START) && (prevJoyData & J_START)) {
 	ld	a, (#_joydata)
 	rlca
 	jr	C, 00115$
-	ld	hl, #_prevJoyData
-	ld	a, (hl)
+	ld	a, (#_prevJoyData)
 	rlca
 	jr	NC, 00115$
-;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:671: __asm__("di");
-	di
-;src/main.c:1718: SHOW_SPRITES;
-	ldh	a, (_LCDC_REG + 0)
-	or	a, #0x02
-	ldh	(_LCDC_REG + 0), a
-;src/main.c:1719: clearWindow();
-	call	_clearWindow
-;src/main.c:1720: waitpad(J_START);
-	ld	a, #0x80
-	push	af
-	inc	sp
-	call	_waitpad
-	inc	sp
-;src/main.c:1721: waitpadup();
-	call	_waitpadup
-;src/main.c:1722: recoverHud();
-	call	_recoverHud
-;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:655: __asm__("ei");
-	ei
-;src/main.c:1723: enable_interrupts();
+;src/main.c:1733: doPause();
+	call	_doPause
 00115$:
-;src/main.c:1726: if (auxTick == 0) {
+;src/main.c:1736: if (auxTick == 0) {
 	ld	a, (#_auxTick)
 	or	a, a
 	jr	NZ, 00118$
-;src/main.c:1727: auxTick = AUXTICKFREQUENCY;
+;src/main.c:1737: auxTick = AUXTICKFREQUENCY;
 	ld	a, (#_AUXTICKFREQUENCY)
 	ld	(#_auxTick),a
 	jr	00119$
 00118$:
-;src/main.c:1730: auxTick--;
+;src/main.c:1740: auxTick--;
 	ld	hl, #_auxTick
 	dec	(hl)
 00119$:
-;src/main.c:1735: if (hull > 100) {
+;src/main.c:1745: if (hull > 100) {
 	ld	a, #0x64
 	ld	hl, #_hull
 	sub	a, (hl)
 	jr	NC, 00121$
-;src/main.c:1736: hull = 0;
+;src/main.c:1746: hull = 0;
 	ld	(hl), #0x00
-;src/main.c:1737: shield = 0;
+;src/main.c:1747: shield = 0;
 	ld	hl, #_shield
 	ld	(hl), #0x00
-;src/main.c:1738: setHealthBar(1, hull);
+;src/main.c:1748: setHealthBar(1, hull);
 	ld	hl, #0x01
 	push	hl
 	call	_setHealthBar
 	pop	hl
-;src/main.c:1739: setHealthBar(0, shield);
+;src/main.c:1749: setHealthBar(0, shield);
 	ld	a, (#_shield)
 	ld	h, a
 	ld	l, #0x00
@@ -19845,29 +20065,29 @@ _main::
 	call	_setHealthBar
 	pop	hl
 00121$:
-;src/main.c:1742: SHOW_SPRITES;
+;src/main.c:1752: SHOW_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x02
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1744: SHOW_WIN;	
+;src/main.c:1754: SHOW_WIN;	
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1745: wait_vbl_done(); // Idle until next frame
+;src/main.c:1755: wait_vbl_done(); // Idle until next frame
 	call	_wait_vbl_done
 	jp	00122$
-;src/main.c:1750: for (uint8_t i=0; i<exCount; ++i) {
-00190$:
+;src/main.c:1760: for (uint8_t i=0; i<exCount; ++i) {
+00188$:
 	ldhl	sp,	#3
 	ld	(hl), #0x00
-00162$:
+00160$:
 	ld	hl, #_exCount
 	ld	c, (hl)
 	ldhl	sp,	#3
 	ld	a, (hl)
 	sub	a, c
 	jr	NC, 00125$
-;src/main.c:1751: explosions[i].x = 200;
+;src/main.c:1761: explosions[i].x = 200;
 	ld	c, (hl)
 	ld	b, #0x00
 	ld	l, c
@@ -19885,7 +20105,7 @@ _main::
 ;	spillPairReg hl
 	inc	hl
 	ld	(hl), #0xc8
-;src/main.c:1752: explosions[i].y = 200;
+;src/main.c:1762: explosions[i].y = 200;
 	ld	l, c
 ;	spillPairReg hl
 ;	spillPairReg hl
@@ -19895,7 +20115,7 @@ _main::
 	inc	hl
 	inc	hl
 	ld	(hl), #0xc8
-;src/main.c:1754: explosions[i].tile = exTiles[0];
+;src/main.c:1764: explosions[i].tile = exTiles[0];
 	ld	hl, #0x0005
 	add	hl, bc
 	push	hl
@@ -19913,11 +20133,11 @@ _main::
 	ld	l, a
 	pop	af
 	ld	(hl), a
-;src/main.c:1755: explosions[i].frameCounter = 0;
+;src/main.c:1765: explosions[i].frameCounter = 0;
 	ld	hl, #0x0004
 	add	hl, bc
 	ld	(hl), #0x00
-;src/main.c:1756: explosions[i].frame = 2-i;
+;src/main.c:1766: explosions[i].frame = 2-i;
 	ld	e, c
 	ld	d, b
 	inc	de
@@ -19930,25 +20150,25 @@ _main::
 	ld	a, #0x02
 	sub	a, l
 	ld	(de), a
-;src/main.c:1757: explosions[i].visible = 1;
+;src/main.c:1767: explosions[i].visible = 1;
 	ld	a, #0x01
 	ld	(bc), a
-;src/main.c:1750: for (uint8_t i=0; i<exCount; ++i) {
+;src/main.c:1760: for (uint8_t i=0; i<exCount; ++i) {
 	ldhl	sp,	#3
 	inc	(hl)
-	jr	00162$
+	jr	00160$
 00125$:
-;src/main.c:1759: xOverflow = 0;
+;src/main.c:1769: xOverflow = 0;
 	xor	a, a
 	ld	hl, #_xOverflow
 	ld	(hl+), a
 	ld	(hl), a
-;src/main.c:1760: yOverflow = 0;
+;src/main.c:1770: yOverflow = 0;
 	xor	a, a
 	ld	hl, #_yOverflow
 	ld	(hl+), a
 	ld	(hl), a
-;src/main.c:1762: while(endExCount < 12) {
+;src/main.c:1772: while(endExCount < 12) {
 	ldhl	sp,	#3
 	ld	(hl), #0x00
 00133$:
@@ -19956,26 +20176,26 @@ _main::
 	ld	a, (hl)
 	sub	a, #0x0c
 	jp	NC, 00135$
-;src/main.c:1764: SHOW_SPRITES;
+;src/main.c:1774: SHOW_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x02
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1765: tickEx();
+;src/main.c:1775: tickEx();
 	call	_tickEx
-;src/main.c:1766: if (auxTick == 0) {
+;src/main.c:1776: if (auxTick == 0) {
 	ld	a, (#_auxTick)
 	or	a, a
 	jr	NZ, 00127$
-;src/main.c:1767: auxTick = AUXTICKFREQUENCY;
+;src/main.c:1777: auxTick = AUXTICKFREQUENCY;
 	ld	a, (#_AUXTICKFREQUENCY)
 	ld	(#_auxTick),a
 	jr	00128$
 00127$:
-;src/main.c:1770: auxTick--;
+;src/main.c:1780: auxTick--;
 	ld	hl, #_auxTick
 	dec	(hl)
 00128$:
-;src/main.c:1772: if (!explosions[oldestEx].visible) {
+;src/main.c:1782: if (!explosions[oldestEx].visible) {
 	ld	hl, #_oldestEx
 	ld	c, (hl)
 	ld	b, #0x00
@@ -20000,12 +20220,12 @@ _main::
 	ld	a, (de)
 	or	a, a
 	jp	NZ, 00132$
-;src/main.c:1773: explosions[oldestEx].visible = 1;
+;src/main.c:1783: explosions[oldestEx].visible = 1;
 	ld	a, (hl-)
 	ld	l, (hl)
 	ld	h, a
 	ld	(hl), #0x01
-;src/main.c:1776: uint8_t tileNum = ((uint8_t)rand()) % exTileCount;
+;src/main.c:1786: uint8_t tileNum = ((uint8_t)rand()) % exTileCount;
 	call	_rand
 	ld	a, e
 	ld	hl, #_exTileCount
@@ -20018,19 +20238,19 @@ _main::
 	pop	hl
 	ldhl	sp,	#0
 	ld	(hl), e
-;src/main.c:1777: uint8_t xOff = ((uint8_t)rand()) % 32;
+;src/main.c:1787: uint8_t xOff = ((uint8_t)rand()) % 32;
 	call	_rand
 	ld	a, e
 	and	a, #0x1f
 	ldhl	sp,	#1
 	ld	(hl), a
-;src/main.c:1778: uint8_t yOff = ((uint8_t)rand()) % 32;
+;src/main.c:1788: uint8_t yOff = ((uint8_t)rand()) % 32;
 	call	_rand
 	ld	a, e
 	and	a, #0x1f
 	ldhl	sp,	#2
 	ld	(hl), a
-;src/main.c:1780: explosions[oldestEx].x = playerDrawX -16 + xOff;
+;src/main.c:1790: explosions[oldestEx].x = playerDrawX -16 + xOff;
 	ld	hl, #_oldestEx
 	ld	c, (hl)
 	ld	b, #0x00
@@ -20050,7 +20270,7 @@ _main::
 	ld	e, (hl)
 	add	a, e
 	ld	(bc), a
-;src/main.c:1781: explosions[oldestEx].y = playerDrawY -16 + yOff;
+;src/main.c:1791: explosions[oldestEx].y = playerDrawY -16 + yOff;
 	ld	hl, #_oldestEx
 	ld	c, (hl)
 	ld	b, #0x00
@@ -20071,7 +20291,7 @@ _main::
 	ld	e, (hl)
 	add	a, e
 	ld	(bc), a
-;src/main.c:1782: explosions[oldestEx].tile = exTiles[tileNum];
+;src/main.c:1792: explosions[oldestEx].tile = exTiles[tileNum];
 	ld	hl, #_oldestEx
 	ld	c, (hl)
 	ld	b, #0x00
@@ -20098,7 +20318,7 @@ _main::
 	ld	d, h
 	ld	a, (de)
 	ld	(bc), a
-;src/main.c:1783: explosions[oldestEx].frame = 0;
+;src/main.c:1793: explosions[oldestEx].frame = 0;
 	ld	hl, #_oldestEx
 	ld	c, (hl)
 	ld	b, #0x00
@@ -20113,7 +20333,7 @@ _main::
 	inc	hl
 	inc	hl
 	ld	(hl), #0x00
-;src/main.c:1784: explosions[oldestEx].frameCounter = 0;
+;src/main.c:1794: explosions[oldestEx].frameCounter = 0;
 	ld	hl, #_oldestEx
 	ld	c, (hl)
 	ld	b, #0x00
@@ -20127,7 +20347,7 @@ _main::
 	ld	bc, #0x0004
 	add	hl, bc
 	ld	(hl), #0x00
-;src/main.c:1786: set_sprite_tile(20 + oldestEx+oldestEx, explosions[oldestEx].tile + (explosions[oldestEx].frame<<1));
+;src/main.c:1796: set_sprite_tile(20 + oldestEx+oldestEx, explosions[oldestEx].tile + (explosions[oldestEx].frame<<1));
 	ld	hl, #_oldestEx
 	ld	c, (hl)
 	ld	b, #0x00
@@ -20169,7 +20389,7 @@ _main::
 	inc	hl
 	inc	hl
 	ld	(hl), c
-;src/main.c:1787: set_sprite_tile(21 + oldestEx+oldestEx, explosions[oldestEx].tile+(explosions[oldestEx].frame<<1) +2);
+;src/main.c:1797: set_sprite_tile(21 + oldestEx+oldestEx, explosions[oldestEx].tile+(explosions[oldestEx].frame<<1) +2);
 	ld	hl, #_oldestEx
 	ld	c, (hl)
 	ld	b, #0x00
@@ -20212,40 +20432,40 @@ _main::
 	inc	hl
 	inc	hl
 	ld	(hl), c
-;src/main.c:1789: oldestEx++;
+;src/main.c:1799: oldestEx++;
 	ld	hl, #_oldestEx
 	inc	(hl)
-;src/main.c:1790: if (oldestEx >= exCount) {
+;src/main.c:1800: if (oldestEx >= exCount) {
 	ld	hl, #_exCount
 	ld	c, (hl)
 	ld	hl, #_oldestEx
 	ld	a, (hl)
 	sub	a, c
 	jr	C, 00130$
-;src/main.c:1791: oldestEx = 0;
+;src/main.c:1801: oldestEx = 0;
 	ld	(hl), #0x00
 00130$:
-;src/main.c:1793: endExCount++;
+;src/main.c:1803: endExCount++;
 	ldhl	sp,	#3
 	inc	(hl)
 00132$:
-;src/main.c:1796: SHOW_WIN;	
+;src/main.c:1806: SHOW_WIN;	
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1798: wait_vbl_done();
+;src/main.c:1808: wait_vbl_done();
 	call	_wait_vbl_done
 	jp	00133$
 00135$:
-;src/main.c:1801: for (uint8_t j=0; j<exCount; ++j) {
+;src/main.c:1811: for (uint8_t j=0; j<exCount; ++j) {
 	ld	c, #0x00
-00165$:
+00163$:
 	ld	hl, #_exCount
 	ld	b, (hl)
 	ld	a, c
 	sub	a, b
 	jr	NC, 00136$
-;src/main.c:1803: move_sprite(20 +j+j, 200, 200);
+;src/main.c:1813: move_sprite(20 +j+j, 200, 200);
 	ld	b, c
 	ld	a, b
 	add	a, #0x14
@@ -20265,7 +20485,7 @@ _main::
 	ld	a, #0xc8
 	ld	(hl+), a
 	ld	(hl), #0xc8
-;src/main.c:1804: move_sprite(21 +j+j, 200, 200);
+;src/main.c:1814: move_sprite(21 +j+j, 200, 200);
 	ld	a, b
 	add	a, #0x15
 	add	a, b
@@ -20284,13 +20504,13 @@ _main::
 	ld	a, #0xc8
 	ld	(hl+), a
 	ld	(hl), #0xc8
-;src/main.c:1801: for (uint8_t j=0; j<exCount; ++j) {
+;src/main.c:1811: for (uint8_t j=0; j<exCount; ++j) {
 	inc	c
-	jr	00165$
+	jr	00163$
 00136$:
-;src/main.c:1806: for (uint16_t k=0; k<180; ++k) {
+;src/main.c:1816: for (uint16_t k=0; k<180; ++k) {
 	ld	bc, #0x0000
-00168$:
+00166$:
 	ld	e, c
 	ld	d, b
 	ld	a, e
@@ -20298,268 +20518,53 @@ _main::
 	ld	a, d
 	sbc	a, #0x00
 	jr	NC, 00137$
-;src/main.c:1807: SHOW_SPRITES;
+;src/main.c:1817: SHOW_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x02
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1808: SHOW_WIN;
+;src/main.c:1818: SHOW_WIN;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x20
 	ldh	(_LCDC_REG + 0), a
-;src/main.c:1809: wait_vbl_done();
+;src/main.c:1819: wait_vbl_done();
 	call	_wait_vbl_done
-;src/main.c:1806: for (uint16_t k=0; k<180; ++k) {
+;src/main.c:1816: for (uint16_t k=0; k<180; ++k) {
 	inc	bc
-	jr	00168$
+	jr	00166$
 00137$:
 ;/home/milan/Documents/gameboy/gbdk/include/gb/gb.h:671: __asm__("di");
 	di
-;src/main.c:1813: showScoreScreen();
+;src/main.c:1823: showScoreScreen();
 	call	_showScoreScreen
-;src/main.c:1814: waitpad(J_A | J_B | J_DOWN | J_LEFT | J_RIGHT | J_UP | J_SELECT | J_START);
+;src/main.c:1824: waitpad(J_A | J_B | J_DOWN | J_LEFT | J_RIGHT | J_UP | J_SELECT | J_START);
 	ld	a, #0xff
 	push	af
 	inc	sp
 	call	_waitpad
 	inc	sp
-;src/main.c:1815: waitpadup();
+;src/main.c:1825: waitpadup();
 	call	_waitpadup
 	jp	00147$
 00144$:
-;src/main.c:1820: else if (result == 1) {
+;src/main.c:1830: else if (result == 1) {
 	dec	b
 	jp	NZ,00147$
-;src/main.c:1821: showControls();
+;src/main.c:1831: showControls();
 	call	_showControls
-;src/main.c:1822: waitpad(J_B);
+;src/main.c:1832: waitpad(J_B);
 	ld	a, #0x20
 	push	af
 	inc	sp
 	call	_waitpad
 	inc	sp
-;src/main.c:1823: waitpadup();
+;src/main.c:1833: waitpadup();
 	call	_waitpadup
 	jp	00147$
-;src/main.c:1828: }
+;src/main.c:1838: }
 	add	sp, #4
 	ret
 	.area _CODE
 	.area _INITIALIZER
-__xinit__hullabel:
-	.db #0x12	; 18
-	.db #0x1f	; 31
-	.db #0x16	; 22
-	.db #0x16	; 22
-__xinit__shieldlabel:
-	.db #0x1d	; 29
-	.db #0x12	; 18
-	.db #0x16	; 22
-	.db #0x0e	; 14
-__xinit__weaponlabel:
-	.db #0x21	; 33
-	.db #0x0f	; 15
-	.db #0x1a	; 26
-	.db #0x18	; 24
-__xinit__scorelabel:
-	.db #0x1d	; 29
-	.db #0x0d	; 13
-	.db #0x1c	; 28
-	.db #0x0f	; 15
-__xinit__endScoreLabel:
-	.db #0x1d	; 29
-	.db #0x0d	; 13
-	.db #0x19	; 25
-	.db #0x1c	; 28
-	.db #0x0f	; 15
-__xinit__pressAnyKeyLabel:
-	.db #0x1a	; 26
-	.db #0x1c	; 28
-	.db #0x0f	; 15
-	.db #0x1d	; 29
-	.db #0x1d	; 29
-	.db #0x00	; 0
-	.db #0x0b	; 11
-	.db #0x18	; 24
-	.db #0x23	; 35
-	.db #0x00	; 0
-	.db #0x15	; 21
-	.db #0x0f	; 15
-	.db #0x23	; 35
-__xinit__toContinueLabel:
-	.db #0x1e	; 30
-	.db #0x19	; 25
-	.db #0x00	; 0
-	.db #0x0d	; 13
-	.db #0x19	; 25
-	.db #0x18	; 24
-	.db #0x1e	; 30
-	.db #0x13	; 19
-	.db #0x18	; 24
-	.db #0x1f	; 31
-	.db #0x0f	; 15
-__xinit__emptyRow:
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-__xinit__pressStartLabel:
-	.db #0x1a	; 26
-	.db #0x1c	; 28
-	.db #0x0f	; 15
-	.db #0x1d	; 29
-	.db #0x1d	; 29
-	.db #0x00	; 0
-	.db #0x1d	; 29
-	.db #0x1e	; 30
-	.db #0x0b	; 11
-	.db #0x1c	; 28
-	.db #0x1e	; 30
-__xinit__playLabel:
-	.db #0x1a	; 26
-	.db #0x16	; 22
-	.db #0x0b	; 11
-	.db #0x23	; 35
-__xinit__selectLevelLabel:
-	.db #0x1d	; 29
-	.db #0x0f	; 15
-	.db #0x16	; 22
-	.db #0x0f	; 15
-	.db #0x0d	; 13
-	.db #0x1e	; 30
-	.db #0x00	; 0
-	.db #0x16	; 22
-	.db #0x0f	; 15
-	.db #0x20	; 32
-	.db #0x0f	; 15
-	.db #0x16	; 22
-__xinit__voidLabel:
-	.db #0x20	; 32
-	.db #0x19	; 25
-	.db #0x13	; 19
-	.db #0x0e	; 14
-__xinit__asteroids1Label:
-	.db #0x0b	; 11
-	.db #0x1d	; 29
-	.db #0x1e	; 30
-	.db #0x0f	; 15
-	.db #0x1c	; 28
-	.db #0x19	; 25
-	.db #0x13	; 19
-	.db #0x0e	; 14
-	.db #0x1d	; 29
-	.db #0x00	; 0
-	.db #0x02	; 2
-__xinit__asteroids2Label:
-	.db #0x0b	; 11
-	.db #0x1d	; 29
-	.db #0x1e	; 30
-	.db #0x0f	; 15
-	.db #0x1c	; 28
-	.db #0x19	; 25
-	.db #0x13	; 19
-	.db #0x0e	; 14
-	.db #0x1d	; 29
-	.db #0x00	; 0
-	.db #0x03	; 3
-__xinit__marshabLabel:
-	.db #0x17	; 23
-	.db #0x0b	; 11
-	.db #0x1c	; 28
-	.db #0x1d	; 29
-	.db #0x00	; 0
-	.db #0x12	; 18
-	.db #0x0b	; 11
-	.db #0x0c	; 12
-__xinit__bonusLabel:
-	.db #0x0c	; 12
-	.db #0x19	; 25
-	.db #0x18	; 24
-	.db #0x1f	; 31
-	.db #0x1d	; 29
-__xinit__controlsLabel:
-	.db #0x0d	; 13
-	.db #0x19	; 25
-	.db #0x18	; 24
-	.db #0x1e	; 30
-	.db #0x1c	; 28
-	.db #0x19	; 25
-	.db #0x16	; 22
-	.db #0x1d	; 29
-__xinit__dpadlabel:
-	.db #0x0e	; 14
-	.db #0x1a	; 26
-	.db #0x0b	; 11
-	.db #0x0e	; 14
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x1e	; 30
-	.db #0x1f	; 31
-	.db #0x1c	; 28
-	.db #0x18	; 24
-__xinit__alabel:
-	.db #0x0b	; 11
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x1e	; 30
-	.db #0x12	; 18
-	.db #0x1c	; 28
-	.db #0x1f	; 31
-	.db #0x1d	; 29
-	.db #0x1e	; 30
-__xinit__blabel:
-	.db #0x0c	; 12
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x10	; 16
-	.db #0x13	; 19
-	.db #0x1c	; 28
-	.db #0x0f	; 15
-__xinit__selectlabel:
-	.db #0x1d	; 29
-	.db #0x0f	; 15
-	.db #0x16	; 22
-	.db #0x0f	; 15
-	.db #0x0d	; 13
-	.db #0x1e	; 30
-	.db #0x00	; 0
-	.db #0x1d	; 29
-	.db #0x21	; 33
-	.db #0x13	; 19
-	.db #0x1e	; 30
-	.db #0x0d	; 13
-	.db #0x12	; 18
-__xinit__fullweaponlabel:
-	.db #0x21	; 33
-	.db #0x0f	; 15
-	.db #0x0b	; 11
-	.db #0x1a	; 26
-	.db #0x19	; 25
-	.db #0x18	; 24
 __xinit__minispike:
 	.dw #0x0000
 	.dw #0x0000
