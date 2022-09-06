@@ -179,13 +179,15 @@ unsigned char* collisionTiles;
 uint16_t difficulty = 0;
 
 
-
+//called during gameplay on vertical line ~126 to hide sprites under hud
 void interruptLCD()
 {
     HIDE_SPRITES;
 }
 
-
+//sets 0-5 blocks as the healthbar on hud
+//row used to define which row on the window is used, as this updates hull & shield
+//values
 void setHealthBar(uint8_t row, uint8_t hp) {
 
 	if (hp >= 80) {
@@ -219,14 +221,15 @@ void setHealthBar(uint8_t row, uint8_t hp) {
 
 }
 
+//update score value in hud (window)
 void updateScore() {
-
 	uint8_t len = 0;
 	unsigned char buf[10];
 	len = bcd2text(&SCORE, 0x01, buf);
 	set_win_tiles(15, 1, 5, 1, buf+3);
 }
 
+//increment/decrement missile count & update hud accordingly
 void updateMissileCount(int8_t amount) {
 	if (amount == -1) {
 		missiles--;
@@ -245,13 +248,16 @@ void updateMissileCount(int8_t amount) {
 
 }
 
+//increment both score and score label (bcd)
 void incrementScore() {
 	score += 1;
 	bcd_add(&SCORE, &INCREMENT);
 }
 
-void updateDirection() {
 
+//parse dpad input & update direction holder vars 
+// also orient player sprites correctly toward the direction
+void updateDirection() {
 
 	//4 main directions
 	if ((joydata & J_RIGHT) && !(joydata & J_UP) && !(joydata & J_DOWN)) {
@@ -295,34 +301,9 @@ void updateDirection() {
 		return;
 	}
 
-	uint8_t direction = 0;
+	//uint8_t direction = 0;
 
-	/*
-	if (xDir == 0 && yDir < 0) {
-		direction = 0;
-	}
-	if (xDir > 0 && yDir < 0) {
-		direction = 1;
-	}
-	if (xDir > 0 && yDir == 0) {
-		direction = 2;
-	}
-	if (xDir > 0 && yDir > 0) {
-		direction = 3;
-	}
-	if (xDir == 0 && yDir > 0) {
-		direction = 4;
-	}
-	if (xDir < 0 && yDir > 0) {
-		direction = 5;
-	}
-	if (xDir < 0 && yDir == 0) {
-		direction = 6;
-	}
-	if (xDir < 0 && yDir < 0) {
-		direction = 7;
-	}
-	*/
+
 
 	if (auxTick == 0) {
 		if (xDir == 0 && yDir > 0) {
@@ -378,23 +359,19 @@ void updateDirection() {
 
 }
 
-
+//util functions for clamping integers to a range and calculating abs
 inline int8_t clamp( int8_t value, int8_t min, int8_t max )
 {
     return (value < min) ? min : (value > max) ? max : value;
 }
-
-
 inline uint8_t uClamp( uint8_t value, uint8_t min, uint8_t max )
 {
     return (value < min) ? min : (value > max) ? max : value;
 }
-
 inline uint16_t u16Clamp( uint16_t value, uint16_t min, uint16_t max )
 {
     return (value < min) ? min : (value > max) ? max : value;
 }
-
 inline int16_t i16Clamp( int16_t value, int16_t min, int16_t max )
 {
     return (value < min) ? min : (value > max) ? max : value;
@@ -403,13 +380,12 @@ inline int8_t abs(int8_t value) {
 	if (value >= 0) return value;
 	else return - value;
 }
-
 inline uint16_t i16abs(int16_t value) {
 	if (value >= 0) return value;
 	else return - value;
 }
 
-
+//sets sound registers according to sound type
 void playSound(uint8_t type) {
 	if (type == 20) { //singlegun
 		NR10_REG = 0x00;
@@ -445,6 +421,7 @@ void playSound(uint8_t type) {
 	
 }
 
+//reinitializes fonts, required after clearing vram
 void initFont() {
 	font_init();
 	//font_color(0, 0);
@@ -452,6 +429,7 @@ void initFont() {
     font_set(min_font);
 }
 
+//clears window (hud), but doesn't touch vram
 void clearWindow() {
 	HIDE_WIN;
 	move_win(8,126);
@@ -461,7 +439,8 @@ void clearWindow() {
 	SHOW_WIN;
 }
 
-//used after a pause has ended
+//reinitializes hud window
+//used after a pause has ended and when first initializing hud
 void recoverHud() {
 	HIDE_WIN;
 	move_win(7,126);
@@ -477,7 +456,7 @@ void recoverHud() {
 	SHOW_WIN;
 }
 
-
+//clears window & background tiles and background tiles from vram
 void clearScreen() {
 	HIDE_WIN;
 	HIDE_BKG;
@@ -489,13 +468,12 @@ void clearScreen() {
 		set_sprite_tile(j, 0x7f);
 	}
 
-	//set score label
-
 	SHOW_WIN;
 	SHOW_BKG;
 
 }
 
+//inits the enemies array and loads all enemy sprites to vram
 void initEnemies(uint8_t loadSprites) {
 
 	if (loadSprites) {
@@ -507,35 +485,34 @@ void initEnemies(uint8_t loadSprites) {
 	struct Enemy *eptr = enemies;
 	//initializing enemy list with structs
   	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
-	  	if (eptr->alive == 0) {
 
-			uint8_t enemyInd = ((uint8_t)rand()) % (uint8_t) ENEMYOPTIONCOUNT;
-			//printf("%d\n", enemyInd);
-			(*eptr) = enemyOptions[enemyInd];
+		uint8_t enemyInd = ((uint8_t)rand()) % (uint8_t) ENEMYOPTIONCOUNT;
+		//printf("%d\n", enemyInd);
+		(*eptr) = enemyOptions[enemyInd];
 
-			uint8_t posIndex =  ((uint8_t)rand()) % (uint8_t)8;//(rand() & 8);
-			eptr->x = xSpawnPositions[posIndex];
-			eptr->y = ySpawnPositions[posIndex];
+		uint8_t posIndex =  ((uint8_t)rand()) % (uint8_t)8;//(rand() & 8);
+		eptr->x = xSpawnPositions[posIndex];
+		eptr->y = ySpawnPositions[posIndex];
 
-			if (eptr->spriteCount == 1) {
-				set_sprite_tile(10+ (i<<1), eptr->sprite0);
-				move_sprite(10+ (i<<1), eptr->x, eptr->y);
-			}
-			else {
-				set_sprite_tile(10+ (i<<1), eptr->sprite0);
-				move_sprite(10+ (i<<1), eptr->x, eptr->y);
+		if (eptr->spriteCount == 1) {
+			set_sprite_tile(10+ (i<<1), eptr->sprite0);
+			move_sprite(10+ (i<<1), eptr->x, eptr->y);
+		}
+		else {
+			set_sprite_tile(10+ (i<<1), eptr->sprite0);
+			move_sprite(10+ (i<<1), eptr->x, eptr->y);
 
-				set_sprite_tile(10+ (i<<1) +1, eptr->sprite1);
-				move_sprite(10+ (i<<1) +1, eptr->x, eptr->y);
-			}
+			set_sprite_tile(10+ (i<<1) +1, eptr->sprite1);
+			move_sprite(10+ (i<<1) +1, eptr->x, eptr->y);
+		}
 
 
-	  	}
 		eptr++;
   	}
 
 }
 
+//similar to initEnemies, but instead reinitializes a single enemy from the array
 void initEnemy(uint8_t i) {
 	//struct Enemy *eptr = enemies + i;
 
@@ -562,17 +539,14 @@ void initEnemy(uint8_t i) {
 			set_sprite_tile(10+ (i<<1) +1, enemies[i].sprite1);
 			//move_sprite(10+ (i<<1) +1, enemies[i].x, enemies[i].y);
 		}
-
-
-	
-
 	}
 
 }
 
-
+//updates enemy speeds (toward player) and positions
+//called every frame
+//also hides enemies that are off screen and deletes ones that are even further away
 void updateEnemyPositions() {
-	//update enemy speeds and positions
 	
 	for (uint8_t i = 0; i < ENEMYCOUNT; ++i) {
 		if (!enemies[i].alive) {
@@ -706,9 +680,7 @@ void updateEnemyPositions() {
 
 }
 
-
-
-
+//checks background collision, moves player and repositions sprites accordingly
 void move() {
 
 	//gas 
@@ -858,7 +830,7 @@ void move() {
 
 	move_bkg(bgX, bgY);
 
-	//bleed speed
+	//bleed speed toward zero to deaccelerate
 	if (ySpeed > 0) ySpeed--;
 	if (ySpeed < 0) ySpeed++;
 	if (xSpeed > 0) xSpeed--;
@@ -868,6 +840,7 @@ void move() {
 	
 }
 
+//decrement player shield or hull if necessary
 void takeDamage(int16_t amount) {
 	if (amount > shield) {
 		shield = 0;
@@ -878,6 +851,7 @@ void takeDamage(int16_t amount) {
 	}
 }
 
+//initializes a pickup (ammo, upgrade hp)
 void spawnPickup(int16_t x, int16_t y) {
 	uint8_t spawn = ((uint8_t)rand()) % (uint8_t) 8;
 	if (spawn == 0) {
@@ -899,11 +873,9 @@ void spawnPickup(int16_t x, int16_t y) {
 		set_sprite_tile(3, pickup.tile); //0x7f
 
 	}
-
-
-
 }
 
+//deletes enemy, shows explosion, increments score by 1, etc
 void killEnemy(uint8_t i) {
 	set_sprite_tile(10+(i<<1), 0x7f);
 	set_sprite_tile(10+(i<<1)+1, 0x7f);
@@ -939,9 +911,10 @@ void killEnemy(uint8_t i) {
 		oldestEx = 0;
 	}
 
-
 }
 
+
+//checks for enemy-player and enemy-projectile collisions
 void checkCollision() {
 	//playerDrawX
 
@@ -1045,7 +1018,7 @@ void checkCollision() {
 
 }
 
-
+//updates gun icon to hud
 void setGunIcon() {
 
 	if (currentGun == 0) {
@@ -1056,6 +1029,7 @@ void setGunIcon() {
 	}
 }
  
+//updates hull & shield values to hull & recovers some shield every frame
 inline void updateShieldsAndHull() {
 	if (shield < maxShield) {
 		shield += 1;
@@ -1064,6 +1038,7 @@ inline void updateShieldsAndHull() {
 	setHealthBar(0, shield);
 }
 
+//creates new projectiles
 void fire() {
 
 	oldestProjectile += 1;
@@ -1151,7 +1126,7 @@ void fire() {
 
 }
 
-
+//updates projectile positions & deletes them if they are off screen
 void moveProjectiles() {
 	for (uint8_t i = 0; i < PROJECTILECOUNT; ++i) {
 		if (projectiles[i].active) {
@@ -1180,6 +1155,7 @@ void moveProjectiles() {
 	}
 }
 
+//updates pickup positions & checks for playercollision
 void tickPickups() {
 
 	if (pickup.active) {
@@ -1226,6 +1202,7 @@ void tickPickups() {
 	}
 }
 
+//increments explosion frames
 void tickEx() {
 	for (uint8_t i = 0; i < exCount; ++i) {
 		if (explosions[i].visible) {
@@ -1255,6 +1232,7 @@ void tickEx() {
 	}
 }
 
+//initializes enemies to options array
 void initEnemyOptions() {
 	enemyOptions[0] = minispike;
 	enemyOptions[1] = minibomb;
@@ -1271,7 +1249,7 @@ void initEnemyOptions() {
 
 }
 
-
+//initializes inactive projectile array
 void initProjectiles() {
 	set_sprite_data(0x20, 17, ProjectileTiles); 
 
@@ -1281,6 +1259,7 @@ void initProjectiles() {
 	}
 }
 
+//initializer for rest of game resources
 void initGame() {
 	HIDE_SPRITES;
 	HIDE_WIN;
@@ -1299,17 +1278,51 @@ void initGame() {
 	xSpeed = 0;
 	ySpeed = 0;
 
+
 	//subpixel positions
 	playerX = 80<<5;
-	playerY = 80<<5;
+	playerY = 70<<5;
 	//on screen positions
 	playerDrawX = 80;
-	playerDrawY = 80;
+	playerDrawY = 70;
+
 
 	//background position
 	bgX = 0;
 	bgY = 0;
-	
+
+	//attempting up to 10 times to find a random location on map that is a clear tile
+	for (uint8_t i = 0; i < 10; ++i) {
+		int16_t backgroundXCandidate = ((int16_t)rand()) % 32;
+		int16_t backgroundYCandidate = ((int16_t)rand()) % 32;
+
+		backgroundXCandidate *= 8;
+		backgroundYCandidate *= 8;
+
+
+		
+		int16_t bgindX = ((playerDrawX + backgroundXCandidate) >> 3)%32;
+		uint8_t bgindY = ((playerDrawY + backgroundYCandidate) >> 3)%32; 
+
+
+		uint16_t ind = 32*bgindY + bgindX;
+		uint8_t result = 1; // 0 incase of clear tile, 1 for blocked
+		for (uint8_t i=0; i<BLANKSIZE; i++) {
+			if ((*(collisionTiles+ind)) == BLANK[i] ) {
+				result = 0;
+				break;
+			}
+		}
+		if (!result) { //tile is clear so player can spawn there
+			bgX = backgroundXCandidate;
+			bgY = backgroundYCandidate;
+			break;
+		}
+
+	}
+
+
+
 	hull = maxHull;
 	shield = maxShield;
 
@@ -1372,6 +1385,7 @@ void initGame() {
 
 }
 
+//pauses game until start is pressed & updates hud accordingly
 void doPause() {
 	disable_interrupts();
 	SHOW_SPRITES;
@@ -1388,7 +1402,7 @@ void doPause() {
 
 
 
-//score screen related actions
+//displays score screen 
 void showScoreScreen() {
 	HIDE_WIN;
 	HIDE_SPRITES;
@@ -1418,6 +1432,7 @@ void showScoreScreen() {
 
 }
 
+//same for controls screen
 void showControls() {
 	HIDE_WIN;
 	HIDE_SPRITES;
@@ -1444,7 +1459,7 @@ void showControls() {
 
 }
 
-
+//shows the first frame
 void showStartScreen() {
 	initFont();
 
@@ -1458,13 +1473,14 @@ void showStartScreen() {
 	SHOW_WIN;
 }
 
-
+//updates menu picker location
 void updateMenu(int8_t menuitem) {
 	move_sprite(0, 48, 95+ (menuitem<<3));
 	move_sprite(1, 122, 95+ (menuitem<<3));
 
 }
 
+//main menu display function
 //returns 0 for play, 1 for controls
 uint8_t showMenu() {
 	initFont();
@@ -1534,6 +1550,7 @@ uint8_t showMenu() {
 }
 
 
+//level selection menu handler
 //returns 1 if a map was selected, 0 for back
 uint8_t showLevelSelection() {
 	HIDE_WIN;
@@ -1809,7 +1826,7 @@ void main(){
 					move_sprite(20 +j+j, 200, 200);
 					move_sprite(21 +j+j, 200, 200);
 				}
-				for (uint16_t k=0; k<180; ++k) {
+				for (uint16_t k=0; k<120; ++k) {
 					SHOW_SPRITES;
 					SHOW_WIN;
 					wait_vbl_done();
