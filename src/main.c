@@ -50,14 +50,10 @@
 /*
 TODO: 
 
-- start ja select pelatessa
-- vertaa joydata & prevjoydata, ja tunnista milloin on painettu pohjaan
-- start korvaa window sisällön
-	- paused press 
-	- start to continue
-
 - äänet
-	- ampumiseen, pitää korjata 
+	- valikko dpad
+	- valikko ok ja back
+	- ampumiseen, sekä gun että missile
 	- pickup
 	- shield kun täysi
 	- eri ääni oma damage ja viholliset
@@ -77,9 +73,12 @@ const unsigned char EMPTYSPRITE = 0x50;
 uint16_t HPSCALESPEED = 10; 
 uint16_t ATTACKSCALESPEED = 20; //same as above
 
+//incremented on every enemy kill, see above variables to how it affects enemies
+uint16_t difficulty = 0;
+
+//store enemy "objects"
 struct Enemy enemies[5];
 const uint8_t ENEMYCOUNT = 5;
-
 
 //enemy spawn positions
 const uint8_t xSpawnPositions[8] = {
@@ -94,16 +93,19 @@ const uint8_t ySpawnPositions[8] = {
 };
 
 
+//store projectiles
 struct Projectile projectiles[5];
 //max supported projectiles on screen at once
 const uint8_t PROJECTILECOUNT = 5;
+//iterator to keep track of which projectile store slot to replace next
 uint8_t oldestProjectile = 0;
+//firing is ok when this reaches zero, subtracted every frame
 uint8_t fireCooldown = 0;
 
 
 const uint8_t PLAYERSIZE = 16;
 
-
+//players heading and speed
 int8_t xDir = 0;
 int8_t yDir = -1;
 int8_t xSpeed = 0;
@@ -112,7 +114,7 @@ int8_t ySpeed = 0;
 //subpixel positions
 uint16_t playerX = 80<<5;
 uint16_t playerY = 80<<5;
-//on screen positions
+//on screen positions, derived from above
 uint8_t playerDrawX = 80;
 uint8_t playerDrawY = 80;
 
@@ -120,18 +122,19 @@ uint8_t playerDrawY = 80;
 int16_t bgX = 0;
 int16_t bgY = 0;
 
+//dpad and button data, next one for previous frame
 uint8_t joydata = 0;
 uint8_t prevJoyData = 0;
 
-
+//hull(hp) and shield values, player dies when hull reaches 0 or overflows to >100
 uint8_t hull;
 const int8_t maxHull = 100;
-
 int8_t shield;
 const int8_t maxShield = 100;
 
 font_t min_font;
 
+//used to keep track of how much the background should move to keep player near center of screen
 int16_t xOverflow = 0;
 int16_t yOverflow = 0;
 
@@ -153,6 +156,7 @@ BCD MISSILES = MAKE_BCD(0);
 //ugly references directly to vram locations, where gun icons are loaded to
 unsigned char gunMap[] = {0x53, 0x5b, 0x61};
 
+//game only supports a single pickup (upgrade item)
 struct Pickup pickup;
 
 
@@ -161,22 +165,23 @@ BCD SCORE = MAKE_BCD(00000);
 BCD INCREMENT = MAKE_BCD(00001);
 
 
+//explosion related stuff, support max 4 explosions at once, oldest one is replaced with a new one
+//when one is to be created
 const uint8_t exCount = 4;
 uint8_t oldestEx = 0;
 struct Explosion explosions[4];
 const uint8_t EXPLFRAMETIME = 4;
 const uint8_t exTileCount = 3;
-uint8_t exTiles[3] = {0x80, 0x90, 0xa0}; //vram hex addresses for first tile in animation
+uint8_t exTiles[3] = {0x80, 0x90, 0xa0}; //vram hex addresses for first tile in animation for each explosion style
+
 
 const uint8_t AUXTICKFREQUENCY = 1; //init value for below...
 uint8_t auxTick = 1; //used to stagger different actions to different frames to save resources
 
-
+//pointer to currently loaded game backgrounds tile map, used to check player collision with
+//background
 unsigned char* collisionTiles;
 
-
-//spawn tables go here
-uint16_t difficulty = 0;
 
 
 //called during gameplay on vertical line ~126 to hide sprites under hud
@@ -380,40 +385,58 @@ inline int8_t abs(int8_t value) {
 	if (value >= 0) return value;
 	else return - value;
 }
-inline uint16_t i16abs(int16_t value) {
+inline int16_t i16abs(int16_t value) {
 	if (value >= 0) return value;
 	else return - value;
 }
 
 //sets sound registers according to sound type
 void playSound(uint8_t type) {
-	if (type == 20) { //singlegun
-		NR10_REG = 0x00;
-		NR11_REG = 0x81;
-		NR12_REG = 0x43;
-		NR13_REG = 0X00;//0x6D;
-		NR14_REG = 0x86;
-		return;
+	if (type == 20) { //gun
+		NR21_REG = 0x81;//0x80;
+		NR22_REG = 0x51;//0x34;
+		NR23_REG = 0x8b;//0xc3;//90
+		NR24_REG = 0x82;//0X86;
 	}
-	if (type == 23) {
+	if (type == 21) {
 		NR10_REG = 0x00;
-		NR11_REG = 0x81;
-		NR12_REG = 0x53;
-		NR13_REG = 0X00;//0x6D;
+		NR11_REG = 0x85;
+		NR12_REG = 0x71;
+		NR13_REG = 0x73;
 		NR14_REG = 0x86;
 	}
-	if (type == 26) {
-		NR10_REG = 0x00;
-		NR11_REG = 0x89;
-		NR12_REG = 0x55;
-		NR13_REG = 0x70;//0Xbe;//0x6D;
-		NR14_REG = 0x84;
-	}
-	if (type == 0) {  // explosion
-		NR41_REG = 0x20;  
-		NR42_REG = 0xa2;//0xa3;  
+
+	if (type == 0) {  // explosion 1
+		NR41_REG = 0x20;
+		NR42_REG = 0x82; //0xa2  
 		NR43_REG = 0x57;  
 		NR44_REG = 0x80;  
+	}
+	if (type == 1) { //player explosion
+		NR41_REG = 0x3f;
+		NR42_REG = 0x66; //36 
+		NR43_REG = 0x47;  
+		NR44_REG = 0x80;  
+	}
+	if (type == 2) { //missile ex
+		NR41_REG = 0x3f;
+		NR42_REG = 0xa3; //f3 
+		NR43_REG = 0x7f;  
+		NR44_REG = 0x80;  
+	}
+	if (type == 10) { //pickup
+		NR10_REG = 0x74;
+		NR11_REG = 0x80;
+		NR12_REG = 0x50;
+		NR13_REG = 0x74;
+		NR14_REG = 0xc5;
+	}
+	if (type == 30) { //menu up/down/back
+		NR10_REG = 0x00;
+		NR11_REG = 0x80;
+		NR12_REG = 0x51;
+		NR13_REG = 0x11;
+		NR14_REG = 0x85;
 
 	}
 
@@ -885,7 +908,6 @@ void killEnemy(uint8_t i) {
 	enemies[i].alive = 0;
 	enemies[i].visible = 0;
 
-	playSound(0);
 	incrementScore();
 	updateScore();
 
@@ -941,7 +963,7 @@ void checkCollision() {
 				eptr->visible = 0;
 				takeDamage(eptr->damage);
 				initEnemy(i);
-				playSound(0);
+				playSound(1);
 
 				alive = 0;
 
@@ -964,7 +986,7 @@ void checkCollision() {
 								pptr->active = 0;
 
 								if (pptr->type == 0x2c) { //missile
-
+									playSound(2);
 									int16_t x = eptr->x;
 									int16_t y = eptr->y;
 
@@ -986,7 +1008,7 @@ void checkCollision() {
 									eptr->hp -= pptr->damage;
 
 									if (eptr->hp <= 0) {
-
+										playSound(0);
 										killEnemy(i);
 										initEnemy(i);
 
@@ -1053,6 +1075,7 @@ void fire() {
 		else {
 			projectiles[oldestProjectile] = doubleGun;
 		}
+		playSound(20);
 	}
 	else if (currentGun == 1) {
 		if (missiles == 0) {
@@ -1060,9 +1083,10 @@ void fire() {
 			setGunIcon();
 			return;
 		}
-
+		
 		projectiles[oldestProjectile] = missile;
 		updateMissileCount(-1);
+		playSound(20);
 
 		if (missiles == 0) {
 			currentGun = 0;
@@ -1166,6 +1190,7 @@ void tickPickups() {
 
 			if (abs(pickup.x - playerDrawX) < 10) {
 				if (abs(pickup.y - playerDrawY) < 10) {
+					playSound(10);
 					if (pickup.type == 0) { //upgrade
 						if (gunLevel < 1) {
 							gunLevel += 1;
@@ -1293,8 +1318,8 @@ void initGame() {
 
 	//attempting up to 10 times to find a random location on map that is a clear tile
 	for (uint8_t i = 0; i < 10; ++i) {
-		int16_t backgroundXCandidate = ((int16_t)rand()) % 32;
-		int16_t backgroundYCandidate = ((int16_t)rand()) % 32;
+		int16_t backgroundXCandidate = (i16abs((int16_t)rand())) % 32;
+		int16_t backgroundYCandidate = (i16abs((int16_t)rand())) % 32;
 
 		backgroundXCandidate *= 8;
 		backgroundYCandidate *= 8;
@@ -1357,8 +1382,8 @@ void initGame() {
 
 
 
-	missiles = 0;
-	MISSILES = MAKE_BCD(0);
+	missiles = 5;
+	MISSILES = MAKE_BCD(5);
 
 
 	recoverHud();
@@ -1526,10 +1551,15 @@ uint8_t showMenu() {
 		joydata = joypad(); // query for button states
 
 		if (joydata & J_DOWN) {
+			playSound(30);
 			menuitem++;
+			waitpadup();
 		}
 		else if (joydata & J_UP) {
+			playSound(30);
 			menuitem--;
+			waitpadup();
+
 		}
 		menuitem = clamp(menuitem, 0, 1);
 		updateMenu(menuitem);
@@ -1623,20 +1653,23 @@ uint8_t showLevelSelection() {
 				difficulty = 400;
 				return 1;
 			}
-			
-
 
 		}
 		if (joydata & J_B) {
 			waitpadup();
+			playSound(30);
 			return 0;
 		}
 
 		if (!(prevJoyData & J_DOWN) && (joydata & J_DOWN)) {
 			++menuitem;
+			playSound(30);
+			waitpadup();
 		}
 		if (!(prevJoyData & J_UP) && (joydata & J_UP)) {
 			--menuitem;
+			playSound(30);
+			waitpadup();
 		}
 		menuitem = clamp(menuitem, 0, 4);
 		move_sprite(0, 24, 63 + (menuitem<<3));
@@ -1753,14 +1786,11 @@ void main(){
 						auxTick--;
 					}
 
-
-
 					if (hull > 100) {
 						hull = 0;
 						shield = 0;
 						setHealthBar(1, hull);
 						setHealthBar(0, shield);
-
 					}
 					SHOW_SPRITES;
 
@@ -1814,7 +1844,7 @@ void main(){
 							oldestEx = 0;
 						}
 						endExCount++;
-
+						playSound(1);
 					}
 					SHOW_WIN;	
 
@@ -1844,6 +1874,7 @@ void main(){
 			showControls();
 			waitpad(J_B);
 			waitpadup();
+			playSound(30);
 		}
 		
 	}

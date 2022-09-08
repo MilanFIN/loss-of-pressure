@@ -11,7 +11,7 @@ LCC = $(GBDK_HOME)bin/lcc
 TARGETS=gb #pocket megaduck sms gg
 
 # Configure platform specific LCC flags here:
-LCCFLAGS_gb      = -Wl-yt0x1B # Set an MBC for banking (1B-ROM+MBC5+RAM+BATT)
+LCCFLAGS_gb      = -Wl-yt0x1B  -Wm-yn"LOSS_OF_PRESSURE_DEV1"# Set an MBC for banking (1B-ROM+MBC5+RAM+BATT)
 LCCFLAGS_pocket  = -Wl-yt0x1B # Usually the same as required for .gb
 LCCFLAGS_duck    = -Wl-yt0x1B # Usually the same as required for .gb
 LCCFLAGS_gbc     = -Wl-yt0x1B -Wm-yc # Same as .gb with: -Wm-yc (gb & gbc) or Wm-yC (gbc exclusive)

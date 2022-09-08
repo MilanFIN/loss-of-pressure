@@ -1,0 +1,30 @@
+ex1:
+nr41-44
+3f, f2, 80, c0
+3f, f2, 47, c0
+
+fire:
+nr10-14
+00, 85, 71, 73, 86
+nr21-24
+81, 34, 90, 86
+
+missile ex
+nr41-44
+3f f3 7f 80
+
+playerex
+nr41-44 
+3f f6 47 80
+
+menu up/down
+nr10-14
+00 45, 71, da, 85
+00 80 50 06 87, 5 määrää voimakkuuden
+
+pickup 
+nr10-14
+43 c0 50 ba c2
+33 c0 50 ba c2
+74 80 50 74 c5 !!!
+
