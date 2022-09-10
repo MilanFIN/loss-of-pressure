@@ -393,17 +393,22 @@ inline int16_t i16abs(int16_t value) {
 //sets sound registers according to sound type
 void playSound(uint8_t type) {
 	if (type == 20) { //gun
-		NR21_REG = 0x81;//0x80;
-		NR22_REG = 0x51;//0x34;
-		NR23_REG = 0x8b;//0xc3;//90
-		NR24_REG = 0x82;//0X86;
+		NR21_REG = 0x81;
+		NR22_REG = 0x41;
+		NR23_REG = 0x8b;
+		NR24_REG = 0x82;
 	}
-	if (type == 21) {
-		NR10_REG = 0x00;
-		NR11_REG = 0x85;
-		NR12_REG = 0x71;
-		NR13_REG = 0x73;
-		NR14_REG = 0x86;
+	if (type == 21) { //gun
+		NR21_REG = 0x81;
+		NR22_REG = 0x51;
+		NR23_REG = 0x8b;
+		NR24_REG = 0x82;
+	}
+	if (type == 22) { //missile
+		NR21_REG = 0x81;
+		NR22_REG = 0x54;
+		NR23_REG = 0x5a;
+		NR24_REG = 0x82;
 	}
 
 	if (type == 0) {  // explosion 1
@@ -431,16 +436,27 @@ void playSound(uint8_t type) {
 		NR13_REG = 0x74;
 		NR14_REG = 0xc5;
 	}
-	if (type == 30) { //menu up/down/back
+	if (type == 30) { //menu up/down
 		NR10_REG = 0x00;
 		NR11_REG = 0x80;
 		NR12_REG = 0x51;
 		NR13_REG = 0x11;
 		NR14_REG = 0x85;
-
 	}
-
-	//20, a3, 37/47/57, 80
+	if (type == 31) { //menu back
+		NR10_REG = 0x5c;
+		NR11_REG = 0x81;
+		NR12_REG = 0x63;
+		NR13_REG = 0xc9;
+		NR14_REG = 0x85;
+	}
+	if (type == 32) { //menu confirm
+		NR10_REG = 0x54;
+		NR11_REG = 0x81;
+		NR12_REG = 0x63;
+		NR13_REG = 0xc9;
+		NR14_REG = 0x85;
+	}
 	
 }
 
@@ -484,8 +500,8 @@ void clearScreen() {
 	HIDE_WIN;
 	HIDE_BKG;
 	for (uint8_t i=0; i < 18; ++i) {
-    	set_win_tiles(1,i,20,1,emptyRow);
-		set_bkg_tiles(1,i,20,1,emptyRow);
+    	set_win_tiles(0,i,20,1,emptyRow);
+		set_bkg_tiles(0,i,20,1,emptyRow);
 	}
 	for (uint8_t j=0; j < 40; ++j) {
 		set_sprite_tile(j, 0x7f);
@@ -1071,11 +1087,12 @@ void fire() {
 	if (currentGun == 0) {
 		if (gunLevel == 0) {
 			projectiles[oldestProjectile] = singleGun;
+			playSound(20);
 		}
 		else {
 			projectiles[oldestProjectile] = doubleGun;
+			playSound(21);
 		}
-		playSound(20);
 	}
 	else if (currentGun == 1) {
 		if (missiles == 0) {
@@ -1086,7 +1103,7 @@ void fire() {
 		
 		projectiles[oldestProjectile] = missile;
 		updateMissileCount(-1);
-		playSound(20);
+		playSound(22);
 
 		if (missiles == 0) {
 			currentGun = 0;
@@ -1382,8 +1399,8 @@ void initGame() {
 
 
 
-	missiles = 5;
-	MISSILES = MAKE_BCD(5);
+	missiles = 3;
+	MISSILES = MAKE_BCD(3);
 
 
 	recoverHud();
@@ -1436,6 +1453,11 @@ void showScoreScreen() {
 	move_win(8,0);
 	clearScreen();
 	initFont();
+
+	set_bkg_data(0x63, 3, backgroundtiles); //0x25
+	loadWindowStars();
+
+
 	//set score label
 	set_win_tiles(7, 5, 5, 1, endScoreLabel);
 	unsigned char buf[10];
@@ -1466,6 +1488,10 @@ void showControls() {
 	move_win(12,0);
 	clearScreen();
 	initFont();
+
+	set_bkg_data(0x63, 3, backgroundtiles); //0x25
+	loadWindowStars();
+
 
 	set_bkg_data(0x70, 1, underscore); 
 	unsigned char underscoreTiles[] = {0x70, 0x70, 0x70, 0x70, 0x70, 0x70,0x70, 0x70};
@@ -1498,6 +1524,16 @@ void showStartScreen() {
 	SHOW_WIN;
 }
 
+void loadWindowStars() {
+	unsigned char tiles[] = {0x64, 0x65};
+	for (uint8_t i = 0; i < 10; ++i) {
+		uint8_t x = ((uint8_t)rand()) % 18; 
+		uint8_t y = ((uint8_t)rand()) % 16;
+		uint8_t type = ((uint8_t)rand()) % 2;
+		set_win_tiles(x, y, 1, 1, tiles + type);
+	}
+}
+
 //updates menu picker location
 void updateMenu(int8_t menuitem) {
 	move_sprite(0, 48, 95+ (menuitem<<3));
@@ -1518,23 +1554,27 @@ uint8_t showMenu() {
 	move_win(16,0);
 
 
+
+	set_bkg_data(0x63, 3, backgroundtiles); //0x25
+	loadWindowStars();
+
+
 	//move win to top left and clear window
 	set_win_tiles(7, 10, 4, 1, playLabel);
 	set_win_tiles(5, 11, 8, 1, controlsLabel);
 
 
+
 	unsigned char logo0_offsetMap[128];
 	for (uint8_t i = 0; i < 128; ++i) {
 		logo0_offsetMap[i] = logo0_map[i] + 0x25;
-	} 
+	}
 
-	unsigned char logo0_offsetData[76];
-	for (uint8_t j = 0; j < 76; ++j) {
-		logo0_offsetData[j] = logo0_data[j] + 0x25;
-	} 
-
-	set_bkg_data(0x25, 76, logo0_data); //0x25
+	set_bkg_data(0x25, 62, logo0_data); //0x25
 	set_win_tiles(1,1, 16, 8, logo0_offsetMap);
+
+
+
 
 	set_sprite_data(0, 1, MenuPicker);
 	set_sprite_tile(0, 0);
@@ -1566,11 +1606,12 @@ uint8_t showMenu() {
 
 		if ((joydata & J_A) && menuitem == 0) {
 			waitpadup();
-			playSound(0);
+			playSound(32);
 			return 0;
 		}
 		else if (joydata & J_A) {
 			waitpadup();
+			playSound(32);
 			return 1;
 		}
 
@@ -1588,6 +1629,10 @@ uint8_t showLevelSelection() {
 	clearScreen();
 	initFont();
 	move_win(8, 0);
+
+	set_bkg_data(0x63, 3, backgroundtiles); //0x25
+	loadWindowStars();
+
 
 	set_bkg_data(0x70, 1, underscore); 
 	unsigned char underscoreTiles[] = {0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70};
@@ -1616,6 +1661,7 @@ uint8_t showLevelSelection() {
 		joydata = joypad();
 
 		if (joydata & J_A) {
+			playSound(32);
 			waitpadup();
 
 			if (menuitem == 0) {
@@ -1657,7 +1703,7 @@ uint8_t showLevelSelection() {
 		}
 		if (joydata & J_B) {
 			waitpadup();
-			playSound(30);
+			playSound(31);
 			return 0;
 		}
 
@@ -1690,16 +1736,17 @@ void main(){
 	disable_interrupts();
 
 
-	showStartScreen();
-	waitpad(J_START | J_A);
-	waitpadup();
-
-
-
 
 	NR52_REG = 0x80; // sound on 
     NR50_REG = 0x77; // volume
     NR51_REG = 0xFF; // all channels
+
+
+
+	showStartScreen();
+	waitpad(J_START | J_A);
+	waitpadup();
+	playSound(32);
 
 
 	uint16_t seed = LY_REG;
@@ -1874,7 +1921,7 @@ void main(){
 			showControls();
 			waitpad(J_B);
 			waitpadup();
-			playSound(30);
+			playSound(31);
 		}
 		
 	}
