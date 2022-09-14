@@ -1,6 +1,6 @@
 # Loss Of Pressure
 
-A Game Boy game developed with gbdk-2020
+A Game Boy game written in C using gbdk-2020
 
 It's a 2d space fighting game where the player has to evade incoming enemies and shoot them while looking out for pickups for upgrades.
 
