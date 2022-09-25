@@ -13,7 +13,7 @@ Saving is not implemented as the cartridges I used didn't have any sram.
 
 Get gbdk-2020, then set GBDK_HOME variable in Makefile to point to the compiler location.
 
-To build just run `make` at project root. The game binary is generated under build/gb/<name>.gb
+To build just run `make` at project root. The game binary is generated under build/gb/<name>main.gb
 
 For running the game check out bgb emulator to see vram contents at runtime in addition to other debug features.
 
