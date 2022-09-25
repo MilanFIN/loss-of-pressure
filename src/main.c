@@ -69,9 +69,9 @@ const unsigned char EMPTYSPRITE = 0x50;
 
 
 //bigger number for slower hp gain on enemies during gameplay
-// hp addition is calculated by difficulty % scale, difficulty increases by one every skill
+// hp addition is calculated by difficulty % scale, difficulty increases by two every skill
 uint16_t HPSCALESPEED = 10; 
-uint16_t ATTACKSCALESPEED = 20; //same as above
+uint16_t ATTACKSCALESPEED = 25; //20; //similar function as above
 
 //incremented on every enemy kill, see above variables to how it affects enemies
 uint16_t difficulty = 0;
@@ -565,7 +565,7 @@ void initEnemy(uint8_t i) {
 		enemies[i].y = ySpawnPositions[posIndex];
 		enemies[i].hp += difficulty % HPSCALESPEED;
 		enemies[i].damage += difficulty & ATTACKSCALESPEED;
-		difficulty += 1;
+		difficulty += 2;//1;
 
 		if (enemies[i].spriteCount == 1) {
 			set_sprite_tile(10+ (i<<1), enemies[i].sprite0);

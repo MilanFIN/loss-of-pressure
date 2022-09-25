@@ -1,3 +1,11 @@
+build/*
+obj/*
+
+*.ihx
+*.gb
+*.sav
+*.noi
+
 # Prerequisites
 *.d
 
@@ -50,3 +58,4 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+

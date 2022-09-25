@@ -36,10 +36,10 @@ struct Enemy minispike =  {
 
 	1, // alive;
 	1, // visible;
-	25, // damage;
+	20, // damage;
 
 	3,// speed;
-	1,// accel;
+	3,// accel;
 	0,// xSpeed;
 	0,// ySpeed; 
 	50 //hp
@@ -58,7 +58,7 @@ struct Enemy minibomb =  {
 
 	1, // alive;
 	1, // visible;
-	25, // damage;
+	30, // damage;
 
 	5,// speed;
 	1,// accel;
@@ -80,10 +80,10 @@ struct Enemy miniship =  {
 
 	1, // alive;
 	1, // visible;
-	25, // damage;
+	20, // damage;
 
-	5,// speed;
-	1,// accel;
+	4,// speed;
+	2,// accel;
 	0,// xSpeed;
 	0,// ySpeed; 
 	50 //hp
@@ -104,7 +104,7 @@ struct Enemy miniufo =  {
 	1, // visible;
 	25, // damage;
 
-	5,// speed;
+	4,// speed;
 	1,// accel;
 	0,// xSpeed;
 	0,// ySpeed; 
@@ -124,13 +124,13 @@ struct Enemy minibubble =  {
 
 	1, // alive;
 	1, // visible;
-	25, // damage;
+	30, // damage;
 
-	5,// speed;
-	1,// accel;
+	3,// speed;
+	4,// accel;
 	0,// xSpeed;
 	0,// ySpeed; 
-	50 //hp
+	75 //hp
 };
 struct Enemy minidual =  {
 	0,//x
@@ -145,10 +145,10 @@ struct Enemy minidual =  {
 
 	1, // alive;
 	1, // visible;
-	25, // damage;
+	30, // damage;
 
-	5,// speed;
-	1,// accel;
+	3,// speed;
+	3,// accel;
 	0,// xSpeed;
 	0,// ySpeed; 
 	50 //hp
@@ -170,8 +170,8 @@ struct Enemy minifighter =  {
 	1, // visible;
 	25, // damage;
 
-	5,// speed;
-	1,// accel;
+	3,// speed;
+	2,// accel;
 	0,// xSpeed;
 	0,// ySpeed; 
 	50 //hp
@@ -198,7 +198,7 @@ struct Enemy shieldship =  {
 	1,// accel;
 	0,// xSpeed;
 	0,// ySpeed; 
-	70 //hp
+	120 //hp
 };
 
 
@@ -215,9 +215,9 @@ struct Enemy owl =  {
 
 	1, // alive;
 	1, // visible;
-	50, // damage;
+	40, // damage;
 
-	3,// speed;
+	4,// speed;
 	1,// accel;
 	0,// xSpeed;
 	0,// ySpeed; 
@@ -243,7 +243,7 @@ struct Enemy calvine =  {
 	1,// accel;
 	0,// xSpeed;
 	0,// ySpeed; 
-	100 //hp
+	120 //hp
 };
 
 struct Enemy xwing =  {
@@ -259,13 +259,13 @@ struct Enemy xwing =  {
 
 	1, // alive;
 	1, // visible;
-	50, // damage;
+	40, // damage;
 
-	3,// speed;
+	4,// speed;
 	1,// accel;
 	0,// xSpeed;
 	0,// ySpeed; 
-	100 //hp
+	80 //hp
 };
 
 struct Enemy destroyer =  {
@@ -281,13 +281,13 @@ struct Enemy destroyer =  {
 
 	1, // alive;
 	1, // visible;
-	50, // damage;
+	75, // damage;
 
 	3,// speed;
 	1,// accel;
 	0,// xSpeed;
 	0,// ySpeed; 
-	100 //hp
+	150 //hp
 };
 
 struct Enemy doublefuse =  {
@@ -303,13 +303,13 @@ struct Enemy doublefuse =  {
 
 	1, // alive;
 	1, // visible;
-	50, // damage;
+	60, // damage;
 
-	3,// speed;
+	4,// speed;
 	1,// accel;
 	0,// xSpeed;
 	0,// ySpeed; 
-	100 //hp
+	80 //hp
 };
 const uint8_t ENEMYOPTIONCOUNT = 11;
 struct Enemy enemyOptions[11];
