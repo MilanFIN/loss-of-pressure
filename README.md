@@ -17,9 +17,9 @@ To build just run `make` at project root. The game binary is generated under bui
 
 For running the game check out bgb emulator to see vram contents at runtime in addition to other debug features.
 
-## Binaries
+## Rom file
 
-See https://milanfin.itch.io/TBD
+See https://milanfin.itch.io/loss-of-pressure 
 
 ## Images
 
