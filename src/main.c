@@ -47,19 +47,6 @@
 
 #include "data/menupicker.c"
 
-/*
-TODO: 
-
-- äänet
-	- valikko dpad
-	- valikko ok ja back
-	- ampumiseen, sekä gun että missile
-	- pickup
-	- shield kun täysi
-	- eri ääni oma damage ja viholliset
-
-
-*/
 
 
 //global variables
